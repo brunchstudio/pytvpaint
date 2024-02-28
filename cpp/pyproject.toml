@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "tvpaint-cpp-ws"
+version = "0.1.0"
+description = "TVPaint George WebSocket server C++ plugin"
+authors = ["Brunch Studio Pipeline <dev@brunchstudio.tv>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+conan = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

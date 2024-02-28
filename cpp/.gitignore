@@ -1,0 +1,13 @@
+.venv
+.vscode
+TVPaint_SDK
+CMakeUserPresets.json
+
+tvpaint-ws-server.exp
+tvpaint-ws-server.lib
+
+build/*
+!build/Release
+
+.idea/
+.vscode

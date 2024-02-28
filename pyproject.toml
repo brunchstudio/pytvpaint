@@ -1,0 +1,69 @@
+[tool.poetry]
+name = "pytvpaint"
+version = "0.1.0"
+description = "Python scripting for TVPaint"
+authors = ["Brunch Studio Developers <dev@brunchstudio.tv>"]
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "pytvpaint", from = "python" }]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+websocket-client = "^1.7.0"
+typing-extensions = "^4.9.0"
+fileseq = "^2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+ruff = "^0.2.2"
+pytest = "^8.0.1"
+mypy = "^1.8.0"
+pytest-mock = "^3.12.0"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+# Enable isort rules for imports
+extend-select = [
+    "E",
+    "I",
+    "SLF001",
+    "C901",
+    "N",
+    "UP",
+    "RET",
+    "SIM",
+    "TID",
+    "PTH",
+    "ERA",
+    "PERF",
+    "RUF",
+]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+exclude = "package.py"
+follow_imports = "normal"
+ignore_missing_imports = true
+no_implicit_reexport = true
+show_error_codes = true
+show_error_context = true
+strict_equality = true
+strict_optional = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+extra_checks = true
+
+[brunch-build]
+include = ["python", "tests", "package.py", "pyproject.toml"]
