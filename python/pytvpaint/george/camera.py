@@ -1,8 +1,10 @@
+"""Camera related George functions."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pytvpaint.george.base import FieldOrder, GrgErrorValue, undo
+from pytvpaint.george.base import FieldOrder, GrgErrorValue
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.client.parse import (
     consecutive_optional_args_to_list,
@@ -12,6 +14,8 @@ from pytvpaint.george.client.parse import (
 
 @dataclass(frozen=True)
 class TVPCamera:
+    """The TVPaint camera."""
+
     width: int
     height: int
     field_order: FieldOrder
@@ -22,6 +26,8 @@ class TVPCamera:
 
 @dataclass(frozen=True)
 class TVPCameraPoint:
+    """A camera 2D point."""
+
     x: float
     y: float
     angle: float
@@ -29,11 +35,10 @@ class TVPCameraPoint:
 
 
 def tv_camera_info_get() -> TVPCamera:
-    """Get the information of the camera"""
+    """Get the information of the camera."""
     return TVPCamera(**tv_parse_list(send_cmd("tv_CameraInfo"), with_fields=TVPCamera))
 
 
-@undo
 def tv_camera_info_set(
     width: int | None = None,
     height: int | None = None,
@@ -41,8 +46,7 @@ def tv_camera_info_set(
     frame_rate: float | None = None,
     pixel_aspect_ratio: float | None = None,
 ) -> TVPCamera:
-    """Set the information of the camera"""
-
+    """Set the information of the camera."""
     optional_args = [
         (width, height),
         field_order.value if field_order else None,
@@ -57,13 +61,13 @@ def tv_camera_info_set(
 
 
 def tv_camera_enum_points(index: int) -> TVPCameraPoint:
-    """Get the position/angle/scale values of the n-th point of the camera path"""
+    """Get the position/angle/scale values of the n-th point of the camera path."""
     res = send_cmd("tv_CameraEnumPoints", index, error_values=[GrgErrorValue.NONE])
     return TVPCameraPoint(**tv_parse_list(res, with_fields=TVPCameraPoint))
 
 
 def tv_camera_interpolation(position: float) -> TVPCameraPoint:
-    """Get the position/angle/scale values at the given position on the camera path (between 0 and 1)"""
+    """Get the position/angle/scale values at the given position on the camera path (between 0 and 1)."""
     res = tv_parse_list(
         send_cmd("tv_CameraInterpolation", position),
         with_fields=TVPCameraPoint,
@@ -71,7 +75,6 @@ def tv_camera_interpolation(position: float) -> TVPCameraPoint:
     return TVPCameraPoint(**res)
 
 
-@undo
 def tv_camera_insert_point(
     index: int,
     x: float,
@@ -79,21 +82,21 @@ def tv_camera_insert_point(
     angle: float,
     scale: float,
 ) -> None:
-    """Add a point to the camera path *before* the given index"""
+    """Add a point to the camera path *before* the given index."""
     send_cmd("tv_CameraInsertPoint", index, x, y, angle, scale)
 
 
-@undo
 def tv_camera_remove_point(index: int) -> None:
-    """Remove a point at the given index"""
+    """Remove a point at the given index."""
     send_cmd("tv_CameraRemovePoint", index)
 
 
-@undo
 def tv_camera_set_point(
-    index: int, x: float, y: float, angle: float, scale: float
+    index: int,
+    x: float,
+    y: float,
+    angle: float,
+    scale: float,
 ) -> None:
-    """
-    Set position/angle/scale value of a point at the given index and make it current
-    """
+    """Set position/angle/scale value of a point at the given index and make it current."""
     send_cmd("tv_CameraSetPoint", index, x, y, angle, scale)

@@ -1,0 +1,3 @@
+# Clip class
+
+::: pytvpaint.clip

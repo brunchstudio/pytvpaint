@@ -1,4 +1,7 @@
-from types import NotImplementedType
+"""Scene class."""
+
+from __future__ import annotations
+
 from typing import Iterator
 
 from pytvpaint import george
@@ -6,47 +9,52 @@ from pytvpaint.clip import Clip
 from pytvpaint.project import Project
 from pytvpaint.utils import (
     Removable,
-    get_tvp_element,
     position_generator,
     set_as_current,
 )
 
 
 class Scene(Removable):
+    """A Scene is a collection of clips. A Scene is inside a project."""
+
     def __init__(self, scene_id: int, project: Project) -> None:
         super().__init__()
         self._id: int = scene_id
         self._project = project
 
     def __repr__(self) -> str:
+        """String representation of the scene."""
         return f"Scene()<id:{self.id}>"
 
-    def __eq__(self, other: object) -> bool | NotImplementedType:
+    def __eq__(self, other: object) -> bool:
+        """Two scenes are equal if their id is the same."""
         if not isinstance(other, Scene):
             return NotImplemented
         return self.id == other.id
 
     @staticmethod
     def current_scene_id() -> int:
+        """Returns the current scene id (the current clip's scene)."""
         return george.tv_scene_current_id()
 
     @staticmethod
-    def current_scene() -> "Scene":
-        """Returns the current scene of the current project"""
+    def current_scene() -> Scene:
+        """Returns the current scene of the current project."""
         return Scene(
             scene_id=george.tv_scene_current_id(),
             project=Project.current_project(),
         )
 
     @classmethod
-    def new(cls, project: Project | None = None) -> "Scene":
-        """Creates a new scene in the provided project"""
+    def new(cls, project: Project | None = None) -> Scene:
+        """Creates a new scene in the provided project."""
         project = project or Project.current_project()
         project.make_current()
         george.tv_scene_new()
         return cls.current_scene()
 
     def make_current(self) -> None:
+        """Make the scene the current one."""
         if self.is_current:
             return
 
@@ -56,18 +64,22 @@ class Scene(Removable):
 
     @property
     def is_current(self) -> bool:
+        """Returns `True` if the scene is the current one."""
         return self.id == self.current_scene_id()
 
     @property
     def id(self) -> int:
+        """The scene id."""
         return self._id
 
     @property
     def project(self) -> Project:
+        """The scene's project."""
         return self._project
 
     @property
     def position(self) -> int:
+        """The scene position in the project."""
         for pos, other_id in enumerate(self.project.current_scene_ids()):
             if other_id == self.id:
                 return pos
@@ -80,12 +92,12 @@ class Scene(Removable):
     @property
     @set_as_current
     def clip_ids(self) -> Iterator[int]:
-        """Returns an iterator over the clip ids"""
+        """Returns an iterator over the clip ids."""
         return position_generator(lambda pos: george.tv_clip_enum_id(self.id, pos))
 
     @property
     def clips(self) -> Iterator[Clip]:
-        """Yields the scene clips"""
+        """Yields the scene clips."""
         for clip_id in self.clip_ids:
             yield Clip(clip_id, project=self._project)
 
@@ -93,16 +105,21 @@ class Scene(Removable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
-    ) -> Clip | None:
-        return get_tvp_element(self.clips, by_id, by_name)
+    ) -> Clip:
+        """Find a clip by id or by name."""
+        for clip in self.clips:
+            if (by_id and clip.id == by_id) or (by_name and clip.name == by_name):
+                return clip
+        raise ValueError("Clip not found")
 
     @set_as_current
     def add_clip(self, clip_name: str) -> Clip:
-        """Adds a clip to the scene"""
+        """Adds a new clip to the scene."""
         self.make_current()
         return Clip.new(name=clip_name, project=self.project)
 
-    def duplicate(self) -> "Scene":
+    def duplicate(self) -> Scene:
+        """Duplicate the scene and return it."""
         self.project.make_current()
         george.tv_scene_duplicate(self.id)
         dup_pos = self.position + 1
@@ -110,5 +127,11 @@ class Scene(Removable):
         return Scene(dup_id, self.project)
 
     def remove(self) -> None:
+        """Remove the scene and all the clips inside.
+
+        Warning:
+            All the `Clip` instances won't be valid after removing the scene.
+            There's no protection mechanism to prevent from accessing clip data that doesn't exist anymore.
+        """
         george.tv_scene_close(self._id)
         self.mark_removed()

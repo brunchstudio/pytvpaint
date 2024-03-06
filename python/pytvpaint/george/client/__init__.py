@@ -1,3 +1,8 @@
+"""This modules handles the WebSocket client and automatically connect to the server running in TVPaint.
+
+It also has crucial functions like `send_cmd` that send George commands and get the result.
+"""
+
 from __future__ import annotations
 
 import contextlib
@@ -6,7 +11,7 @@ import os
 import re
 from pathlib import Path
 from time import sleep, time
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable, Type, TypeVar, cast
 
 from pytvpaint import log
 from pytvpaint.george.client.parse import tv_handle_string
@@ -46,7 +51,8 @@ def _connect_client(
         wait_duration *= 2
         failed_attempts += 1
 
-    log.info("Connected to TVPaint")
+    log.info(f"Connected to TVPaint on port {port}")
+
     return rpc_client
 
 
@@ -56,13 +62,21 @@ T = TypeVar("T", bound=Callable[..., Any])
 
 
 def try_cmd(
-    raise_exc: type[Exception] = GeorgeError,
-    catch_exc: type[Exception] = GeorgeError,
-    exception_msg: str = "",
+    raise_exc: Type[Exception] = GeorgeError,
+    catch_exc: Type[Exception] = GeorgeError,
+    exception_msg: str | None = None,
 ) -> Callable[[T], T]:
-    """
-    Decorator that does a try/except with GeorgeError by default
-    It raises the error with the custom exception message provided
+    """Decorator that does a try/except with GeorgeError by default.
+
+    It raises the error with the custom exception message provided.
+
+    Args:
+        raise_exc: the exception to raise. Defaults to GeorgeError.
+        catch_exc: the exception to catch. Defaults to GeorgeError.
+        exception_msg: Custom exception message. Defaults to None.
+
+    Returns:
+        the decorated function
     """
 
     def decorate(func: T) -> T:
@@ -84,10 +98,21 @@ def send_cmd(
     error_values: list[Any] | None = None,
     handle_string: bool = True,
 ) -> str:
-    """
-    Send a George command with the provided arguments to TVPaint.
-    Catch basic "ERROR XX" errors, but you can provide your own error values.
-    Use handle_string to control the quote wrapping of string with spaces
+    """Send a George command with the provided arguments to TVPaint.
+
+    Catch basic `ERROR XX` errors returned from George, but you can provide your own error values.
+
+    Args:
+        command: the George command to send
+        *args: pass any arguments you want to that function
+        error_values: a list of error values to catch from George. Defaults to None.
+        handle_string: control the quote wrapping of string with spaces. Defaults to True.
+
+    Raises:
+        GeorgeError: if we received `ERROR XX` or any of the custom error codes
+
+    Returns:
+        the George return string
     """
     tv_args = [
         tv_handle_string(arg) if handle_string and isinstance(arg, str) else arg
@@ -115,11 +140,16 @@ def send_cmd(
     return result
 
 
-def run_script(script: Path | str) -> str:
-    """
-    Execute a George script from a .grg file
+def run_script(script: Path | str) -> None:
+    """Execute a George script from a .grg file.
+
+    Args:
+        script: the path to the script
+
+    Raises:
+        ValueError: if the script was not found
     """
     script = Path(script)
     if not script.exists():
         raise ValueError(f"Script not found at : {script.as_posix()}")
-    return send_cmd("tv_RunScript", script.as_posix())
+    send_cmd("tv_RunScript", script.as_posix())

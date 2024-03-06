@@ -62,7 +62,10 @@ class EnumTest(Enum):
         ("cc", EnumTest, EnumTest.B),
         ("1", EnumTest, EnumTest.B),
         ('"aa"', EnumTest, EnumTest.A),
-        ('"cc"', EnumTest, EnumTest.C),
+        ('"cc"', EnumTest, EnumTest.B),
+        ("Cc", EnumTest, EnumTest.C),
+        ("0.5 0.5", tuple[float, float], (0.5, 0.5)),
+        ("hel 0.5 C:/test", tuple[str, float, Path], ("hel", 0.5, Path("C:/test"))),
     ],
 )
 def test_tv_cast_to_type(value: str, cast: Any, result: str) -> None:
@@ -76,7 +79,7 @@ def test_tv_cast_to_enum_index_parse_error() -> None:
 
 def test_tv_cast_to_enum_index_out_of_bounds() -> None:
     with pytest.raises(ValueError, match="out of bounds"):
-        tv_cast_to_type("2", EnumTest)
+        tv_cast_to_type("67", EnumTest)
 
 
 @dataclass
@@ -153,7 +156,7 @@ class TVPPenBrush:
             {"size": -23, "arg": 0, "maxsize": "hello   p"},
         ),
         (
-            'mode "color" size 3.000000 power 100 opacity 100 dry 0 aaliasing 1 gradient 0 csize "10;2 0 1 0 0 1 1 " cpower "0;2 0 1 0 0 1 1 "',  # noqa: E501
+            'mode "color" size 3.000000 power 100 opacity 100 dry 0 aaliasing 1 gradient 0 csize "10;2 0 1 0 0 1 1 " cpower "0;2 0 1 0 0 1 1 "',
             TVPPenBrush,
             {
                 "mode": DrawingModeTest.COLOR,

@@ -2,31 +2,56 @@
 name = "pytvpaint"
 version = "0.1.0"
 description = "Python scripting for TVPaint"
-authors = ["Brunch Studio Developers <dev@brunchstudio.tv>"]
+authors = [
+    "Brunch Studio Developers <dev@brunchstudio.tv>",
+    "Radouane Lahmidi <rlahmidi@brunchstudio.tv>",
+    "Joseph Henry <jhenry@brunchstudio.tv>",
+]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/brunchstudio/pytvpaint"
+keywords = ["tvpaint", "brunch", "tvp", "george"]
 packages = [{ include = "pytvpaint", from = "python" }]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.9"
 websocket-client = "^1.7.0"
 typing-extensions = "^4.9.0"
 fileseq = "^2.0.0"
 
+[tool.poetry.group.dev]
+optional = true
+
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"
 ruff = "^0.2.2"
-pytest = "^8.0.1"
 mypy = "^1.8.0"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.0.1"
 pytest-mock = "^3.12.0"
 pytest-cov = "^4.1.0"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.5.10"
+mkdocstrings = { extras = ["python"], version = "^0.24.0" }
+
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.ruff]
+target-version = "py39"
+
 [tool.ruff.lint]
-# Enable isort rules for imports
+ignore = ["E501", "UP006", "D107"]
 extend-select = [
     "E",
     "I",
@@ -41,7 +66,14 @@ extend-select = [
     "ERA",
     "PERF",
     "RUF",
+    "D",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.mypy]
 check_untyped_defs = true

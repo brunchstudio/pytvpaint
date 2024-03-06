@@ -1,0 +1,93 @@
+site_name: Pytvpaint
+theme:
+  name: material
+  logo: assets/pytvpaint_logo.png
+  favicon: assets/pytvpaint_logo.png
+  features:
+    - navigation.tabs
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    scheme: slate
+    primary: custom
+    accent: custom
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+extra:
+  generator: false
+
+copyright: Made with ❤️ by BRUNCH Studio developers
+
+nav:
+  - Get Started:
+      - Welcome to Pytvpaint: index.md
+      - Installation: installation.md
+      - Usage: usage.md
+      - Contributing:
+          - Wrapping George commands: contributing/wrap_george.md
+      - Logo: logo.md
+  - C++ plugin:
+      - Introduction: cpp/index.md
+      - Building: cpp/building.md
+  - Python API Documentation:
+      - API:
+          - Project: api/objects/project.md
+          - ProjectSound: api/objects/project_sound.md
+          - Scene: api/objects/scene.md
+          - Clip: api/objects/clip.md
+          - ClipSound: api/objects/clip_sound.md
+          - Layer: api/objects/layer.md
+          - LayerInstance: api/objects/layer_instance.md
+          - LayerColor: api/objects/layer_color.md
+          - Camera: api/objects/camera.md
+      - George:
+          - Project: api/george/project.md
+          - Scene: api/george/scene.md
+          - Clip: api/george/clip.md
+          - Layer: api/george/layer.md
+          - Camera: api/george/camera.md
+          - Misc: api/george/misc.md
+          - Exceptions: api/george/exceptions.md
+      - Client:
+          - Communication: api/client/communication.md
+          - JSON-RPC: api/client/rpc.md
+          - Parsing: api/client/parsing.md
+      - Utils: api/utils.md
+
+extra_css:
+  - stylesheets/extra.css
+
+watch:
+  - python/pytvpaint
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+          options:
+            members_order: source
+            annotations_path: full
+            signature_crossrefs: true
+            docstring_options:
+              ignore_init_summary: false
+            filters: ["!^_"]
+            show_signature_annotations: True
+            merge_init_into_class: True
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

@@ -1,3 +1,5 @@
+"""Camera related objects and classes."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator
@@ -16,6 +18,11 @@ if TYPE_CHECKING:
 
 
 class Camera(Refreshable):
+    """The Camera class represents the camera in a TVPaint clip.
+
+    There's only one camera in the clip so instantiating multiple objects of this class won't create cameras.
+    """
+
     def __init__(self, clip: Clip, data: george.TVPCamera | None = None) -> None:
         super().__init__()
         self._clip = clip
@@ -23,19 +30,23 @@ class Camera(Refreshable):
         self._points: list[CameraPoint] = []
 
     def refresh(self) -> None:
+        """Refreshed the camera data."""
         if not self.refresh_on_call and self._data:
             return
         self._data = george.tv_camera_info_get()
 
     def __repr__(self) -> str:
+        """String representation of the camera."""
         return f"Camera()[{self.clip}]"
 
     @property
     def clip(self) -> Clip:
+        """The camera's clip."""
         return self._clip
 
     @refreshed_property
     def width(self) -> int:
+        """The sensor width of the camera."""
         return self._data.width
 
     @width.setter
@@ -44,6 +55,7 @@ class Camera(Refreshable):
 
     @refreshed_property
     def height(self) -> int:
+        """The sensor height of the camera."""
         return self._data.height
 
     @height.setter
@@ -52,6 +64,7 @@ class Camera(Refreshable):
 
     @refreshed_property
     def fps(self) -> float:
+        """The framerate of the camera."""
         return self._data.frame_rate
 
     @fps.setter
@@ -65,6 +78,7 @@ class Camera(Refreshable):
 
     @refreshed_property
     def pixel_aspect_ratio(self) -> float:
+        """The pixel aspect ratio of the camera."""
         return self._data.pixel_aspect_ratio
 
     @pixel_aspect_ratio.setter
@@ -79,10 +93,12 @@ class Camera(Refreshable):
 
     @refreshed_property
     def anti_aliasing(self) -> int:
+        """The anti aliasing value of the camera."""
         return self._data.anti_aliasing
 
     @refreshed_property
     def field_order(self) -> george.FieldOrder:
+        """The field order of the camera."""
         return self._data.field_order
 
     @field_order.setter
@@ -97,22 +113,27 @@ class Camera(Refreshable):
         angle: int,
         scale: float,
     ) -> CameraPoint:
+        """Insert a new point in the camera path."""
         return CameraPoint.new(self, index, x, y, angle, scale)
 
     @staticmethod
     def current_points_data() -> Iterator[TVPCameraPoint]:
+        """Iterator over the camera points data."""
         return position_generator(lambda pos: george.tv_camera_enum_points(pos))
 
     @property
     def points(self) -> Iterator[CameraPoint]:
+        """Iterator over the `CameraPoint` objects of the camera."""
         for index, point_data in enumerate(self.current_points_data()):
             yield CameraPoint(index, camera=self, data=point_data)
 
     def get_point_data_at(self, position: float) -> george.TVPCameraPoint:
+        """Get the points data interpolated at that position (between 0 and 1)."""
         position = max(0.0, min(position, 1.0))
         return george.tv_camera_interpolation(position)
 
     def remove_point(self, index: int) -> None:
+        """Remove a point at that index."""
         try:
             point = next(p for i, p in enumerate(self.points) if i == index)
             point.remove()
@@ -121,6 +142,11 @@ class Camera(Refreshable):
 
 
 class CameraPoint(Removable):
+    """A CameraPoint is a point on the camera path.
+
+    You can use them to animate the camera movement.
+    """
+
     def __init__(
         self,
         index: int,
@@ -133,15 +159,18 @@ class CameraPoint(Removable):
         self._data = data or george.tv_camera_enum_points(self._index)
 
     def refresh(self) -> None:
+        """Refreshed the camera point data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
         self._data = george.tv_camera_enum_points(self._index)
 
     def __repr__(self) -> str:
+        """String representation of the camera point."""
         return f"CameraPoint({self.camera.clip.name})<index:{self._index}>"
 
     def __eq__(self, other: object) -> bool:
+        """Two camera points only equal if their internal data is the same."""
         if not isinstance(other, CameraPoint):
             return NotImplemented
         self.refresh()
@@ -150,18 +179,22 @@ class CameraPoint(Removable):
 
     @property
     def data(self) -> george.TVPCameraPoint:
+        """Returns the raw data of the point."""
         return self._data
 
     @property
     def index(self) -> int:
+        """The index of the point in the path."""
         return self._index
 
     @property
     def camera(self) -> Camera:
+        """The camera instance it belongs to."""
         return self._camera
 
     @refreshed_property
     def x(self) -> float:
+        """The x coordinate of the point."""
         return self._data.x
 
     @x.setter
@@ -177,6 +210,7 @@ class CameraPoint(Removable):
 
     @refreshed_property
     def y(self) -> float:
+        """The y coordinate of the point."""
         return self._data.y
 
     @y.setter
@@ -192,6 +226,7 @@ class CameraPoint(Removable):
 
     @refreshed_property
     def angle(self) -> float:
+        """The angle of the camera at that point."""
         return self._data.angle
 
     @angle.setter
@@ -207,6 +242,7 @@ class CameraPoint(Removable):
 
     @refreshed_property
     def scale(self) -> float:
+        """The scale of the camera at that point."""
         return self._data.scale
 
     @scale.setter
@@ -230,9 +266,15 @@ class CameraPoint(Removable):
         angle: int,
         scale: float,
     ) -> CameraPoint:
+        """Create a new point and add it to the camera path at that index."""
         george.tv_camera_insert_point(index, x, y, angle, scale)
         return cls(index, camera)
 
     def remove(self) -> None:
+        """Remove the camera point.
+
+        Warning:
+            the point instance won't be usable after that call
+        """
         george.tv_camera_remove_point(self.index)
         self.mark_removed()

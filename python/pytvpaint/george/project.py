@@ -1,3 +1,5 @@
+"""Project related George functions and enums."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -11,7 +13,6 @@ from pytvpaint.george.base import (
     ResizeOption,
     RGBColor,
     TVPSound,
-    undo,
 )
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
@@ -24,6 +25,8 @@ from pytvpaint.george.exceptions import NoObjectWithIdError
 
 @dataclass(frozen=True)
 class TVPProject:
+    """TVPaint project data."""
+
     id: str = field(metadata={"parsed": False})
 
     path: Path
@@ -36,13 +39,15 @@ class TVPProject:
 
 
 class BackgroundMode(Enum):
+    """The project background mode."""
+
     CHECK = "check"
     COLOR = "color"
     NONE = "none"
 
 
 def tv_background_get() -> tuple[RGBColor, RGBColor] | RGBColor | None:
-    """Get the background mode of the project"""
+    """Get the background mode of the project."""
     res = send_cmd("tv_Background")
 
     mode, *values = res.split(" ")
@@ -58,11 +63,10 @@ def tv_background_get() -> tuple[RGBColor, RGBColor] | RGBColor | None:
     return RGBColor(*map(int, values))
 
 
-@undo
 def tv_background_set(
     mode: BackgroundMode, c1: RGBColor | None = None, c2: RGBColor | None = None
 ) -> None:
-    """Set the background mode of the project"""
+    """Set the background mode of the project."""
     if mode == BackgroundMode.NONE:
         args = []
     elif mode == BackgroundMode.CHECK:
@@ -84,7 +88,7 @@ def tv_project_new(
     field_order: FieldOrder = FieldOrder.NONE,
     start_frame: int = 1,
 ) -> str:
-    """Create a new project"""
+    """Create a new project."""
     return send_cmd(
         "tv_ProjectNew",
         Path(project_path).as_posix(),
@@ -100,7 +104,7 @@ def tv_project_new(
 
 @try_cmd(exception_msg="Invalid format")
 def tv_load_project(project_path: Path | str, silent: bool | None = None) -> str:
-    """Load a file as a project if possible or open Import panel"""
+    """Load a file as a project if possible or open Import panel."""
     project_path = Path(project_path)
 
     if not project_path.exists():
@@ -115,7 +119,7 @@ def tv_load_project(project_path: Path | str, silent: bool | None = None) -> str
 
 
 def tv_save_project(project_path: Path | str) -> None:
-    """Save the current project as tvpp"""
+    """Save the current project as tvpp."""
     project_path = Path(project_path)
     parent = project_path.parent
 
@@ -128,24 +132,24 @@ def tv_save_project(project_path: Path | str) -> None:
 
 @try_cmd(exception_msg="Can't duplicate the current project")
 def tv_project_duplicate() -> None:
-    """Duplicate the current project"""
+    """Duplicate the current project."""
     send_cmd("tv_ProjectDuplicate", error_values=[0])
 
 
 @try_cmd(exception_msg="No project at provided position")
 def tv_project_enum_id(position: int) -> str:
-    """Get the id of the project at the given position"""
+    """Get the id of the project at the given position."""
     return send_cmd("tv_ProjectEnumId", position, error_values=[GrgErrorValue.NONE])
 
 
 def tv_project_current_id() -> str:
-    """Get the id of the current project"""
+    """Get the id of the current project."""
     return send_cmd("tv_ProjectCurrentId")
 
 
 @try_cmd(raise_exc=NoObjectWithIdError)
 def tv_project_info(project_id: str) -> TVPProject:
-    """Get info of the given project"""
+    """Get info of the given project."""
     result = send_cmd("tv_ProjectInfo", project_id, error_values=[GrgErrorValue.EMPTY])
     project = tv_parse_list(result, with_fields=TVPProject)
     project["id"] = project_id
@@ -153,62 +157,64 @@ def tv_project_info(project_id: str) -> TVPProject:
 
 
 def tv_get_project_name() -> str:
-    """Returns the save path of the current project"""
+    """Returns the save path of the current project."""
     return send_cmd("tv_GetProjectName")
 
 
 def tv_project_select(project_id: str) -> str:
-    """Make the given project current"""
+    """Make the given project current."""
     return send_cmd("tv_ProjectSelect", project_id)
 
 
 def tv_project_close(project_id: str) -> None:
-    """Close the given project"""
+    """Close the given project."""
     send_cmd("tv_ProjectClose", project_id)
 
 
 def tv_resize_project(width: int, height: int) -> None:
-    """
-    Resize the current project
-    Note: changes the id of the current project
+    """Resize the current project.
+
+    Note:
+        changes the id of the current project
     """
     send_cmd("tv_ResizeProject", width, height)
 
 
 def tv_resize_page(width: int, height: int, resize_opt: ResizeOption) -> None:
-    """Create a new resized project and close the current one"""
+    """Create a new resized project and close the current one."""
     send_cmd("tv_ResizePage", width, height, resize_opt.value)
 
 
 def tv_get_width() -> int:
-    """Get the current project width"""
+    """Get the current project width."""
     return int(send_cmd("tv_GetWidth"))
 
 
 def tv_get_height() -> int:
-    """Get the current project height"""
+    """Get the current project height."""
     return int(send_cmd("tv_GetHeight"))
 
 
 def tv_ratio() -> float:
-    """
-    Get the current project pixel aspect ratio
+    """Get the current project pixel aspect ratio.
+
     TODO: figure out why it doesn't work and returns an empty string
     """
     return float(send_cmd("tv_GetRatio", error_values=[GrgErrorValue.EMPTY]))
 
 
 def tv_get_field() -> FieldOrder:
-    """Get the current project field mode"""
+    """Get the current project field mode."""
     return tv_cast_to_type(send_cmd("tv_GetField"), cast_type=FieldOrder)
 
 
 def tv_save_sequence(
     export_path: Path | str,
-    mark_in_out: tuple[int, int] | None = None,
+    mark_in: int | None = None,
+    mark_out: int | None = None,
 ) -> None:
-    """Save the current project"""
-    export_path = Path(export_path)
+    """Save the current clip."""
+    export_path = Path(export_path).resolve()
 
     if not export_path.parent.exists():
         raise ValueError(
@@ -218,8 +224,7 @@ def tv_save_sequence(
 
     args: list[Any] = [export_path.as_posix()]
 
-    if mark_in_out:
-        mark_in, mark_out = mark_in_out
+    if mark_in and mark_out:
         args.extend([mark_in, mark_out])
 
     send_cmd("tv_SaveSequence", *args)
@@ -230,8 +235,8 @@ def tv_project_save_sequence(
     use_camera: bool | None = None,
     start_end_frame: tuple[int, int] | None = None,
 ) -> None:
-    """Save the current project"""
-    export_path = Path(export_path)
+    """Save the current project."""
+    export_path = Path(export_path).resolve()
     args: list[Any] = [export_path.as_posix()]
 
     if use_camera:
@@ -247,10 +252,10 @@ def tv_project_save_sequence(
 
 
 def tv_project_render_camera(project_id: str) -> str:
-    """
-    Render the given project in camera view to another new project
+    """Render the given project in camera view to another new project.
 
-    Returns the new project id
+    Returns:
+        the new project id
     """
     return send_cmd(
         "tv_ProjectRenderCamera",
@@ -260,9 +265,7 @@ def tv_project_render_camera(project_id: str) -> str:
 
 
 def tv_frame_rate_get() -> tuple[float, float]:
-    """
-    Get the framerate of the current project
-    """
+    """Get the framerate of the current project."""
     parse = tv_parse_list(
         send_cmd("tv_FrameRate", 1, "info"),
         with_fields=[
@@ -274,13 +277,10 @@ def tv_frame_rate_get() -> tuple[float, float]:
     return project_fps, playback_fps
 
 
-@undo
 def tv_frame_rate_set(
     frame_rate: float, time_stretch: bool = False, preview: bool = False
 ) -> None:
-    """
-    Get the framerate of the current project
-    """
+    """Get the framerate of the current project."""
     args: list[Any] = []
     if time_stretch:
         args = ["timestretch"]
@@ -290,39 +290,37 @@ def tv_frame_rate_set(
     send_cmd("tv_FrameRate", *args)
 
 
-@undo
 def tv_frame_rate_project_set(
     frame_rate: float, time_stretch: bool | None = None
 ) -> None:
-    """Set the framerate of the current project"""
+    """Set the framerate of the current project."""
     args: list[Any] = [frame_rate]
     if time_stretch:
         args.append("timestretch")
     send_cmd("tv_FrameRate", *args)
 
 
-@undo
 def tv_frame_rate_preview_set(frame_rate: float) -> None:
-    """Set the framerate of the preview (playback)"""
+    """Set the framerate of the preview (playback)."""
     send_cmd("tv_FrameRate", frame_rate, "preview")
 
 
 def tv_project_current_frame_get() -> int:
-    """Get the current frame of the current project"""
+    """Get the current frame of the current project."""
     return int(send_cmd("tv_ProjectCurrentFrame"))
 
 
-@undo
 def tv_project_current_frame_set(frame: int) -> int:
-    """
-    Set the current frame of the current project
-    Note: this is relative to the current clip markin
+    """Set the current frame of the current project.
+
+    Note:
+        this is relative to the current clip markin
     """
     return int(send_cmd("tv_ProjectCurrentFrame", frame))
 
 
 def tv_load_palette(palette_path: Path | str) -> None:
-    """Load a palette(s) from a file/directory"""
+    """Load a palette(s) from a file/directory."""
     palette_path = Path(palette_path)
     if not palette_path.exists():
         raise ValueError(f"Palette not found at: {palette_path.as_posix()}")
@@ -330,7 +328,7 @@ def tv_load_palette(palette_path: Path | str) -> None:
 
 
 def tv_save_palette(palette_path: Path | str) -> None:
-    """Save the current palette"""
+    """Save the current palette."""
     palette_path = Path(palette_path)
 
     if not palette_path.parent.exists():
@@ -341,20 +339,18 @@ def tv_save_palette(palette_path: Path | str) -> None:
     send_cmd("tv_SavePalette", palette_path.as_posix())
 
 
-@undo
 def tv_project_save_video_dependencies() -> None:
-    """Saves current project video dependencies"""
+    """Saves current project video dependencies."""
     send_cmd("tv_ProjectSaveVideoDependencies")
 
 
-@undo
 def tv_project_save_audio_dependencies() -> None:
-    """Saves current project audio dependencies"""
+    """Saves current project audio dependencies."""
     send_cmd("tv_ProjectSaveAudioDependencies")
 
 
 def tv_sound_project_info(project_id: str, track_index: int) -> TVPSound:
-    """Get information about a project sound track"""
+    """Get information about a project sound track."""
     res = send_cmd(
         "tv_SoundProjectInfo", project_id, track_index, error_values=[-1, -2, -3]
     )
@@ -362,9 +358,8 @@ def tv_sound_project_info(project_id: str, track_index: int) -> TVPSound:
     return TVPSound(**res_parse)
 
 
-@undo
 def tv_sound_project_new(sound_path: Path | str) -> None:
-    """Add a new project sound track"""
+    """Add a new project sound track."""
     path = Path(sound_path)
     if not path.exists():
         raise ValueError(f"Sound file not found at : {path.as_posix()}")
@@ -372,15 +367,13 @@ def tv_sound_project_new(sound_path: Path | str) -> None:
     send_cmd("tv_SoundProjectNew", path.as_posix(), error_values=[-1, -3, -4])
 
 
-@undo
 def tv_sound_project_remove(track_index: int) -> None:
-    """Remove a project sound track"""
+    """Remove a project sound track."""
     send_cmd("tv_SoundProjectRemove", track_index, error_values=[-2])
 
 
-@undo
 def tv_sound_project_reload(project_id: str, track_index: int) -> None:
-    """Reload a project sound track from its file"""
+    """Reload a project sound track from its file."""
     send_cmd(
         "tv_SoundProjectReload",
         project_id,
@@ -389,7 +382,6 @@ def tv_sound_project_reload(project_id: str, track_index: int) -> None:
     )
 
 
-@undo
 def tv_sound_project_adjust(
     track_index: int,
     mute: bool | None = None,
@@ -401,7 +393,7 @@ def tv_sound_project_adjust(
     fade_out_stop: float | None = None,
     color_index: int | None = None,
 ) -> None:
-    """Modify a project sound track"""
+    """Modify a project sound track."""
     optional_args = [
         int(mute) if mute is not None else None,
         volume,
@@ -422,7 +414,7 @@ def tv_sound_project_adjust(
 
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid project id")
 def tv_project_header_info_get(project_id: str) -> str:
-    """Get the project header info"""
+    """Get the project header info."""
     return send_cmd(
         "tv_ProjectHeaderInfo",
         project_id,
@@ -430,9 +422,9 @@ def tv_project_header_info_get(project_id: str) -> str:
     ).strip('"')
 
 
-@undo
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid project id")
 def tv_project_header_info_set(project_id: str, text: str) -> None:
+    """Set the project header info."""
     send_cmd(
         "tv_ProjectHeaderInfo",
         project_id,
@@ -443,6 +435,7 @@ def tv_project_header_info_set(project_id: str, text: str) -> None:
 
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid project id")
 def tv_project_header_author_get(project_id: str) -> str:
+    """Get the project author info."""
     return send_cmd(
         "tv_ProjectHeaderAuthor",
         project_id,
@@ -450,9 +443,9 @@ def tv_project_header_author_get(project_id: str) -> str:
     ).strip('"')
 
 
-@undo
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid project id")
 def tv_project_header_author_set(project_id: str, text: str) -> None:
+    """Set the project author info."""
     send_cmd(
         "tv_ProjectHeaderAuthor",
         project_id,
@@ -463,6 +456,7 @@ def tv_project_header_author_set(project_id: str, text: str) -> None:
 
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid project id")
 def tv_project_header_notes_get(project_id: str) -> str:
+    """Get the project notes."""
     return send_cmd(
         "tv_ProjectHeaderNotes",
         project_id,
@@ -470,9 +464,9 @@ def tv_project_header_notes_get(project_id: str) -> str:
     ).strip('"')
 
 
-@undo
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid project id")
 def tv_project_header_notes_set(project_id: str, text: str) -> None:
+    """Set the project notes."""
     send_cmd(
         "tv_ProjectHeaderNotes",
         project_id,
@@ -482,11 +476,10 @@ def tv_project_header_notes_set(project_id: str, text: str) -> None:
 
 
 def tv_start_frame_get() -> int:
-    """Get the start frame of the current project (starts at 1)"""
+    """Get the start frame of the current project (starts at 1)."""
     return int(send_cmd("tv_StartFrame"))
 
 
-@undo
 def tv_start_frame_set(start_frame: int) -> int:
-    """Set the start frame of the current project (starts at 1)"""
+    """Set the start frame of the current project (starts at 1)."""
     return int(send_cmd("tv_StartFrame", start_frame))

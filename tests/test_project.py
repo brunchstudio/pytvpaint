@@ -182,11 +182,13 @@ def test_project_get_project(test_project_obj: Project) -> None:
 
 
 def test_project_get_project_wrong_id(test_project_obj: Project) -> None:
-    assert Project.get_project(by_id="unknown") is None
+    with pytest.raises(ValueError, match="Can't find a project"):
+        Project.get_project(by_id="unknown")
 
 
 def test_project_get_project_wrong_name(test_project_obj: Project) -> None:
-    assert Project.get_project(by_name="name") is None
+    with pytest.raises(ValueError, match="Can't find a project"):
+        Project.get_project(by_name="name")
 
 
 def test_project_current_scene_ids(
@@ -295,11 +297,11 @@ def test_project_current_project(test_project_obj: Project) -> None:
 
 def test_project_opened_project_ids(create_some_projects: list[Project]) -> None:
     expected_ids = [p.id for p in create_some_projects]
-    assert expected_ids == list(Project.opened_project_ids())
+    assert expected_ids == list(Project.open_projects_ids())
 
 
 def test_project_opened_projects(create_some_projects: list[Project]) -> None:
-    assert create_some_projects == list(Project.opened_projects())
+    assert create_some_projects == list(Project.open_projects())
 
 
 @pytest.mark.parametrize("mark_in", [1, 2, 10, 100])

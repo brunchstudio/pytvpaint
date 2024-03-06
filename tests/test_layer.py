@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
@@ -230,7 +232,8 @@ def test_layer_new(
     name: str,
     color_index: int | None,
 ) -> None:
-    layer = Layer.new(name, color_index=color_index)
+    color = LayerColor(color_index) if color_index else None
+    layer = Layer.new(name, color=color)
     assert layer.name == name
 
     if color_index:
@@ -271,16 +274,16 @@ def test_layer_render_frame(with_loaded_sequence: Layer, tmp_path: Path) -> None
 
 def test_layer_add_mark_not_anim_layer(test_layer_obj: Layer) -> None:
     with pytest.raises(Exception, match="not an animation layer"):
-        test_layer_obj.add_mark(0, 1)
+        test_layer_obj.add_mark(0, LayerColor(1))
 
 
 def test_layer_get_mark_color(test_anim_layer_obj: Layer) -> None:
-    test_anim_layer_obj.add_mark(1, 6)
+    test_anim_layer_obj.add_mark(1, LayerColor(6))
     assert test_anim_layer_obj.get_mark_color(1) == LayerColor(color_index=6)
 
 
 def test_layer_remove_mark(test_anim_layer_obj: Layer) -> None:
-    test_anim_layer_obj.add_mark(1, 6)
+    test_anim_layer_obj.add_mark(1, LayerColor(6))
     test_anim_layer_obj.remove_mark(6)
     assert test_anim_layer_obj.get_mark_color(6) is None
 
@@ -300,7 +303,7 @@ def add_marks(test_anim_layer_obj: Layer, with_images: int) -> FixtureYield[list
     marks = [(frame, LayerColor(frame)) for frame in range(1, 7)]
 
     for frame, color in marks:
-        test_anim_layer_obj.add_mark(frame, color.index)
+        test_anim_layer_obj.add_mark(frame, color)
 
     yield marks
 

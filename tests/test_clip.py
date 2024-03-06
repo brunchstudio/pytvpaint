@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 from pathlib import Path
 
@@ -10,7 +12,7 @@ from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 
 from tests.conftest import FixtureYield
-from tests.george.test_clip import TEST_TEXTS
+from tests.george.test_grg_clip import TEST_TEXTS
 
 
 def test_clip_init(test_project_obj: Project, test_clip_obj: Clip) -> None:

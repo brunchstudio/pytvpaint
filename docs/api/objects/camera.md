@@ -1,0 +1,3 @@
+# Camera class
+
+::: pytvpaint.camera

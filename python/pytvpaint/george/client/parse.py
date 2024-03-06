@@ -1,3 +1,10 @@
+"""Parsing functions used to handle data coming from TVPaint and also preparing arguments for them to be sent.
+
+The two main functions are `tv_parse_dict` and `tv_parse_list` which handle the return values of George functions.
+
+George can either return a list of values or a list of key/value pairs which are consecutive.
+"""
+
 from __future__ import annotations
 
 from dataclasses import Field, fields, is_dataclass
@@ -6,27 +13,34 @@ from typing import (
     Any,
     ClassVar,
     Sequence,
+    Type,
     TypeVar,
     Union,
     cast,
+    get_args,
+    get_origin,
     get_type_hints,
 )
 
 from typing_extensions import Protocol, TypeAlias
 
 
-# Might not work as expected for pyright, see
-#   https://github.com/python/typeshed/pull/9362
-#   https://github.com/microsoft/pyright/issues/4339
 class DataclassInstance(Protocol):
+    """Protocol that describes a Dataclass instance."""
+
     __dataclass_fields__: ClassVar[dict[str, Field[Any]]]
 
 
 def tv_handle_string(s: str) -> str:
-    """
-    String handling for George arguments
-    It wraps the string into quotes if it has spaces
+    """String handling for George arguments. It wraps the string into quotes if it has spaces.
+
     See an example here: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_projectnew
+
+    Args:
+        s (str): the input string
+
+    Returns:
+        the "escaped" string
     """
     if " " in s:
         return f'"{s}"'
@@ -35,9 +49,16 @@ def tv_handle_string(s: str) -> str:
 
 
 def camel_to_pascal(s: str) -> str:
-    """
-    Convert a camel case string to pascal case
-    Example: this_is_a_text -> ThisIsAText
+    """Convert a camel case string to pascal case.
+
+    Example:
+        `this_is_a_text -> ThisIsAText`
+
+    Args:
+        s: the input string
+
+    Returns:
+        the string in pascal case
     """
     return "".join([c.capitalize() for c in s.split("_")])
 
@@ -45,18 +66,34 @@ def camel_to_pascal(s: str) -> str:
 T = TypeVar("T", bound=Any)
 
 
-def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
-    """
-    Cast a value to the provided type using George's convention for values.
-    Note that "1" and "on"/"ON" values are considered True when parsing a boolean
+def tv_cast_to_type(value: str, cast_type: Type[T]) -> T:
+    """Cast a value to the provided type using George's convention for values.
+
+    Note:
+        "1" and "on"/"ON" values are considered True when parsing a boolean
+
+    Args:
+        value: the input value
+        cast_type: the type to cast to
+
+    Raises:
+        ValueError: if given an enum and it can't find the value or the enum index is too high
+
+    Returns:
+        the value casted to the provided type
     """
     if issubclass(cast_type, Enum):
         value = value.strip().strip('"')
 
-        # Find the enum member that matches
-        for member in cast_type:
-            if value.lower() == member.value.lower():
-                return cast(T, member)
+        # Find all enum members that matches the value (lower case)
+        matches = [m for m in cast_type if value.lower() == m.value.lower()]
+        try:
+            # If the unmodified value is in the enum, return that first
+            return cast(T, next(m for m in matches if value == m.value))
+        except StopIteration:
+            # Otherwise return the first match
+            if matches:
+                return cast(T, matches[0])
 
         # It didn't work, it can be the enum index
         try:
@@ -75,6 +112,11 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
             f"Enum index {index} is out of bounds (max {len(enum_members) - 1})"
         )
 
+    if get_origin(cast_type) is tuple:
+        # Split by space and convert each member to the right type
+        values_types = zip(value.split(" "), get_args(cast_type))
+        return cast(T, tuple(tv_cast_to_type(v, t) for v, t in values_types))
+
     if cast_type == bool:
         return cast(T, value.lower() in ["1", "on", "true"])
 
@@ -84,14 +126,19 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
     return cast(T, cast_type(value))
 
 
-FieldTypes: TypeAlias = "list[tuple[str, Any]]"
+FieldTypes: TypeAlias = list[tuple[str, Any]]
 
 
 def _get_dataclass_fields(
-    datacls: DataclassInstance | type[DataclassInstance],
+    datacls: DataclassInstance | Type[DataclassInstance],
 ) -> FieldTypes:
-    """
-    Get the dataclass key/type pairs and filter those with "parsed
+    """Get the dataclass key/type pairs and filter those with the "parsed" metadata.
+
+    Args:
+        datacls: input dataclass
+
+    Returns:
+        the list of key/type tuple
     """
     type_hints = get_type_hints(datacls)
     return [
@@ -102,11 +149,19 @@ def _get_dataclass_fields(
 
 
 def tv_parse_dict(
-    output: str, with_fields: FieldTypes | type[DataclassInstance]
+    input_text: str,
+    with_fields: FieldTypes | Type[DataclassInstance],
 ) -> dict[str, Any]:
-    """
-    Parse a list of values as key value pairs returned from TVPaint commands.
+    """Parse a list of values as key value pairs returned from TVPaint commands.
+
     Cast the values to a provided Data Class type or list of key/types pairs.
+
+    Args:
+        input_text: the George string result
+        with_fields: the field types (can be a dataclass)
+
+    Returns:
+        a dict with the values casted to the given types
     """
     # For dataclasses get the type hints and filter those with metadata
     if is_dataclass(with_fields):
@@ -122,7 +177,7 @@ def tv_parse_dict(
         current_key_pascal = camel_to_pascal(field_name)
 
         # Search for the key from the end
-        search_text = output.lower()
+        search_text = input_text.lower()
         try:
             start = search_text.index(current_key_pascal.lower(), search_start)
         except ValueError:
@@ -133,10 +188,10 @@ def tv_parse_dict(
             next_key_pascal = camel_to_pascal(with_fields[i + 1][0])
             end = search_text.rfind(" " + next_key_pascal.lower(), search_start)
         else:
-            end = len(output)
+            end = len(input_text)
 
         # Get the "key value" substring
-        key_value = output[start:end]
+        key_value = input_text[start:end]
 
         # Extract the value
         cut_at = len(current_key_pascal) + 1
@@ -153,15 +208,23 @@ def tv_parse_dict(
 
 def tv_parse_list(
     output: str,
-    with_fields: FieldTypes | type[DataclassInstance],
+    with_fields: FieldTypes | Type[DataclassInstance],
     unused_indices: list[int] | None = None,
 ) -> dict[str, Any]:
-    """
-    Parse a list of values returned from TVPaint commands.
+    """Parse a list of values returned from TVPaint commands.
+
     Cast the values to a provided Data Class type or list of key/types pairs.
 
     You can specify unused indices to exclude positional values from being parsed.
     This is useful because some George commands have unused return values.
+
+    Args:
+        output: the input string
+        with_fields: the field types (can be a dataclass)
+        unused_indices: Some George functions return positional arguments that are unused. Defaults to None.
+
+    Returns:
+        a dict with the values casted to the given types
     """
     start = 0
     current = 0
@@ -210,9 +273,15 @@ def tv_parse_list(
 
 
 def args_dict_to_list(args: dict[str, Any]) -> list[Any]:
-    """
-    Converts a dict of named arguments to a flat list of key/values
+    """Converts a dict of named arguments to a flat list of key/values.
+
     It also filters pairs with None values
+
+    Args:
+        args: dict of arguments
+
+    Returns:
+        key/values list
     """
     args_filter = {k: v for k, v in args.items() if v is not None}
     # Flatten dictionnary key value pairs with zip
@@ -225,15 +294,22 @@ Value = Union[int, float, str, bool, None]
 def consecutive_optional_args_to_list(
     optional_args: Sequence[Value | tuple[Value, ...]]
 ) -> list[Any]:
-    """
-    Some George functions accept optional arguments but consecutively it means that
-    to set the last positional argument you need to give all the previous ones.
+    """Some George functions accept optional arguments but consecutively it means that to set the last positional argument you need to give all the previous ones.
 
     This function allows you to give a list of argument or argument blocks (as tuples)
     and check that they are not None up to a point.
 
-    For example, for tv_camerainfo [<iWidth> <iHeight> [<field_order>]]
-    you can't give [500, None, "upper"] because <iHeight> is not defined
+    For example, for `tv_camerainfo [<iWidth> <iHeight> [<field_order>]]`
+    you can't give `[500, None, "upper"]` because `<iHeight>` is not defined.
+
+    Args:
+        optional_args: list of values or tuple of values (args block)
+
+    Raises:
+        ValueError: if not all the parameters were given
+
+    Returns:
+        the list of parameters
     """
     args: list[Any] = []
 

@@ -1,0 +1,18 @@
+:root {
+  --md-primary-fg-color: #236cb2;
+  --md-primary-fg-color--light: #236cb2;
+  --md-primary-fg-color--dark: #236cb2;
+
+  --md-accent-fg-color: #d48115;
+  --md-accent-fg-color--transparent: #f4b828;
+  --md-accent-bg-color: #f4b828;
+}
+
+.doc-object {
+  border-top: 3px dashed #313643;
+}
+
+.language-python span:first-of-type {
+  /* color: #d48115; */
+  color: #c973d9;
+}

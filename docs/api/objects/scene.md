@@ -1,0 +1,3 @@
+# Scene class
+
+::: pytvpaint.scene

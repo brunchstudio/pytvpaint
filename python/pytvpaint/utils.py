@@ -1,3 +1,5 @@
+"""Utility functions and classes which are not specific to anything else in the codebase."""
+
 from __future__ import annotations
 
 import contextlib
@@ -11,11 +13,12 @@ from typing import (
     Generator,
     Iterable,
     Iterator,
-    ParamSpec,
+    Type,
     TypeVar,
+    cast,
 )
 
-from typing_extensions import Protocol, Self
+from typing_extensions import ParamSpec, Protocol
 
 from pytvpaint import george
 from pytvpaint.george.exceptions import GeorgeError
@@ -24,9 +27,8 @@ if TYPE_CHECKING:
     from pytvpaint.layer import Layer
 
 
-class CanRefresh(Protocol):
-    def refresh(self) -> None:
-        ...
+class _CanRefresh(Protocol):
+    def refresh(self) -> None: ...
 
 
 if TYPE_CHECKING:
@@ -34,7 +36,10 @@ if TYPE_CHECKING:
 else:
 
     class RefreshedProperty(property):
-        def __get__(self, __obj: CanRefresh, __type: type | None = None) -> Any:
+        """Custom property that calls .refresh() before getting the actual value."""
+
+        def __get__(self, __obj: _CanRefresh, __type: type | None = None) -> Any:
+            """Calls .refresh() on the object before getting the value."""
             __obj.refresh()
             return super().__get__(__obj, __type)
 
@@ -42,31 +47,47 @@ else:
 
 
 class Refreshable(ABC):
+    """Abstract class that denotes an object that have data that can be refreshed (a TVPaint project for example)."""
+
     def __init__(self) -> None:
         self.refresh_on_call = True
 
     @abstractmethod
     def refresh(self) -> None:
+        """Refreshes the object data."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
 
 class Removable(Refreshable):
+    """Abstract class that denotes an object that can be removed from TVPaint (a Layer for example)."""
+
     def __init__(self) -> None:
         super().__init__()
         self._is_removed: bool = False
 
     def __getattribute__(self, name: str) -> Any:
+        """For each attribute access, we check if the object was marked removed."""
         if not name.startswith("_") and self._is_removed:
             raise ValueError(f"{self.__class__.__name__} has been removed!")
 
         return super().__getattribute__(name)
 
     def refresh(self) -> None:
+        """Does a refresh of the object data.
+
+        Raises:
+            ValueError: if the object has been mark removed
+        """
         if self._is_removed:
             raise ValueError(f"{self.__class__.__name__} has been removed!")
 
     @property
     def is_removed(self) -> bool:
+        """Checks if the object is removed by trying to refresh its data.
+
+        Returns:
+            bool: wether if it was removed or not
+        """
         self._is_removed = False
         with contextlib.suppress(Exception):
             self.refresh()
@@ -75,22 +96,26 @@ class Removable(Refreshable):
 
     @abstractmethod
     def remove(self) -> None:
+        """Removes the object in TVPaint."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
     def mark_removed(self) -> None:
-        """Marks the object as removed and is therefor not usable"""
+        """Marks the object as removed and is therefor not usable."""
         self._is_removed = True
 
 
-class HasName(Protocol):
-    @property
-    def name(self) -> str:
-        ...
-
-
 def get_unique_name(names: Iterable[str], stub: str) -> str:
-    """
-    Get a unique name with a list of names and auto increment it
+    """Get a unique name from a list of names and a stub prefix. It does auto increment it.
+
+    Args:
+        names (Iterable[str]): existing names
+        stub (str): the base name
+
+    Raises:
+        ValueError: if the stub is empty
+
+    Returns:
+        str: a unique name with the stub prefix
     """
     if not stub:
         raise ValueError("Stub is empty")
@@ -125,12 +150,16 @@ T = TypeVar("T")
 
 def position_generator(
     fn: Callable[[int], T],
-    stop_when: type[GeorgeError] = GeorgeError,
+    stop_when: Type[GeorgeError] = GeorgeError,
 ) -> Iterator[T]:
-    """Utility generator that yields the result of a function according to a position
+    """Utility generator that yields the result of a function according to a position.
+
+    Args:
+        fn (Callable[[int], T]): the function to run at each iteration
+        stop_when (Type[GeorgeError], optional): exception at which we stop. Defaults to GeorgeError.
 
     Yields:
-        Iterator[tuple[int, T]]: the position and the result of the function
+        Iterator[T]: an generator of the resulting values
     """
     pos = 0
 
@@ -143,28 +172,38 @@ def position_generator(
 
 
 class CanMakeCurrent(Protocol):
+    """Describes an object that can do `make_current` and has an id."""
+
     @property
-    def id(self) -> str | int:
+    def id(self) -> str | int:  # noqa: D102
         ...
 
-    def make_current(self) -> None:
+    def make_current(self) -> None:  # noqa: D102
         ...
 
 
 # See: https://stackoverflow.com/questions/47060133/python-3-type-hinting-for-decorator
-Param = ParamSpec("Param")
+Params = ParamSpec("Params")
 ReturnType = TypeVar("ReturnType")
 
 
-def set_as_current(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
-    """
-    Set the current TVPaint object as 'current'.
-    Useful when George functions only apply on the current project, clip, layer or scene
+def set_as_current(func: Callable[Params, ReturnType]) -> Callable[Params, ReturnType]:
+    """Decorator to apply on object methods.
+
+    Sets the current TVPaint object as 'current'.
+    Useful when George functions only apply on the current project, clip, layer or scene.
+
+    Args:
+        func (Callable[Params, ReturnType]): the method apply on
+
+    Returns:
+        Callable[Params, ReturnType]: the wrapped method
     """
 
-    def wrapper(self: CanMakeCurrent, *args: Any, **kwargs: Any) -> ReturnType:
+    def wrapper(*args: Params.args, **kwargs: Params.kwargs) -> ReturnType:
+        self = cast(CanMakeCurrent, args[0])
         self.make_current()
-        return func(self, *args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrapper
 
@@ -174,8 +213,22 @@ def render_context(
     alpha_mode: george.AlphaSaveMode,
     save_format: george.SaveFormat | None = None,
     format_opts: list[str] | None = None,
-    layers_to_render: list[Layer] | None = None,
+    layer_selection: list[Layer] | None = None,
 ) -> Generator[None, None, None]:
+    """Context used to do renders in TVPaint.
+
+    It does multiple things:
+
+    - Set the given alpha mode and save format (with custom options)
+    - Hide / Show the given layers (some render functions only render by visibility)
+    - Restore the previous values
+
+    Args:
+        alpha_mode: the render alpha save mode
+        save_format: the render format to use. Defaults to None.
+        format_opts: the custom format options as strings. Defaults to None.
+        layer_selection: the layers to render. Defaults to None.
+    """
     from pytvpaint.clip import Clip
 
     # Save the current state
@@ -191,11 +244,11 @@ def render_context(
     clip = Clip.current_clip()
 
     layers_visibility = []
-    if layers_to_render:
+    if layer_selection:
         layers_visibility = [(layer, layer.is_visible) for layer in clip.layers]
         # Show and hide the clip layers to render
         for layer, _ in layers_visibility:
-            should_be_visible = layers_to_render is None or layer in layers_to_render
+            should_be_visible = not layer_selection or layer in layer_selection
             layer.is_visible = should_be_visible
 
     # Do the render
@@ -213,17 +266,15 @@ def render_context(
             layer.is_visible = was_visible
 
 
-class TVPElement(Protocol):
+class _TVPElement(Protocol):
     @property
-    def id(self) -> int | str:
-        ...
+    def id(self) -> int | str: ...
 
     @property
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
-TVPElementType = TypeVar("TVPElementType", bound=TVPElement)
+TVPElementType = TypeVar("TVPElementType", bound=_TVPElement)
 
 
 def get_tvp_element(
@@ -232,6 +283,20 @@ def get_tvp_element(
     by_name: str | None = None,
     by_path: str | Path | None = None,
 ) -> TVPElementType | None:
+    """Search for a TVPaint element by attributes.
+
+    Args:
+        tvp_elements: a collection of TVPaint objects
+        by_id: search by id. Defaults to None.
+        by_name: search by name. Defaults to None.
+        by_path: search by path. Defaults to None.
+
+    Raises:
+        ValueError: if bad arguments were given
+
+    Returns:
+        TVPElementType | None: the found element
+    """
     if by_id is None and by_name is None:
         raise ValueError(
             "At least one of the values (id or name) must be provided, none found !"

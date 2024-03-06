@@ -1,9 +1,12 @@
+"""All George values as enum and functions which are not specific to any TVPaint element."""
+
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, TypeVar, cast, overload
+from typing import Any, Callable, Generator, Type, TypeVar, cast, overload
 
 from typing_extensions import Literal, TypeAlias
 
@@ -18,49 +21,59 @@ from pytvpaint.george.client.parse import (
 
 
 class GrgErrorValue:
+    """Common George error values."""
+
     EMPTY = ""
     NONE = "none"
     ERROR = "error"
 
 
 class GrgBoolState(Enum):
+    """George booleans."""
+
     ON = "on"
     OFF = "off"
 
 
 class FieldOrder(Enum):
+    """Field order of the camera."""
+
     NONE = "none"
     LOWER = "lower"
     UPPER = "upper"
 
 
-class FpsMode(Enum):
-    NONE = ""
-    STRETCH = "timestretch"
-    PREVIEW = "preview"
-
-
 class MarkType(Enum):
+    """The mark command."""
+
     MARKIN = "tv_markin"
     MARKOUT = "tv_markout"
 
 
 class MarkReference(Enum):
+    """The object on which the mark is applied."""
+
     PROJECT = "project"
     CLIP = "clip"
 
 
 class MarkAction(Enum):
+    """The mark action."""
+
     SET = "set"
     CLEAR = "clear"
 
 
 class RectButton(Enum):
+    """The rect button when drawing."""
+
     LEFT = 0
     RIGHT = 1
 
 
 class TVPShape(Enum):
+    """The shape tools."""
+
     B_SPLINE = "bspline"
     BEZIER = "bezier"
     BEZIER_FILL = "bezierfill"
@@ -112,12 +125,16 @@ class TVPShape(Enum):
 
 
 class ResizeOption(Enum):
+    """Resize options for project."""
+
     EMPTY = 0
     CROP = 1
     STRETCH = 2
 
 
 class SpriteLayout(Enum):
+    """Sprite layout when exporting as sprites."""
+
     RECTANGLE = "rectangle"
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
@@ -126,6 +143,8 @@ class SpriteLayout(Enum):
 
 
 class AlphaMode(Enum):
+    """The alpha load mode."""
+
     PREMULTIPLY = "premultiply"
     NO_PREMULTIPLY = "nopremultiply"
     NO_ALPHA = "noalpha"
@@ -134,6 +153,8 @@ class AlphaMode(Enum):
 
 
 class AlphaSaveMode(Enum):
+    """The alpha save mode."""
+
     PREMULTIPLY = "premultiply"
     NO_PREMULTIPLY = "nopremultiply"
     NO_ALPHA = "noalpha"
@@ -143,6 +164,8 @@ class AlphaSaveMode(Enum):
 
 
 class SaveFormat(Enum):
+    """All save formats."""
+
     AVI = "avi"
     BMP = "bmp"
     CINEON = "cin"
@@ -169,6 +192,7 @@ class SaveFormat(Enum):
 
     @classmethod
     def from_extension(cls, extension: str) -> SaveFormat:
+        """Returns the enum value from a string extension."""
         extension = extension.replace(".", "").lower()
         if not hasattr(SaveFormat, extension.upper()):
             raise ValueError(
@@ -179,39 +203,25 @@ class SaveFormat(Enum):
 
 @dataclass(frozen=True)
 class RGBColor:
-    """
-    RGB color dataclass with 0-255 range values
-    """
+    """RGB color with 0-255 range values."""
 
     r: int
     g: int
     b: int
 
-    @property
-    def color(self) -> tuple[int, ...]:
-        return (
-            max(0, min(self.r, 255)),
-            max(0, min(self.g, 255)),
-            max(0, min(self.b, 255)),
-        )
-
 
 @dataclass(frozen=True)
 class HSLColor:
+    """HSL color. Maximum values are (360, 100, 100) for h, s, l."""
+
     h: int
     s: int
     l: int  # noqa: E741
 
-    @property
-    def color(self) -> tuple[int, int, int]:
-        return (
-            max(0, min(self.h, 359)),
-            max(0, min(self.s, 100)),
-            max(0, min(self.l, 100)),
-        )
-
 
 class BlendingMode(Enum):
+    """All the blending modes."""
+
     COLOR = "color"
     BEHIND = "behind"
     ERASE = "erase"
@@ -243,6 +253,8 @@ class BlendingMode(Enum):
 
 
 class DrawingMode(Enum):
+    """All the drawing modes."""
+
     COLOR = "color"
     BEHIND = "behind"
     ERASE = "erase"
@@ -274,6 +286,8 @@ class DrawingMode(Enum):
 
 
 class MenuElement(Enum):
+    """All the TVPaint menu elements."""
+
     SHOW_UI = "showui"
     HIDE_UI = "hideui"
     RESIZE_UI = "resizeui"
@@ -289,12 +303,16 @@ class MenuElement(Enum):
 
 
 class FileMode(Enum):
+    """File mode save or load."""
+
     SAVE = "<"
     LOAD = ">"
 
 
 @dataclass(frozen=True)
 class TVPPenBrush:
+    """A TVPaint brush."""
+
     mode: DrawingMode
     size: float
     power: int
@@ -308,6 +326,8 @@ class TVPPenBrush:
 
 @dataclass(frozen=True)
 class TVPSound:
+    """A TVPaint sound (clip and project)."""
+
     offset: float
     volume: float
     mute: bool
@@ -324,14 +344,10 @@ class TVPSound:
 T = TypeVar("T", bound=Callable[..., Any])
 
 
-def undo(func: T) -> T:
-    """
-    Decorator to register actions in the undo stack
-    """
+def undoable(func: T) -> T:
+    """Decorator to register actions in the TVPaint undo stack."""
 
     def wrapper(*args: Any, **kwargs: Any) -> T:
-        if func.__name__ == "tv_layer_set":
-            tv_update_undo()
         tv_undo_open_stack()
         res = func(*args, **kwargs)
         tv_undo_close_stack(func.__name__)
@@ -340,19 +356,21 @@ def undo(func: T) -> T:
     return cast(T, wrapper)
 
 
+@contextlib.contextmanager
+def undoable_stack() -> Generator[None, None, None]:
+    """Context manager that creates an undo stack. Useful to undo a sequence of George actions."""
+    tv_undo_open_stack()
+    yield
+    tv_undo_close_stack()
+
+
 def tv_warn(msg: str) -> None:
+    """Display a warning message."""
     send_cmd("tv_Warn", msg)
 
 
 def tv_version() -> tuple[str, str, str]:
-    """
-    Returns the software name, version and language
-
-    Returns:
-        software_name:
-        version:
-        language:
-    """
+    """Returns the software name, version and language."""
     cmd_fields = [
         ("software_name", str),
         ("version", str),
@@ -364,20 +382,24 @@ def tv_version() -> tuple[str, str, str]:
 
 
 def tv_host2back() -> None:
+    """Minimize the TVPaint window."""
     send_cmd("tv_Host2Back")
 
 
 def tv_host2front() -> None:
+    """Restore the TVPaint window after being minimized."""
     send_cmd("tv_Host2Front")
 
 
 def tv_menu_hide() -> None:
+    """Switch to inlay view and hide all non-docking panels."""
     send_cmd("tv_MenuHide")
 
 
 def tv_menu_show(
     menu_element: MenuElement | None = None, *args: Any, current: bool = False
 ) -> None:
+    """For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow."""
     cmd_args: list[str] = []
 
     if current:
@@ -390,12 +412,33 @@ def tv_menu_show(
 
 
 def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> bool:
+    """Open a custom requester.
+
+    Args:
+        msg: the message to display
+        confirm_text: the confirm button text. Defaults to "Yes".
+        cancel_text: the cancel button text. Defaults to "No".
+
+    Returns:
+        bool: True if clicked on "Yes"
+    """
     return bool(int(send_cmd("tv_Request", msg, confirm_text, cancel_text)))
 
 
 def tv_req_num(
     value: int, min: int, max: int, title: str = "Enter Value"
 ) -> int | None:
+    """Open an integer requester.
+
+    Args:
+        value: the initial value
+        min: the minimum value
+        max: the maximum value
+        title: title of the requester. Defaults to "Enter Value".
+
+    Returns:
+        the value or None if cancelled
+    """
     res = send_cmd("tv_ReqNum", value, min, max, title, handle_string=False)
     return None if res.lower() == "cancel" else int(res)
 
@@ -403,6 +446,17 @@ def tv_req_num(
 def tv_req_angle(
     value: float, min: float, max: float, title: str = "Enter Value"
 ) -> float | None:
+    """Open an angle (in degree) requester.
+
+    Args:
+        value: the initial value
+        min: the minimum value
+        max: the maximum value
+        title: title of the requester. Defaults to "Enter Value".
+
+    Returns:
+        the value or None if cancelled
+    """
     res = send_cmd("tv_ReqAngle", value, min, max, title, handle_string=False)
     return None if res.lower() == "cancel" else float(res)
 
@@ -410,11 +464,31 @@ def tv_req_angle(
 def tv_req_float(
     value: float, min: float, max: float, title: str = "Enter value"
 ) -> float | None:
+    """Open a decimal requester.
+
+    Args:
+        value: the initial value
+        min: the minimum value
+        max: the maximum value
+        title: title of the requester. Defaults to "Enter Value".
+
+    Returns:
+        the value or None if cancelled
+    """
     res = send_cmd("tv_ReqFloat", value, min, max, title, handle_string=False)
     return None if res.lower() == "cancel" else float(res)
 
 
 def tv_req_string(title: str, text: str) -> str | None:
+    """Open a string requester.
+
+    Args:
+        title: title of the requester. Defaults to "Enter Value".
+        text: the initial value
+
+    Returns:
+        the value or None if cancelled
+    """
     cmd_args = ["|".join([title, text])]
     if "\n" in text:
         cmd_args.insert(0, "multiline")
@@ -426,7 +500,7 @@ Entry: TypeAlias = "str | tuple[str, list[Entry]]"
 
 
 def _entry_to_str(entry: Entry) -> str:
-    """Utility function to format entries for tv_list_request"""
+    """Utility function to format entries for `tv_list_request`."""
     if isinstance(entry, str):
         return entry
 
@@ -435,7 +509,14 @@ def _entry_to_str(entry: Entry) -> str:
 
 
 def tv_list_request(entries: list[Entry]) -> tuple[int, str]:
-    """Open a popup to select an entry"""
+    """Open a popup to select an entry.
+
+    Args:
+        entries: the list of entries (either a single entry or sub entries)
+
+    Returns:
+        the position, the entry
+    """
     entries_str = "|".join(map(_entry_to_str, entries))
     res = send_cmd("tv_ListRequest", entries_str, error_values=["-1 Cancel"])
     res_obj = tv_parse_list(
@@ -451,35 +532,45 @@ def tv_list_request(entries: list[Entry]) -> tuple[int, str]:
 
 def tv_req_file(
     mode: FileMode,
-    title: str,
+    title: str = "",
     working_dir: Path | str | None = None,
-    default_name: str = "",
-    extension_filter: str = "",
+    default_name: str | None = None,
+    extension_filter: str | None = None,
 ) -> Path | None:
-    """Open a file requester"""
-    cmd_args = [mode.value, title]
+    """Open a file requester.
 
-    if working_dir:
-        cmd_args.append(Path(working_dir).as_posix())
-    if default_name:
-        cmd_args.append(default_name)
-    if extension_filter:
-        cmd_args.append(extension_filter)
+    Args:
+        mode: save or load
+        title: the title of the request
+        working_dir: the default folder to go. Defaults to None.
+        default_name: the default name. Defaults to None.
+        extension_filter: display the files with this extension. Defaults to None.
 
-    res = send_cmd("tv_ReqFile", *cmd_args)
+    Returns:
+        the choosen path or None if cancelled
+    """
+    cmd_args = [
+        title,
+        Path(working_dir).as_posix() if working_dir else None,
+        default_name,
+        extension_filter,
+    ]
+
+    arg_str = "|".join([v if v is not None else "" for v in cmd_args])
+    res = send_cmd("tv_ReqFile", f"{mode.value} {arg_str}", handle_string=False)
+
     return None if res.lower() == "cancel" else Path(res)
 
 
 def tv_undo() -> None:
-    """Do an undo"""
+    """Do an undo."""
     send_cmd("tv_Undo")
 
 
 def tv_update_undo() -> None:
-    """
-    Copies the contents of the current image in the current layer into the buffer undo memory.
-    None of the draw commands described in this section updates this buffer memory.
+    """Copies the contents of the current image in the current layer into the buffer undo memory.
 
+    None of the draw commands described in this section updates this buffer memory.
     If you click on the Undo button after executing a George program, everything that the program has drawn in your image will be deleted.
     With this function you can update the undo buffer memory whenever you wish (for example at the beginning of the program).
     """
@@ -487,8 +578,8 @@ def tv_update_undo() -> None:
 
 
 def tv_undo_open_stack() -> None:
-    """
-    Open an 'undo' stack.
+    """Open an 'undo' stack.
+
     Surround a piece of code with tv_undoopenstack ... tv_undoclosestack, then multiple undo will be added to this stack, and closing this stack will undo everything inside.
     (To be sure the script returns to the expected result use tv_updateundo before tv_undoopenstack)
     """
@@ -496,79 +587,72 @@ def tv_undo_open_stack() -> None:
 
 
 def tv_undo_close_stack(name: str = "") -> None:
-    """Close an 'undo' stack (See tv_undo_open_stack)"""
+    """Close an 'undo' stack (See tv_undo_open_stack)."""
     send_cmd("tv_UndoCloseStack", name)
 
 
 def tv_save_mode_get() -> tuple[SaveFormat, list[str]]:
-    """Get the saving alpha mode"""
+    """Get the saving alpha mode."""
     res = send_cmd("tv_SaveMode")
     res_split = res.split()
     save_format = tv_cast_to_type(res_split.pop(0), SaveFormat)
     return save_format, res_split
 
 
-@undo
 def tv_save_mode_set(save_format: SaveFormat, *args: str) -> None:
-    """Set the saving alpha mode"""
+    """Set the saving alpha mode."""
     send_cmd("tv_SaveMode", save_format.value, *args)
 
 
-@undo
 def tv_alpha_load_mode_get() -> AlphaMode:
-    """Set the loading alpha mode"""
+    """Set the loading alpha mode."""
     res = send_cmd("tv_AlphaLoadMode")
     return tv_cast_to_type(res, AlphaMode)
 
 
-@undo
 def tv_alpha_load_mode_set(mode: AlphaMode) -> None:
-    """Get the loading alpha mode"""
+    """Get the loading alpha mode."""
     send_cmd("tv_AlphaLoadMode", mode.value)
 
 
-@undo
 def tv_alpha_save_mode_get() -> AlphaSaveMode:
-    """Get the saving alpha mode"""
+    """Get the saving alpha mode."""
     res = send_cmd("tv_AlphaSaveMode")
     return tv_cast_to_type(res, AlphaSaveMode)
 
 
-@undo
 def tv_alpha_save_mode_set(mode: AlphaSaveMode) -> None:
-    """Set the saving alpha mode"""
+    """Set the saving alpha mode."""
     send_cmd("tv_AlphaSaveMode", mode.value)
 
 
 def tv_mark_in_get(
     reference: MarkReference,
 ) -> tuple[int, MarkAction]:
-    """Get markin of the project / clip"""
+    """Get markin of the project / clip."""
     return _tv_mark(MarkType.MARKIN, reference)
 
 
-@undo
 def tv_mark_in_set(
     reference: MarkReference,
     frame: int | None,
     action: MarkAction,
 ) -> tuple[int, MarkAction]:
-    """Set markin of the project / clip"""
+    """Set markin of the project / clip."""
     return _tv_mark(MarkType.MARKIN, reference, frame, action)
 
 
 def tv_mark_out_get(
     reference: MarkReference,
 ) -> tuple[int, MarkAction]:
-    """Get markout of the project / clip"""
+    """Get markout of the project / clip."""
     return _tv_mark(MarkType.MARKOUT, reference)
 
 
-@undo
 def tv_mark_out_set(
     reference: MarkReference, frame: int | None, action: MarkAction
 ) -> tuple[int, MarkAction]:
-    """Set markout of the project / clip"""
+    """Set markout of the project / clip."""
     return _tv_mark(MarkType.MARKOUT, reference, frame, action)
 
 
@@ -578,7 +662,17 @@ def _tv_mark(
     frame: int | None = None,
     action: MarkAction | None = None,
 ) -> tuple[int, MarkAction]:
-    """Manage mark (markin or markout) for the project/clip"""
+    """Manage mark (markin or markout) for the project/clip.
+
+    Args:
+        mark_type: either `tv_markin` or `tv_markout` the command to send to George
+        reference: `clip` or `project` the object to apply on
+        frame: the frame to set the mark or None to get it
+        action: `set` or `clear` the mark
+
+    Returns:
+        a tuple of the frame and the mark type
+    """
     cmd_fields: FieldTypes = [("frame", int), ("mark_action", MarkAction)]
     if reference and reference == MarkReference.PROJECT:
         cmd_fields.insert(0, ("reference", MarkReference))
@@ -597,13 +691,12 @@ def _tv_mark(
 
 
 def tv_get_active_shape() -> TVPShape:
-    """Get the current shape"""
+    """Get the current shape."""
     return tv_cast_to_type(send_cmd("tv_GetActiveShape"), TVPShape)
 
 
-@undo
 def tv_set_active_shape(shape: TVPShape) -> None:
-    """Set the current shape and its tool parameters"""
+    """Set the current shape and its tool parameters."""
     send_cmd("tv_SetActiveShape", shape.value)
 
 
@@ -639,6 +732,7 @@ def _tv_set_ab_pen(
     color_format: Literal["rgb", "hsl"],
     a: int | None = None,
 ) -> RGBColor | HSLColor:
+    """Combined function to set the `a` or `b` pen color."""
     args: list[Any] = [x, y, z]
 
     if a is not None:
@@ -649,45 +743,40 @@ def _tv_set_ab_pen(
     res = send_cmd(f"tv_Set{pen.upper()}Pen", *args)
     fmt, r, g, b = res.split(" ")
 
-    color_type: type[RGBColor] | type[HSLColor] = (
+    color_type: Type[RGBColor] | Type[HSLColor] = (
         RGBColor if a is not None or fmt == "rgb" else HSLColor
     )
     return color_type(int(r), int(g), int(b))
 
 
-@undo
 def tv_set_a_pen_rgba(color: RGBColor, alpha: int | None = None) -> RGBColor:
-    """Set the APen RGBA color"""
+    """Set the APen RGBA color."""
     return _tv_set_ab_pen("a", color.r, color.g, color.b, "rgb", a=alpha)
 
 
-@undo
 def tv_set_a_pen_hsl(color: HSLColor) -> HSLColor:
-    """Set the A Pen HSL color"""
+    """Set the A Pen HSL color."""
     return _tv_set_ab_pen("a", color.h, color.s, color.l, color_format="hsl")
 
 
-@undo
 def tv_set_b_pen_rgba(color: RGBColor, alpha: int | None = None) -> RGBColor:
-    """Set the B Pen RGBA color"""
+    """Set the B Pen RGBA color."""
     return _tv_set_ab_pen("b", color.r, color.g, color.b, color_format="rgb", a=alpha)
 
 
-@undo
 def tv_set_b_pen_hsl(color: HSLColor) -> HSLColor:
-    """Set the B Pen HSL color"""
+    """Set the B Pen HSL color."""
     return _tv_set_ab_pen("b", color.h, color.s, color.l, color_format="hsl")
 
 
-@undo
 def tv_pen(size: float) -> float:
-    """Change current pen tool size"""
+    """Change current pen tool size."""
     res = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
     return cast(float, res["size"])
 
 
 def tv_pen_brush_get(tool_mode: bool = False) -> TVPPenBrush:
-    """Get pen brush parameters"""
+    """Get pen brush parameters."""
     args = ("toolmode", "backup") if tool_mode else ("backup",)
     result = send_cmd("tv_PenBrush", *args)
 
@@ -698,7 +787,6 @@ def tv_pen_brush_get(tool_mode: bool = False) -> TVPPenBrush:
     return TVPPenBrush(**res)
 
 
-@undo
 def tv_pen_brush_set(
     mode: DrawingMode | None = None,
     size: int | None = None,
@@ -706,7 +794,7 @@ def tv_pen_brush_set(
     tool_mode: bool = False,
     reset: bool = False,
 ) -> TVPPenBrush:
-    """Manage pen brush"""
+    """Manage pen brush."""
     args = {
         "mode": mode.value if mode else None,
         "size": size,
@@ -727,7 +815,6 @@ def tv_pen_brush_set(
     return tv_pen_brush_get()
 
 
-@undo
 def tv_rect(
     tlx: float,
     tly: float,
@@ -735,14 +822,21 @@ def tv_rect(
     bry: float,
     button: RectButton | None = None,
 ) -> None:
-    """Draw a rectangle"""
+    """Draws a rectangle with stroke only.
+
+    Args:
+        tlx: top left x coordinate
+        tly: top left y coordinate
+        brx: bottom right x coordinate
+        bry: bottom right y coordinate
+        button: use left or right click button (left draws, right erases)
+    """
     args: list[float] = [tlx, tly, brx, bry]
     if button:
         args.append(button.value)
     send_cmd("tv_Rect", *args)
 
 
-@undo
 def tv_rect_fill(
     tlx: float,
     tly: float,
@@ -753,6 +847,18 @@ def tv_rect_fill(
     erase_mode: bool = False,
     tool_mode: bool = False,
 ) -> None:
+    """Draws a filled rectangle.
+
+    Args:
+        tlx: top left x coordinate
+        tly: top left y coordinate
+        brx: bottom right x coordinate
+        bry: bottom right y coordinate
+        grx: gradient vector x
+        gry: gradient vector y
+        erase_mode: erase drawing mode
+        tool_mode: manage drawing mode
+    """
     args: list[Any] = [tlx, tly, brx, bry, grx, gry, int(erase_mode)]
     if tool_mode:
         args.insert(0, "toolmode")
@@ -760,18 +866,18 @@ def tv_rect_fill(
 
 
 def tv_exposure_next() -> int:
-    """Go to the next instance head
+    """Go to the next instance head.
 
     Returns:
-        int: The 'new' current frame
+        The 'new' current frame
     """
     return int(send_cmd("tv_ExposureNext"))
 
 
 def tv_exposure_prev() -> int:
-    """Go to the previous instance head (*before* the current instance)
+    """Go to the previous instance head (*before* the current instance).
 
     Returns:
-        int: The 'new' current frame
+        The 'new' current frame
     """
     return int(send_cmd("tv_ExposurePrev"))

@@ -1,0 +1,3 @@
+# Project class
+
+::: pytvpaint.project
