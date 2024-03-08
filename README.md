@@ -17,12 +17,28 @@ It communicates through WebSocket to a [custom C++ plugin](./cpp) running in an 
 ## Simple example
 
 ```python
-from pytvpaint.clip import Clip
+from pytvpaint import george
+from pytvpaint.project import Project
 
-clip = Clip.current_clip()
+# get access to tvp elements
+project = Project.load('scene.tvpp', silent=True)
 
+clip = project.current_clip()
+# or get the clip by name
+clip = project.get_clip('my_clip')
+
+layer = clip.add_layer('my_new_layer')
+# check out other layers
 for layer in clip.layers:
     print(layer.name)
+
+# get access to George functions
+george.tv_rect(50, 50 ,100, 100)
+
+# render your file
+clip.render('./out.#.png', start=20, end=45)
+
+project.close()
 ```
 
 ## Contributing
