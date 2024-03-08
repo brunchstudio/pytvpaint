@@ -17,7 +17,7 @@ This one is simple because we don't have any arguments and return value:
 Use the [`send_cmd`](../api/client/communication.md#pytvpaint.george.client.send_cmd) function to send a George command:
 
 ```python
-from pytvpaint.george.client import send_cmd
+from pytvpaint import send_cmd
 
 def tv_lock_user() -> None: # (1)!
     send_cmd("tv_LockUser") # (2)!
@@ -47,7 +47,7 @@ def tv_lock_user() -> None: # (1)!
     ```
 
 ```python
-from pytvpaint.george.client import send_cmd
+from pytvpaint import send_cmd
 
 def tv_library_image_copy(image_id: str) -> None:
     send_cmd("tv_LibraryImageCopy", id, error_values=[-2, -3]) # (1)!
@@ -104,7 +104,7 @@ This command is more tricky. It has:
 ```python
 from dataclasses import dataclass
 
-from pytvpaint.george.client import send_cmd
+from pytvpaint import send_cmd
 from pytvpaint.george.client.parse import args_dict_to_list, tv_parse_dict
 
 

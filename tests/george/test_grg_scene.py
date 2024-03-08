@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Iterator
 
 import pytest
-from pytvpaint.george.exceptions import GeorgeError
-from pytvpaint.george.project import TVPProject
+from pytvpaint.george import GeorgeError
+from pytvpaint.george import TVPProject
 from pytvpaint.george.scene import (
     tv_scene_close,
     tv_scene_current_id,

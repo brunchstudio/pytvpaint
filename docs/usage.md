@@ -47,7 +47,7 @@ The API follows the structure of TVPaint projects in this order: `Project -> Sce
 In practice you can do this:
 
 ```python
-from pytvpaint.project import Project
+from pytvpaint import Project
 
 project = Project.current_project()
 
@@ -78,7 +78,7 @@ Since the library queries for data, it's not synchronized with the current state
 For example getting the project path:
 
 ```python
-from pytvpaint.layer import Layer
+from pytvpaint import Layer
 
 layer = Layer.current_layer()
 
@@ -103,7 +103,7 @@ There's two ways an object can be invalid:
 In this example we are removing a layer:
 
 ```python
-from pytvpaint.layer import Layer
+from pytvpaint import Layer
 
 layer = Layer.current_layer()
 layer.remove()
@@ -115,7 +115,7 @@ print(layer.name)
 This is the same if we close the project containing the layer:
 
 ```python
-from pytvpaint.project import Project
+from pytvpaint import Project
 
 project = Project.current_project()
 layer = project.current_clip.current_layer

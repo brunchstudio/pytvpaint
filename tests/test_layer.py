@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from pytvpaint import george
-from pytvpaint.clip import Clip
+from pytvpaint import Clip
 from pytvpaint.george import BlendingMode, StencilMode
 from pytvpaint.george.layer import LayerBehavior, LayerTransparency, LayerType, TVPLayer
 from pytvpaint.layer import Layer, LayerColor, LayerInstance

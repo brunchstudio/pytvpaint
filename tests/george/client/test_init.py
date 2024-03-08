@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import NoReturn
 
 import pytest
-from pytvpaint.george.base import GrgErrorValue
+from pytvpaint.george import GrgErrorValue
 from pytvpaint.george.client import run_script, send_cmd, try_cmd
-from pytvpaint.george.exceptions import GeorgeError
+from pytvpaint.george import GeorgeError
 
 
 def test_decorate_try_cmd() -> None:

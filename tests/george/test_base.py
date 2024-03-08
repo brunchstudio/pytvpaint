@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from pytest_mock import MockFixture
-from pytvpaint.george.base import (
+from pytvpaint.george import (
     AlphaMode,
     AlphaSaveMode,
     DrawingMode,
@@ -46,9 +46,9 @@ from pytvpaint.george.base import (
     undo,
 )
 from pytvpaint.george.client import send_cmd
-from pytvpaint.george.exceptions import GeorgeError
+from pytvpaint.george import GeorgeError
 from pytvpaint.george.layer import tv_layer_info
-from pytvpaint.george.project import TVPProject
+from pytvpaint.george import TVPProject
 
 
 def test_tv_version() -> None:

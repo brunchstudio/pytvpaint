@@ -7,8 +7,8 @@ from random import randint
 from typing import Generator, TypeVar
 
 import pytest
-from pytvpaint.clip import Clip
-from pytvpaint.george.base import tv_pen_brush_set
+from pytvpaint import Clip
+from pytvpaint.george import tv_pen_brush_set
 from pytvpaint.george.clip import (
     TVPClip,
     tv_clip_close,
@@ -26,7 +26,7 @@ from pytvpaint.george.layer import (
     tv_layer_info,
     tv_layer_kill,
 )
-from pytvpaint.george.project import (
+from pytvpaint.george import (
     TVPProject,
     tv_project_close,
     tv_project_current_id,

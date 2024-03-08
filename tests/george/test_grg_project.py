@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pytvpaint.george.base import (
+from pytvpaint.george import (
     FieldOrder,
     ResizeOption,
     RGBColor,
@@ -13,14 +13,14 @@ from pytvpaint.george.base import (
     tv_save_mode_get,
     tv_save_mode_set,
 )
-from pytvpaint.george.camera import tv_camera_insert_point
+from pytvpaint.george import tv_camera_insert_point
 from pytvpaint.george.clip import (
     tv_clip_current_id,
     tv_clip_info,
     tv_load_sequence,
 )
-from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
-from pytvpaint.george.project import (
+from pytvpaint.george import GeorgeError, NoObjectWithIdError
+from pytvpaint.george import (
     BackgroundMode,
     TVPProject,
     tv_background_get,

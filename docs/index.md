@@ -41,7 +41,7 @@ for layer in clip.layers:
 Creating a new project:
 
 ```python
-from pytvpaint.project import Project
+from pytvpaint import Project
 
 new_project = Project.new(
     "./project.tvpp",
@@ -59,7 +59,7 @@ Render all the clips in the project:
 ```python
 from pathlib import Path
 
-from pytvpaint.project import Project
+from pytvpaint import Project
 
 project = Project.current_project()
 
@@ -71,7 +71,7 @@ for clip in project.clips:
 Iterates through the layer instances:
 
 ```python
-from pytvpaint.layer import Layer
+from pytvpaint import Layer
 
 for instance in Layer.current_layer().instances:
     print(instance.start, instance.name)

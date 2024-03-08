@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 import pytest
-from pytvpaint.george.base import FieldOrder, SaveFormat, SpriteLayout, tv_save_mode_get
+from pytvpaint.george import FieldOrder, SaveFormat, SpriteLayout, tv_save_mode_get
 from pytvpaint.george.clip import (
     PSDSaveMode,
     TVPClip,
@@ -57,7 +57,7 @@ from pytvpaint.george.clip import (
     tv_sound_clip_reload,
     tv_sound_clip_remove,
 )
-from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
+from pytvpaint.george import GeorgeError, NoObjectWithIdError
 from pytvpaint.george.layer import (
     LayerType,
     TVPLayer,
@@ -70,7 +70,7 @@ from pytvpaint.george.layer import (
     tv_layer_rename,
     tv_layer_set,
 )
-from pytvpaint.george.project import TVPProject, tv_save_project
+from pytvpaint.george import TVPProject, tv_save_project
 from pytvpaint.george.scene import tv_scene_current_id, tv_scene_new
 
 from tests.conftest import FixtureYield, test_scene
