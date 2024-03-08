@@ -5,15 +5,12 @@ from __future__ import annotations
 import contextlib
 import re
 from abc import ABC, abstractmethod
+from collections.abc import Generator, Iterable, Iterator
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Generator,
-    Iterable,
-    Iterator,
-    Type,
     TypeVar,
     cast,
 )
@@ -28,7 +25,8 @@ if TYPE_CHECKING:
 
 
 class _CanRefresh(Protocol):
-    def refresh(self) -> None: ...
+    def refresh(self) -> None:
+        ...
 
 
 if TYPE_CHECKING:
@@ -150,7 +148,7 @@ T = TypeVar("T")
 
 def position_generator(
     fn: Callable[[int], T],
-    stop_when: Type[GeorgeError] = GeorgeError,
+    stop_when: type[GeorgeError] = GeorgeError,
 ) -> Iterator[T]:
     """Utility generator that yields the result of a function according to a position.
 
@@ -268,10 +266,12 @@ def render_context(
 
 class _TVPElement(Protocol):
     @property
-    def id(self) -> int | str: ...
+    def id(self) -> int | str:
+        ...
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        ...
 
 
 TVPElementType = TypeVar("TVPElementType", bound=_TVPElement)

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
 
@@ -89,7 +90,7 @@ class Project(Refreshable):
 
     @property
     def exists(self) -> bool:
-        """Checks if the project exists on disk"""
+        """Checks if the project exists on disk."""
         return self.path.is_file() and self.path.suffix in [".tvpp", ".tvp"]
 
     @property
@@ -257,7 +258,7 @@ class Project(Refreshable):
         by_name: str | None = None,
     ) -> Project:
         """Find a project by id or by name."""
-        for project in Project.opened_projects():
+        for project in Project.open_projects():
             if (by_id and project.id == by_id) or (by_name and project.name == by_name):
                 return project
         raise ValueError(f"Can't find a project with id: {by_id} and name: {by_name}")
@@ -396,12 +397,12 @@ class Project(Refreshable):
 
     @staticmethod
     def open_projects_ids() -> Iterator[str]:
-        """Yields the ids of the currently opened projects"""
+        """Yields the ids of the currently opened projects."""
         return position_generator(lambda pos: george.tv_project_enum_id(pos))
 
     @classmethod
     def open_projects(cls) -> Iterator[Project]:
-        """Iterator over the currently opened projects"""
+        """Iterator over the currently opened projects."""
         for project_id in Project.open_projects_ids():
             yield Project(project_id)
 
@@ -507,6 +508,7 @@ class Project(Refreshable):
 
     @classmethod
     def close_all(cls) -> None:
+        """Closes all the projects."""
         projects = list(cls.open_projects())
         for project in projects:
             project.close()
@@ -525,7 +527,7 @@ class Project(Refreshable):
         return cls.current_project()
 
     def save(self, save_path: Path | str | None = None) -> None:
-        """Saves the project on disk"""
+        """Saves the project on disk."""
         save_path = Path(save_path or self.path).resolve()
         george.tv_save_project(save_path.as_posix())
 

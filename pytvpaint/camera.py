@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from pytvpaint import george
-from pytvpaint.george.camera import TVPCameraPoint
+from pytvpaint.george.grg_camera import TVPCameraPoint
 from pytvpaint.utils import (
     Refreshable,
     Removable,

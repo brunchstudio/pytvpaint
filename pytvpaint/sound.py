@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, Iterator, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from typing_extensions import Self
 
@@ -73,7 +74,7 @@ class BaseSound(Removable, ABC, Generic[P]):
         raise NotImplementedError()
 
     @classmethod
-    def new(cls: Type[Self], sound_path: Path | str, parent: P) -> Self:
+    def new(cls: type[Self], sound_path: Path | str, parent: P) -> Self:
         """Create a new sound from the sound path."""
         parent.make_current()
         cls._new(Path(sound_path))

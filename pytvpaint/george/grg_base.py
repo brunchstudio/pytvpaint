@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Generator
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Generator, Type, TypeVar, cast, overload
+from typing import Any, Callable, TypeVar, cast, overload
 
 from typing_extensions import Literal, TypeAlias
 
@@ -743,7 +744,7 @@ def _tv_set_ab_pen(
     res = send_cmd(f"tv_Set{pen.upper()}Pen", *args)
     fmt, r, g, b = res.split(" ")
 
-    color_type: Type[RGBColor] | Type[HSLColor] = (
+    color_type: type[RGBColor] | type[HSLColor] = (
         RGBColor if a is not None or fmt == "rgb" else HSLColor
     )
     return color_type(int(r), int(g), int(b))

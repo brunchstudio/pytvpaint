@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import json
 import sys
+import threading
 from typing import Any, Union, cast
 
 from typing_extensions import NotRequired, TypedDict
-from websocket import WebSocket
+from websocket import WebSocket, WebSocketException
+
+from pytvpaint import log
 
 JSONValueType = Union[str, int, float, bool, None]
 
@@ -73,6 +76,27 @@ class JSONRPCClient:
         self.rpc_id = 0
         self.jsonrpc_version = version
 
+        self.stop_ping = threading.Event()
+        self.run_forever = False
+        self.ping_thread: threading.Thread | None = None
+
+    def _auto_reconnect(self):
+        """Automatic WebSocket reconnection in a thread by pinging the server."""
+        while self.run_forever and not self.stop_ping.wait(1):
+            try:
+                self.ws_handle.ping()
+            except (WebSocketException, ConnectionError):  # noqa: PERF203
+                self.ws_handle.close()
+                try:
+                    self.connect()
+                    log.info(f"Reconnected automatically to TVPaint {self.url}")
+                except ConnectionRefusedError:
+                    continue
+
+    def __del__(self):
+        """Called when the client goes out of scope."""
+        self.disconnect()
+
     @property
     def is_connected(self) -> bool:
         """Returns True if the client is connected."""
@@ -82,10 +106,19 @@ class JSONRPCClient:
         """Connects to the WebSocket endpoint."""
         self.ws_handle.connect(self.url, timeout=timeout)
 
+        if not self.ping_thread:
+            self.ping_thread = threading.Thread(
+                target=self._auto_reconnect, daemon=True
+            )
+            self.run_forever = True
+            self.ping_thread.start()
+
     def disconnect(self) -> None:
         """Disconnects from the server."""
-        if not self.is_connected:
-            raise ConnectionError("Can't disconnect")
+        self.run_forever = False
+        if self.ping_thread:
+            self.ping_thread.join()
+
         self.ws_handle.close()
 
     def increment_rpc_id(self) -> None:

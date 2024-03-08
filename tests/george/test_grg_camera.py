@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from pytvpaint.george import FieldOrder
-from pytvpaint.george import (
+from pytvpaint.george.exceptions import GeorgeError
+from pytvpaint.george.grg_base import FieldOrder
+from pytvpaint.george.grg_camera import (
     TVPCameraPoint,
     tv_camera_enum_points,
     tv_camera_info_get,
@@ -14,8 +15,7 @@ from pytvpaint.george import (
     tv_camera_remove_point,
     tv_camera_set_point,
 )
-from pytvpaint.george import GeorgeError
-from pytvpaint.george import TVPProject
+from pytvpaint.george.grg_project import TVPProject
 
 
 def test_tv_camera_info_get(test_project: TVPProject) -> None:

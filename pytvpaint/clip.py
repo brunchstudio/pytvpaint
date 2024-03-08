@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
@@ -327,7 +328,7 @@ class Clip(Removable):
             yield Layer(layer_id, clip=self)
 
     def _layer_names(self) -> Iterator[str]:
-        """Iterator over the clip's layer names"""
+        """Iterator over the clip's layer names."""
         for layer in self.layers:
             yield layer.name
 
@@ -507,7 +508,9 @@ class Clip(Removable):
         george.tv_save_clip(export_path)
 
         if not export_path.exists():
-            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
+            )
 
     @set_as_current
     def export_json(
@@ -579,7 +582,9 @@ class Clip(Removable):
         export_path = Path(export_path)
         image = start if mode == george.PSDSaveMode.IMAGE else None
 
-        with render_context(alpha_mode, george.SaveFormat.PSD, format_opts, layer_selection):
+        with render_context(
+            alpha_mode, george.SaveFormat.PSD, format_opts, layer_selection
+        ):
             george.tv_clip_save_structure_psd(
                 export_path,
                 mode,
@@ -606,7 +611,7 @@ class Clip(Removable):
             save_format: file format to use for rendering
             all_images: export all images or only instances. Defaults to None.
             exposure_label: give a label when the image is an exposure. Defaults to None.
-            layers: layers to render. Defaults to None (render all the layers).
+            layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             format_opts: custom format options. Defaults to None.
 
@@ -637,7 +642,7 @@ class Clip(Removable):
             export_path (Path | str): _description_
             layout: the sprite layout. Defaults to None.
             space: the space between each sprite in the image. Defaults to None.
-            layers: layers to render. Defaults to None (render all the layers).
+            layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             format_opts: custom format options. Defaults to None.
         """
@@ -669,7 +674,7 @@ class Clip(Removable):
             import_parameters: the attribute(s) of the global <flixImport> tag (waitForSource/...). Defaults to None.
             file_parameters: the attribute(s) of each <image> (file) tag (dialogue/...). Defaults to None.
             send: open a browser with the prefilled url. Defaults to None.
-            layers: layers to render. Defaults to None (render all the layers).
+            layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             format_opts: custom format options. Defaults to None.
 

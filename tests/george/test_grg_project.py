@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pytvpaint.george import (
+from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
+from pytvpaint.george.grg_base import (
     FieldOrder,
     ResizeOption,
     RGBColor,
@@ -13,14 +14,13 @@ from pytvpaint.george import (
     tv_save_mode_get,
     tv_save_mode_set,
 )
-from pytvpaint.george import tv_camera_insert_point
-from pytvpaint.george.clip import (
+from pytvpaint.george.grg_camera import tv_camera_insert_point
+from pytvpaint.george.grg_clip import (
     tv_clip_current_id,
     tv_clip_info,
     tv_load_sequence,
 )
-from pytvpaint.george import GeorgeError, NoObjectWithIdError
-from pytvpaint.george import (
+from pytvpaint.george.grg_project import (
     BackgroundMode,
     TVPProject,
     tv_background_get,
@@ -307,7 +307,9 @@ def test_tv_get_field(test_project: TVPProject) -> None:
     assert tv_get_field() == test_project.field_order
 
 
-@pytest.mark.parametrize("mark_in, mark_out", [(None, None), (0, 5), (0, 0), (0, 1), (2, 5)])
+@pytest.mark.parametrize(
+    "mark_in, mark_out", [(None, None), (0, 5), (0, 0), (0, 1), (2, 5)]
+)
 def test_tv_save_sequence(
     test_project: TVPProject,
     tmp_path: Path,
@@ -322,7 +324,11 @@ def test_tv_save_sequence(
     tv_save_sequence(out_sequence, mark_in, mark_out)
 
     clip = tv_clip_info(tv_clip_current_id())
-    start, end = (mark_in, mark_out) if mark_in and mark_out else (clip.first_frame, clip.last_frame)
+    start, end = (
+        (mark_in, mark_out)
+        if mark_in and mark_out
+        else (clip.first_frame, clip.last_frame)
+    )
 
     for i in range(end - start):
         image_name = out_sequence.name + str(i).zfill(5)

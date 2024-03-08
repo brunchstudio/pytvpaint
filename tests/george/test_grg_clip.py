@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import itertools
 import re
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 import pytest
-from pytvpaint.george import FieldOrder, SaveFormat, SpriteLayout, tv_save_mode_get
-from pytvpaint.george.clip import (
+from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
+from pytvpaint.george.grg_base import (
+    FieldOrder,
+    SaveFormat,
+    SpriteLayout,
+    tv_save_mode_get,
+)
+from pytvpaint.george.grg_clip import (
     PSDSaveMode,
     TVPClip,
     tv_bookmark_clear,
@@ -57,8 +64,7 @@ from pytvpaint.george.clip import (
     tv_sound_clip_reload,
     tv_sound_clip_remove,
 )
-from pytvpaint.george import GeorgeError, NoObjectWithIdError
-from pytvpaint.george.layer import (
+from pytvpaint.george.grg_layer import (
     LayerType,
     TVPLayer,
     tv_instance_get_name,
@@ -70,8 +76,8 @@ from pytvpaint.george.layer import (
     tv_layer_rename,
     tv_layer_set,
 )
-from pytvpaint.george import TVPProject, tv_save_project
-from pytvpaint.george.scene import tv_scene_current_id, tv_scene_new
+from pytvpaint.george.grg_project import TVPProject, tv_save_project
+from pytvpaint.george.grg_scene import tv_scene_current_id, tv_scene_new
 
 from tests.conftest import FixtureYield, test_scene
 

@@ -7,13 +7,12 @@ George can either return a list of values or a list of key/value pairs which are
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import Field, fields, is_dataclass
 from enum import Enum
 from typing import (
     Any,
     ClassVar,
-    Sequence,
-    Type,
     TypeVar,
     Union,
     cast,
@@ -66,7 +65,7 @@ def camel_to_pascal(s: str) -> str:
 T = TypeVar("T", bound=Any)
 
 
-def tv_cast_to_type(value: str, cast_type: Type[T]) -> T:
+def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
     """Cast a value to the provided type using George's convention for values.
 
     Note:
@@ -130,7 +129,7 @@ FieldTypes: TypeAlias = list[tuple[str, Any]]
 
 
 def _get_dataclass_fields(
-    datacls: DataclassInstance | Type[DataclassInstance],
+    datacls: DataclassInstance | type[DataclassInstance],
 ) -> FieldTypes:
     """Get the dataclass key/type pairs and filter those with the "parsed" metadata.
 
@@ -150,7 +149,7 @@ def _get_dataclass_fields(
 
 def tv_parse_dict(
     input_text: str,
-    with_fields: FieldTypes | Type[DataclassInstance],
+    with_fields: FieldTypes | type[DataclassInstance],
 ) -> dict[str, Any]:
     """Parse a list of values as key value pairs returned from TVPaint commands.
 
@@ -208,7 +207,7 @@ def tv_parse_dict(
 
 def tv_parse_list(
     output: str,
-    with_fields: FieldTypes | Type[DataclassInstance],
+    with_fields: FieldTypes | type[DataclassInstance],
     unused_indices: list[int] | None = None,
 ) -> dict[str, Any]:
     """Parse a list of values returned from TVPaint commands.

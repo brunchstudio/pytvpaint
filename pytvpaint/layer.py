@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Generator, Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator, Iterator
+from typing import TYPE_CHECKING
 
 from pytvpaint import george
 from pytvpaint.george.exceptions import GeorgeError
@@ -210,15 +211,6 @@ class LayerColor(Refreshable):
             george.tv_layer_color_select(self.index)
         else:
             george.tv_layer_color_unselect(self.index)
-
-    @classmethod
-    def new(
-        cls, clip: Clip, index: int, color: george.RGBColor, name: str = ""
-    ) -> LayerColor:
-        layer_color = cls(color_index=index, clip=clip)
-        layer_color.color = color
-        layer_color.name = name
-        return layer_color
 
 
 class Layer(Removable):

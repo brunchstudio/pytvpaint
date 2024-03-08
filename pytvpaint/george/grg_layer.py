@@ -6,11 +6,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from pytvpaint.george.base import (
-    BlendingMode,
-    GrgErrorValue,
-    RGBColor,
-)
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     args_dict_to_list,
@@ -18,6 +13,11 @@ from pytvpaint.george.client.parse import (
     tv_parse_list,
 )
 from pytvpaint.george.exceptions import NoObjectWithIdError
+from pytvpaint.george.grg_base import (
+    BlendingMode,
+    GrgErrorValue,
+    RGBColor,
+)
 
 
 class LayerColorAction(Enum):

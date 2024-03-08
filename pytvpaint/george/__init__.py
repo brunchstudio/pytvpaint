@@ -3,9 +3,9 @@
 Because we can do `from pytvpaint.george import <any_tv_george_command>`.
 """
 
-from pytvpaint.george.base import *
-from pytvpaint.george.camera import *
-from pytvpaint.george.clip import *
-from pytvpaint.george.layer import *
-from pytvpaint.george.project import *
-from pytvpaint.george.scene import *
+from pytvpaint.george.grg_base import *
+from pytvpaint.george.grg_camera import *
+from pytvpaint.george.grg_clip import *
+from pytvpaint.george.grg_layer import *
+from pytvpaint.george.grg_project import *
+from pytvpaint.george.grg_scene import *

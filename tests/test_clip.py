@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from pytvpaint import george
-from pytvpaint import Clip
+from pytvpaint.clip import Clip
 from pytvpaint.george import RGBColor
 from pytvpaint.layer import Layer
 from pytvpaint.project import Project

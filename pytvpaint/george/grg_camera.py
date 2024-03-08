@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pytvpaint.george.base import FieldOrder, GrgErrorValue
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.client.parse import (
     consecutive_optional_args_to_list,
     tv_parse_list,
 )
+from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue
 
 
 @dataclass(frozen=True)

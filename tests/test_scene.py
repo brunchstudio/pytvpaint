@@ -1,6 +1,6 @@
 import pytest
 from pytvpaint import george
-from pytvpaint import Clip
+from pytvpaint.clip import Clip
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 

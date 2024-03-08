@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Iterator
+from collections.abc import Iterator
 
 import pytest
-from pytvpaint.george import GeorgeError
-from pytvpaint.george import TVPProject
-from pytvpaint.george.scene import (
+from pytvpaint.george.exceptions import GeorgeError
+from pytvpaint.george.grg_project import TVPProject
+from pytvpaint.george.grg_scene import (
     tv_scene_close,
     tv_scene_current_id,
     tv_scene_duplicate,

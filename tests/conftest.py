@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import struct
 import wave
+from collections.abc import Generator
 from pathlib import Path
 from random import randint
-from typing import Generator, TypeVar
+from typing import TypeVar
 
 import pytest
-from pytvpaint import Clip
-from pytvpaint.george import tv_pen_brush_set
-from pytvpaint.george.clip import (
+from pytvpaint.clip import Clip
+from pytvpaint.george.grg_base import tv_pen_brush_set
+from pytvpaint.george.grg_clip import (
     TVPClip,
     tv_clip_close,
     tv_clip_current_id,
@@ -18,7 +19,7 @@ from pytvpaint.george.clip import (
     tv_clip_new,
     tv_sound_clip_new,
 )
-from pytvpaint.george.layer import (
+from pytvpaint.george.grg_layer import (
     TVPLayer,
     tv_layer_anim,
     tv_layer_create,
@@ -26,7 +27,7 @@ from pytvpaint.george.layer import (
     tv_layer_info,
     tv_layer_kill,
 )
-from pytvpaint.george import (
+from pytvpaint.george.grg_project import (
     TVPProject,
     tv_project_close,
     tv_project_current_id,
@@ -35,7 +36,7 @@ from pytvpaint.george import (
     tv_project_new,
     tv_sound_project_new,
 )
-from pytvpaint.george.scene import (
+from pytvpaint.george.grg_scene import (
     tv_scene_close,
     tv_scene_current_id,
     tv_scene_enum_id,

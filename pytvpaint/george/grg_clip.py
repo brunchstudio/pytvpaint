@@ -7,13 +7,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from pytvpaint.george.base import (
-    FieldOrder,
-    GrgErrorValue,
-    SaveFormat,
-    SpriteLayout,
-    TVPSound,
-)
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     args_dict_to_list,
@@ -22,6 +15,13 @@ from pytvpaint.george.client.parse import (
     tv_parse_list,
 )
 from pytvpaint.george.exceptions import NoObjectWithIdError
+from pytvpaint.george.grg_base import (
+    FieldOrder,
+    GrgErrorValue,
+    SaveFormat,
+    SpriteLayout,
+    TVPSound,
+)
 
 
 @dataclass(frozen=True)

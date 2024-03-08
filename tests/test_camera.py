@@ -1,8 +1,8 @@
 import pytest
 from pytvpaint import george
 from pytvpaint.camera import Camera
-from pytvpaint import Clip
-from pytvpaint.george import FieldOrder
+from pytvpaint.clip import Clip
+from pytvpaint.george.grg_base import FieldOrder
 
 from tests.conftest import FixtureYield
 

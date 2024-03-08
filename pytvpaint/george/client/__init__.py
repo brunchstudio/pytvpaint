@@ -11,7 +11,7 @@ import os
 import re
 from pathlib import Path
 from time import sleep, time
-from typing import Any, Callable, Type, TypeVar, cast
+from typing import Any, Callable, TypeVar, cast
 
 from pytvpaint import log
 from pytvpaint.george.client.parse import tv_handle_string
@@ -31,10 +31,12 @@ def _connect_client(
     start_time = time()
     failed_attempts = 0
     wait_duration = 1
+    connection_successful = False
 
     while failed_attempts < 3:
         with contextlib.suppress(ConnectionRefusedError):
             rpc_client.connect()
+            connection_successful = True
             break
 
         # Connection could not be established after timeout
@@ -51,7 +53,12 @@ def _connect_client(
         wait_duration *= 2
         failed_attempts += 1
 
-    log.info(f"Connected to TVPaint on port {port}")
+    if not connection_successful:
+        if rpc_client.is_connected:
+            rpc_client.disconnect()
+        log.info("Could not reconnect to TVPaint")
+    else:
+        log.info(f"Connected to TVPaint on port {port}")
 
     return rpc_client
 
@@ -62,8 +69,8 @@ T = TypeVar("T", bound=Callable[..., Any])
 
 
 def try_cmd(
-    raise_exc: Type[Exception] = GeorgeError,
-    catch_exc: Type[Exception] = GeorgeError,
+    raise_exc: type[Exception] = GeorgeError,
+    catch_exc: type[Exception] = GeorgeError,
     exception_msg: str | None = None,
 ) -> Callable[[T], T]:
     """Decorator that does a try/except with GeorgeError by default.

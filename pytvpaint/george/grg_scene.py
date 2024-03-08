@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pytvpaint.george.base import GrgErrorValue
 from pytvpaint.george.client import send_cmd, try_cmd
+from pytvpaint.george.grg_base import GrgErrorValue
 
 
 @try_cmd(exception_msg="No scene at provided position")

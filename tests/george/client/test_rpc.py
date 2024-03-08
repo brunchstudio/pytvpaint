@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from pytest_mock import MockFixture
-from pytvpaint.george.client import JSONRPCClient
+from pytvpaint.george.client.rpc import JSONRPCClient
 from websocket import WebSocket
 
 

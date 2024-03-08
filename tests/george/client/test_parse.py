@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pytvpaint.george.client import (
+from pytvpaint.george.client.parse import (
     DataclassInstance,
     camel_to_pascal,
     tv_cast_to_type,
