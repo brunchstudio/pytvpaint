@@ -6,7 +6,7 @@
 
 **Pytvpaint** is a type-safe Python library that wraps the George programming language commands in order to interact with the 2D animation software TVPaint.
 
-It communicates through WebSocket to a [custom C++ plugin](./cpp) running in an opened TVPaint instance.
+It communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
 
 ## Installation
 
@@ -20,23 +20,24 @@ It communicates through WebSocket to a [custom C++ plugin](./cpp) running in an 
 from pytvpaint import george
 from pytvpaint.project import Project
 
-# get access to tvp elements
-project = Project.load('scene.tvpp', silent=True)
+# Get access to tvp elements
+project = Project.load("scene.tvpp", silent=True)
 
-clip = project.current_clip()
-# or get the clip by name
-clip = project.get_clip('my_clip')
+clip = project.current_clip
+# Or get the clip by name
+clip = project.get_clip(by_name="my_clip")
 
-layer = clip.add_layer('my_new_layer')
-# check out other layers
+layer = clip.add_layer("my_new_layer")
+
+# Check out other layers
 for layer in clip.layers:
     print(layer.name)
 
-# get access to George functions
-george.tv_rect(50, 50 ,100, 100)
+# Get access to George functions
+george.tv_rect(50, 50, 100, 100)
 
-# render your file
-clip.render('./out.#.png', start=20, end=45)
+# Render your file
+clip.render("./out.#.png", start=20, end=45)
 
 project.close()
 ```
