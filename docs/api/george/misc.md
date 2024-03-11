@@ -1,3 +1,3 @@
 # Miscellaneous George functions
 
-::: pytvpaint.george.base
+::: pytvpaint.george.grg_base

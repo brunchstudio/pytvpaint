@@ -1,3 +1,3 @@
 # Project related George functions
 
-::: pytvpaint.george.project
+::: pytvpaint.george.grg_project

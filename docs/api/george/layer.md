@@ -1,3 +1,3 @@
 # Layer related George functions
 
-::: pytvpaint.george.layer
+::: pytvpaint.george.grg_layer

@@ -1,3 +1,3 @@
 # Camera related George functions
 
-::: pytvpaint.george.camera
+::: pytvpaint.george.grg_camera

@@ -63,14 +63,14 @@ extra_css:
   - stylesheets/extra.css
 
 watch:
-  - python/pytvpaint
+  - pytvpaint
 
 plugins:
   - search
   - mkdocstrings:
-      default_handler: python
       handlers:
         python:
+          paths: [.]
           import:
             - https://docs.python.org/3/objects.inv
           options:

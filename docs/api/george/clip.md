@@ -1,3 +1,3 @@
 # Clip related George functions
 
-::: pytvpaint.george.clip
+::: pytvpaint.george.grg_clip
