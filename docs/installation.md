@@ -6,7 +6,7 @@ In order for Pytvpaint to work, a custom C++ plugin needs to be setup in your TV
 
 ### Windows
 
-- Download the latest [`tvpaint-ws-server.dll`]() file.
+- Download the latest [`tvpaint-rpc.dll`](https://github.com/brunchstudio/tvpaint-rpc/releases) file.
 - Copy it in your TVPaint `plugins` folder:
 
   ```
