@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from pytest_mock import MockFixture
+
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.george.grg_base import (

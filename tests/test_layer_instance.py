@@ -1,6 +1,6 @@
 import pytest
-from pytvpaint.layer import Layer, LayerInstance
 
+from pytvpaint.layer import Layer, LayerInstance
 from tests.conftest import FixtureYield
 
 

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
 from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
 from pytvpaint.george.grg_base import (
     FieldOrder,
@@ -78,7 +79,6 @@ from pytvpaint.george.grg_layer import (
 )
 from pytvpaint.george.grg_project import TVPProject, tv_save_project
 from pytvpaint.george.grg_scene import tv_scene_current_id, tv_scene_new
-
 from tests.conftest import FixtureYield, test_scene
 
 

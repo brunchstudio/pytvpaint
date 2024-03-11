@@ -1,4 +1,5 @@
 import pytest
+
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.project import Project

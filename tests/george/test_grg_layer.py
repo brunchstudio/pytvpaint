@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
 from pytvpaint.george.grg_base import BlendingMode, RGBColor, tv_rect
 from pytvpaint.george.grg_clip import TVPClip, tv_clip_current_id, tv_layer_image
@@ -80,7 +81,6 @@ from pytvpaint.george.grg_layer import (
 )
 from pytvpaint.george.grg_project import TVPProject
 from pytvpaint.layer import Layer
-
 from tests.conftest import FixtureYield
 
 

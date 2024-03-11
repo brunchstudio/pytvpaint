@@ -80,7 +80,7 @@ class JSONRPCClient:
         self.run_forever = False
         self.ping_thread: threading.Thread | None = None
 
-    def _auto_reconnect(self):
+    def _auto_reconnect(self) -> None:
         """Automatic WebSocket reconnection in a thread by pinging the server."""
         while self.run_forever and not self.stop_ping.wait(1):
             try:
@@ -93,7 +93,7 @@ class JSONRPCClient:
                 except ConnectionRefusedError:
                     continue
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Called when the client goes out of scope."""
         self.disconnect()
 

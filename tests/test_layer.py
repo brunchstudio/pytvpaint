@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.george import BlendingMode, StencilMode
@@ -15,7 +16,6 @@ from pytvpaint.george.grg_layer import (
 from pytvpaint.layer import Layer, LayerColor, LayerInstance
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
-
 from tests.conftest import FixtureYield
 
 

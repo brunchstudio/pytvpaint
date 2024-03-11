@@ -10,6 +10,7 @@ authors = [
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/brunchstudio/pytvpaint"
+documentation = "https://brunchstudio.github.io/pytvpaint/"
 keywords = ["tvpaint", "brunch", "tvp", "george"]
 packages = [{ include = "pytvpaint" }]
 

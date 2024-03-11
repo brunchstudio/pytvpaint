@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 import pytest
+
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.george.grg_project import TVPProject
 from pytvpaint.george.grg_scene import (
@@ -13,7 +14,6 @@ from pytvpaint.george.grg_scene import (
     tv_scene_move,
     tv_scene_new,
 )
-
 from tests.conftest import test_project
 
 

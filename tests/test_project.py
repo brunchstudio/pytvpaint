@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import pytest
+
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.george.grg_project import TVPProject
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 from pytvpaint.sound import ProjectSound
-
 from tests.conftest import FixtureYield
 
 

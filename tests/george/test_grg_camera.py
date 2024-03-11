@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.george.grg_base import FieldOrder
 from pytvpaint.george.grg_camera import (

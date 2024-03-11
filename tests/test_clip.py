@@ -4,13 +4,13 @@ import random
 from pathlib import Path
 
 import pytest
+
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.george import RGBColor
 from pytvpaint.layer import Layer
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
-
 from tests.conftest import FixtureYield
 from tests.george.test_grg_clip import TEST_TEXTS
 

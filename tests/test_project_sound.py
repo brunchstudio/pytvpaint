@@ -1,4 +1,5 @@
 import pytest
+
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.sound import ProjectSound
 

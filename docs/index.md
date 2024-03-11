@@ -1,6 +1,6 @@
 # Pytvpaint 🐍 → 🦋
 
-![](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
+![](https://img.shields.io/github/actions/workflow/status/brunchstudio/pytvpaint/docs-deploy.yml?label=docs) ![](https://img.shields.io/github/license/brunchstudio/pytvpaint)
 
 Pytvpaint is a library that allows you to script for [TVPaint](https://www.tvpaint.com/) in Python instead of [George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction).
 

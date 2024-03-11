@@ -3,6 +3,7 @@
 Because we can do `from pytvpaint.george import <any_tv_george_command>`.
 """
 
+from pytvpaint.george.exceptions import *
 from pytvpaint.george.grg_base import *
 from pytvpaint.george.grg_camera import *
 from pytvpaint.george.grg_clip import *

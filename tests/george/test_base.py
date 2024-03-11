@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import pytest
 from pytest_mock import MockFixture
+
 from pytvpaint.george import (
     AlphaMode,
     AlphaSaveMode,
     DrawingMode,
     FileMode,
+    GeorgeError,
     HSLColor,
     MarkAction,
     MarkReference,
@@ -14,6 +16,7 @@ from pytvpaint.george import (
     RectButton,
     RGBColor,
     SaveFormat,
+    TVPProject,
     TVPShape,
     tv_alpha_load_mode_get,
     tv_alpha_load_mode_set,
@@ -43,12 +46,10 @@ from pytvpaint.george import (
     tv_set_active_shape,
     tv_undo,
     tv_version,
-    undo,
+    undoable,
 )
 from pytvpaint.george.client import send_cmd
-from pytvpaint.george import GeorgeError
-from pytvpaint.george.layer import tv_layer_info
-from pytvpaint.george import TVPProject
+from pytvpaint.george.grg_layer import tv_layer_info
 
 
 def test_tv_version() -> None:
@@ -140,7 +141,7 @@ def test_tv_req_file() -> None:
 
 @pytest.mark.skip("Doesn't work?")
 def test_undo_command(test_project: TVPProject) -> None:
-    @undo
+    @undoable
     def create_layer() -> int:
         return int(send_cmd("tv_LayerCreate", "test_layer"))
 

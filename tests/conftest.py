@@ -8,6 +8,7 @@ from random import randint
 from typing import TypeVar
 
 import pytest
+
 from pytvpaint.clip import Clip
 from pytvpaint.george.grg_base import tv_pen_brush_set
 from pytvpaint.george.grg_clip import (
