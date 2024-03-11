@@ -11,7 +11,7 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/brunchstudio/pytvpaint"
 keywords = ["tvpaint", "brunch", "tvp", "george"]
-packages = [{ include = "pytvpaint", from = "python" }]
+packages = [{ include = "pytvpaint" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9"
@@ -96,6 +96,3 @@ warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
 extra_checks = true
-
-[brunch-build]
-include = ["python", "tests", "package.py", "pyproject.toml"]
