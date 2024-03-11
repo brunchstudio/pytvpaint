@@ -170,3 +170,33 @@ Notes:
     print(tv_peg_hole_set(w=50, h=100))
     # => PegHole(w=50, h=100, c1=(25.0, 200.0), c2=(25.0, 200.0), sw=10, sh=10, so1=(5.0, 5.0), so2=(5.0, 3.0))
     ```
+
+## Command that get and set a value
+
+Some George commands are a getter and a setter at the same time. In Pytvpaint, we split the command in two separate functions with `_get` and `_set` suffix.
+
+!!! Example
+
+    ```
+    tv_notelock [0|1|"on"|"off"|"lock"|"unlock"|"toggle"]
+
+    Manage lock state of timeline note
+
+    [PARAMETERS]
+    0|1|"on"|"off"|"lock"|"unlock"|"toggle"    enum    The new lock state
+
+    [RETURN]
+    "on"|"off"    enum    The previous/current lock state
+    ```
+
+```python
+from pytvpaint.george.client import send_cmd
+
+
+def tv_note_lock_get() -> bool:
+    return send_cmd("tv_NoteLock") == "on"
+
+
+def tv_note_lock_set(state: bool) -> None:
+    send_cmd("tv_NoteLock", int(state))
+```

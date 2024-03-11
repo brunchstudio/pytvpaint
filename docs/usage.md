@@ -154,3 +154,38 @@ george.tv_layer_rename(current_layer_id, f"{name}_anim_layer")
 !!! success
 
     And that's it! No more `PARSE result` in George and everything is type-hinted and documented! We still recommend using the high level API thought, if you found that something is missing, please open an issue!
+
+## Utilities
+
+### Undoable
+
+In George you can manage the undo/redo stack with the [`tv_undoopenstack`](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_undoopenstack) and [`tv_undoclosestack`](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_undoclosestack) functions.
+
+In order to facilitate the process, you can use the [`undoable`](../api/george/misc/#pytvpaint.george.grg_base.undoable) decorator and [`undoable_stack`](../api/george/misc/#pytvpaint.george.grg_base.undoable_stack) context manager.
+
+Undo a whole function:
+
+```python
+from pytvpaint import george
+
+
+@george.undoable
+def some_george_actions():
+    george.tv_bookmark_clear(5)
+    george.tv_background_set(george.BackgroundMode.NONE)
+```
+
+Or only register some operations:
+
+```python
+from pytvpaint import george
+from pytvpaint.project import Project
+
+
+def some_george_actions():
+    with george.undoable_stack():
+        p = Project.new("./project.tvpp")
+        p.start_frame = 67
+
+    p.add_sound("test.wav")
+```
