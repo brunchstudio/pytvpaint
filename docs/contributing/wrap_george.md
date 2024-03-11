@@ -50,7 +50,7 @@ def tv_lock_user() -> None: # (1)!
 from pytvpaint import send_cmd
 
 def tv_library_image_copy(image_id: str) -> None:
-    send_cmd("tv_LibraryImageCopy", id, error_values=[-2, -3]) # (1)!
+    send_cmd("tv_LibraryImageCopy", image_id, error_values=[-2, -3]) # (1)!
 ```
 
 1. Note that we provide the error values that George returns. If `send_cmd` get those values it raises a `GeorgeError` exception.
