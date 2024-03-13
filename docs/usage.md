@@ -4,7 +4,7 @@ Pytvpaint offers **two ways** to interact with TVPaint.
 
 The recommended one is to use the [**object-oriented API**](#object-oriented-api) which handles all the nitty-gritty details of George and provide an extra layer of features. The classes can be imported from `pytvpaint.*`
 
-The other way is to use the wrapped George functions in Python which behaves almost extactly the same as real George commands. Those can be imported from `pytvpaint.george.*`.
+The other way is to use the [**wrapped George functions**](#george-functions) in Python which behaves almost extactly the same as real George commands. Those can be imported from `pytvpaint.george.*`.
 
 ## Automatic client connection
 
@@ -126,6 +126,46 @@ project.close()
 print(layer.name)
 ```
 
+### Frame range
+
+Some George functions have a frame parameter that's absolute, meaning it starts at zero even if the project start frame is different. We adapted that so you can use the most intuitive frame number each time.
+
+For example:
+
+```python
+from pytvpaint.project import Project
+
+
+p = Project.current_project()
+p.start_frame = 9
+
+# Works as expected, otherwise you would need
+# to do tv_project_current_frame_set(1)
+p.current_frame = 10
+
+# It also take into account the clip mark_in value
+p.current_clip.mark_in = 8
+
+# Does "tv_ProjectCurrentFrame 2" because the frame
+# is now relative to the mark_in
+p.current_frame = 10
+```
+
+### Rendering and Fileseq
+
+For parsing and handling frame ranges, we use the great Python library [Fileseq](https://github.com/justinfx/fileseq).
+
+For example you can use a frame range expression when rendering a clip:
+
+```python
+from pytvpaint.clip import Clip
+
+clip = Clip.current_clip()
+clip.render("./out.10-22#.png")
+
+# Will render out.0010.png, out.0011.png, ..., out.0022.png
+```
+
 ## George functions
 
 George functions are implemented in the [`pytvpaint.george`](./api/george/project.md) module, separated by object on which they operate.
@@ -161,7 +201,7 @@ george.tv_layer_rename(current_layer_id, f"{name}_anim_layer")
 
 In George you can manage the undo/redo stack with the [`tv_undoopenstack`](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_undoopenstack) and [`tv_undoclosestack`](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_undoclosestack) functions.
 
-In order to facilitate the process, you can use the [`undoable`](../api/george/misc/#pytvpaint.george.grg_base.undoable) decorator and [`undoable_stack`](../api/george/misc/#pytvpaint.george.grg_base.undoable_stack) context manager.
+In order to facilitate the process, you can use the [`undoable`](api/george/misc.md#pytvpaint.george.grg_base.undoable) decorator and [`undoable_stack`](api/george/misc.md#pytvpaint.george.grg_base.undoable_stack) context manager.
 
 Undo a whole function:
 

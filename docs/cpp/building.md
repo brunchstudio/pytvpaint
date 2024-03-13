@@ -48,7 +48,7 @@ To check if your profile is correct, use:
 
 #### Install the C++ dependencies
 
-Install the dependencies specified in [`conanfile.txt`](./TODO_replace_link):
+Install the dependencies specified in [`conanfile.txt`](https://github.com/brunchstudio/tvpaint-rpc/blob/main/conanfile.txt):
 
 ```shell
 (venv) ❯ conan install . --output-folder=build --build=missing

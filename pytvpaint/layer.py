@@ -774,7 +774,8 @@ class Layer(Removable):
         """Iterator over the layer marks including the frame and the color.
 
         Yields:
-            Iterator[tuple[int, LayerColor]]: a tuple of the frame and the color
+            frame (int): the mark frame
+            color (LayerColor): the mark color
         """
         for frame in range(self.start, self.end + 1):
             layer_color = self.get_mark_color(frame)

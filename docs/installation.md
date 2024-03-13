@@ -2,11 +2,13 @@
 
 ## TVPaint plugin installation
 
-In order for Pytvpaint to work, a custom C++ plugin needs to be setup in your TVPaint installation.
+Pytvpaint works by sending George commands to a custom C++ plugin running a WebSocket server in TVPaint.
+
+You need to manually install it in your TVPaint installation folder.
 
 ### Windows
 
-- Download the latest [`tvpaint-rpc.dll`](https://github.com/brunchstudio/tvpaint-rpc/releases) file.
+- Download the latest [`tvpaint-rpc.dll`](https://github.com/brunchstudio/tvpaint-rpc/releases) file from the GitHub releases.
 - Copy it in your TVPaint `plugins` folder:
 
   ```

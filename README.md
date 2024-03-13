@@ -3,6 +3,7 @@
 [![](https://img.shields.io/github/actions/workflow/status/brunchstudio/pytvpaint/docs-deploy.yml?label=docs)](https://brunchstudio.github.io/pytvpaint/)
 [![](https://img.shields.io/github/license/brunchstudio/pytvpaint)](https://github.com/brunchstudio/pytvpaint/blob/main/LICENSE.md)
 [![](https://img.shields.io/pypi/v/pytvpaint)](https://pypi.org/project/pytvpaint/)
+[![Downloads](https://static.pepy.tech/badge/pytvpaint/month)](https://pepy.tech/project/pytvpaint)
 [![](https://img.shields.io/pypi/pyversions/pytvpaint)](https://pypi.org/project/pytvpaint/)
 
 <p align="center">
@@ -16,6 +17,10 @@ It communicates through WebSocket to a [custom C++ plugin](https://github.com/br
 You can check the [documentation](https://brunchstudio.github.io/pytvpaint/) for more details.
 
 ## Installation
+
+First install the [TVPaint RPC plugin](https://brunchstudio.github.io/pytvpaint/installation/#tvpaint-plugin-installation).
+
+Then install the package with Pip:
 
 ```console
 ❯ pip install pytvpaint

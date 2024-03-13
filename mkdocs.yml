@@ -1,8 +1,20 @@
 site_name: Pytvpaint
+site_description: Python scripting for TVPaint
+strict: true
+site_url: https://brunchstudio.github.io/pytvpaint/
+
+repo_url: https://github.com/brunchstudio/pytvpaint
+repo_name: brunchstudio/pytvpaint
+edit_uri: tree/main/docs
+
+copyright: Made with ❤️ by BRUNCH Studio developers
+
 theme:
   name: material
   logo: assets/pytvpaint_logo.png
   favicon: assets/pytvpaint_logo.png
+  icon:
+    repo: fontawesome/brands/github
   features:
     - navigation.tabs
     - content.tabs.link
@@ -21,14 +33,14 @@ validation:
 extra:
   generator: false
 
-copyright: Made with ❤️ by BRUNCH Studio developers
-
 nav:
   - Get Started:
       - Welcome to Pytvpaint: index.md
       - Installation: installation.md
       - Usage: usage.md
+      - Limitations: limitations.md
       - Contributing:
+          - How it works: contributing/how_it_works.md
           - Wrapping George commands: contributing/wrap_george.md
           - Modifying high-level classes: contributing/modify_objects.md
       - Logo: logo.md
@@ -87,8 +99,14 @@ plugins:
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - attr_list
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true

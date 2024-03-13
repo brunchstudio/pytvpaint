@@ -200,3 +200,27 @@ def tv_note_lock_get() -> bool:
 def tv_note_lock_set(state: bool) -> None:
     send_cmd("tv_NoteLock", int(state))
 ```
+
+## Handling strings in command arguments
+
+Some George commands accept string arguments but the tricky part is when the input string has spaces. Since George arguments are separated by spaces, commands that have multiple arguments need a way to separate those.
+
+We need to wrap string arguments that have spaces with double quotes:
+
+```george
+tv_LayerRename 7141 "another layer"
+```
+
+whereas commands that have a single argument don't need quotes otherwise they are parsed as part of the input string:
+
+```george
+tv_LayerCreate this is a layer
+```
+
+You can specify the behavior when using `send_cmd` with the `handle_string` parameter:
+
+```python
+def tv_layer_create(name: str) -> int:
+    """Create a new image layer with the given name."""
+    return int(send_cmd("tv_LayerCreate", name, handle_string=False))
+```

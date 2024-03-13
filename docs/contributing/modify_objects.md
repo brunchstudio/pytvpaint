@@ -1,6 +1,6 @@
 # Modifying high-level classes
 
-This guide explains how to create/modify the high-level Python API with classes like [`Project`](../../api/objects/project), [`Clip`](../../api/objects/clip) or [`Layer`](../../api/objects/layer).
+This guide explains how to create/modify the high-level Python API with classes like [`Project`](../api/objects/project.md), [`Clip`](../api/objects/clip.md) or [`Layer`](../api/objects/layer.md).
 
 Classes are object oriented wrappers around the raw data from TVPaint (as dataclasses).
 
@@ -16,7 +16,7 @@ class Project(Refreshable):
         self._data: TVPProject = george.tv_project_info(self._id)
 ```
 
-The type of the internal `_data` attribute is [`TVPProject`](../../api/george/project/#pytvpaint.george.grg_project.TVPProject) which is the dataclass containing the data returned by TVPaint and parsed by our API.
+The type of the internal `_data` attribute is [`TVPProject`](../api/george/project.md#pytvpaint.george.grg_project.TVPProject) which is the dataclass containing the data returned by TVPaint and parsed by our API.
 
 ## Properties
 
@@ -39,7 +39,7 @@ def id(self) -> str:
 
 Some properties can be changed after the object instance is created in Python. This means that the state of the Python object is different from the state of the real object in TVPaint. Since the data is fetched only at init, we need a mechanism to refresh the data at each property call.
 
-Here is an example with the [`refreshed_property`](../../api/utils/#pytvpaint.utils.RefreshedProperty) decorator:
+Here is an example with the [`refreshed_property`](../api/utils.md#pytvpaint.utils.RefreshedProperty) decorator:
 
 ```python
 @refreshed_property
@@ -48,13 +48,13 @@ def path(self) -> Path:
     return self._data.path
 ```
 
-It calls the object's overriden [`self.refresh()`](../../api/utils/#pytvpaint.utils.Refreshable.refresh) method before returning the internal value. This ensure that the value you are getting is always the right one at call time.
+It calls the object's overriden [`self.refresh()`](../api/utils.md#pytvpaint.utils.Refreshable.refresh) method before returning the internal value. This ensure that the value you are getting is always the right one at call time.
 
 ## Make the object current
 
 Some George functions only apply to the "current" object in the TVPaint instance.
 
-To do that in an elegant way, we use the [`set_as_current`](../../api/utils/#pytvpaint.utils.set_as_current) decorator for all the methods and properties that require that object to be the current:
+To do that in an elegant way, we use the [`set_as_current`](../api/utils.md#pytvpaint.utils.set_as_current) decorator for all the methods and properties that require that object to be the current:
 
 ```python
 @property

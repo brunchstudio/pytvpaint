@@ -3,6 +3,7 @@
 [![](https://img.shields.io/github/actions/workflow/status/brunchstudio/pytvpaint/docs-deploy.yml?label=docs)](https://brunchstudio.github.io/pytvpaint/)
 [![](https://img.shields.io/github/license/brunchstudio/pytvpaint)](https://github.com/brunchstudio/pytvpaint/blob/main/LICENSE.md)
 [![](https://img.shields.io/pypi/v/pytvpaint)](https://pypi.org/project/pytvpaint/)
+[![Downloads](https://static.pepy.tech/badge/pytvpaint/month)](https://pepy.tech/project/pytvpaint)
 [![](https://img.shields.io/pypi/pyversions/pytvpaint)](https://pypi.org/project/pytvpaint/)
 
 Pytvpaint is a library that allows you to script for [TVPaint](https://www.tvpaint.com/) in Python instead of [George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction).
@@ -26,7 +27,7 @@ It communicates through WebSocket to a [custom C++ plugin](https://github.com/br
 
 - **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and Pytvpaint will do everything for you! Just code in your favourite language (Python) and it will work!
 
-- **Fully extensible** - a George function wasn't implemented? You can either submit an issue on the repository or [code it yourself](./contributing/wrap_george)! We provide tools to directly speak in George with TVPaint and parse the resulting values.
+- **Fully extensible** - a George function wasn't implemented? You can either submit an issue on the repository or [code it yourself](./contributing/wrap_george.md)! We provide tools to directly speak in George with TVPaint and parse the resulting values.
 
 - **Used in production** - Pytvpaint comes from a frustration of coding in the George programming language which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support the 2D movie pipeline.
 
