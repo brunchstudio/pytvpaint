@@ -1,6 +1,7 @@
 """JSON-RPC client and data models."""
 
 from __future__ import annotations
+import contextlib
 
 import json
 import sys
@@ -87,14 +88,17 @@ class JSONRPCClient:
     def _auto_reconnect(self) -> None:
         """Automatic WebSocket reconnection in a thread by pinging the server."""
         while self.run_forever and not self.stop_ping.wait(1):
+            if self.is_connected:
+                continue
+
             try:
                 self.ws_handle.ping()
             except (WebSocketException, ConnectionError):
                 self.ws_handle.close()
-                try:
+
+                with contextlib.suppress(ConnectionRefusedError):
                     self.connect()
                     log.info(f"Reconnected automatically to endpoint: {self.url}")
-                except ConnectionRefusedError:
                     continue
 
             # There's a timeout after which we stop reconnecting

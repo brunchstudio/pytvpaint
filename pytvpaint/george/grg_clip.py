@@ -44,7 +44,13 @@ class TVPClip:
 
 
 class PSDSaveMode(Enum):
-    """PSD save modes."""
+    """PSD save modes.
+
+    Attributes:
+        ALL:
+        IMAGE:
+        MARKIN:
+    """
 
     ALL = "all"
     IMAGE = "image"

@@ -22,7 +22,21 @@ from pytvpaint.george.grg_base import (
 
 
 class LayerColorAction(Enum):
-    """`tv_layercolor` actions."""
+    """`tv_layercolor` actions.
+
+    Attributes:
+        GETCOLOR:
+        SETCOLOR:
+        GET:
+        SET:
+        LOCK:
+        UNLOCK:
+        SHOW:
+        HIDE:
+        VISIBLE:
+        SELECT:
+        UNSELECT:
+    """
 
     GETCOLOR = "getcolor"
     SETCOLOR = "setcolor"
@@ -38,23 +52,37 @@ class LayerColorAction(Enum):
 
 
 class LayerColorDisplayOpt(Enum):
-    """`tv_layercolorshow` display options."""
+    """`tv_layercolorshow` display options.
 
-    # Activate the layers to show them in the display
+    Attributes:
+        DISPLAY: Activate the layers to show them in the display
+        TIMELINE: Uncollpase layers from maximum collapse (2px height) in the timeline
+    """
+
     DISPLAY = "display"
-    # Uncollpase layers from maximum collapse (2px height) in the timeline
     TIMELINE = "timeline"
 
 
 class InstanceNamingMode(Enum):
-    """`tv_instancename` naming modes."""
+    """`tv_instancename` naming modes.
+
+    Attributes:
+        ALL:
+        SMART:
+    """
 
     ALL = "all"
     SMART = "smart"
 
 
 class InstanceNamingProcess(Enum):
-    """`tv_instancename` naming process."""
+    """`tv_instancename` naming process.
+
+    Attributes:
+        EMPTY:
+        NUMBER:
+        TEXT:
+    """
 
     EMPTY = "empty"
     NUMBER = "number"
@@ -62,7 +90,14 @@ class InstanceNamingProcess(Enum):
 
 
 class LayerType(Enum):
-    """All the layer types."""
+    """All the layer types.
+
+    Attributes:
+        IMAGE:
+        SEQUENCE:
+        XSHEET:
+        SCRIBBLES:
+    """
 
     IMAGE = "image"
     SEQUENCE = "sequence"
@@ -71,7 +106,14 @@ class LayerType(Enum):
 
 
 class StencilMode(Enum):
-    """All the stencil modes."""
+    """All the stencil modes.
+
+    Attributes:
+        ON:
+        OFF:
+        NORMAL:
+        INVERT:
+    """
 
     ON = "on"
     OFF = "off"
@@ -80,7 +122,14 @@ class StencilMode(Enum):
 
 
 class LayerBehavior(Enum):
-    """Layer behaviors on boundaries."""
+    """Layer behaviors on boundaries.
+
+    Attributes:
+        NONE:
+        REPEAT:
+        PINGPONG:
+        HOLD:
+    """
 
     NONE = "none"
     REPEAT = "repeat"
@@ -89,7 +138,14 @@ class LayerBehavior(Enum):
 
 
 class LayerTransparency(Enum):
-    """Layer transparency values."""
+    """Layer transparency values.
+
+    Attributes:
+        ON:
+        OFF:
+        MINUS_1:
+        NONE:
+    """
 
     ON = "on"
     OFF = "off"
@@ -98,7 +154,12 @@ class LayerTransparency(Enum):
 
 
 class InsertDirection(Enum):
-    """Instance insert direction."""
+    """Instance insert direction.
+
+    Attributes:
+        BEFORE:
+        AFTER:
+    """
 
     BEFORE = "before"
     AFTER = "after"

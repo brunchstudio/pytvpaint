@@ -39,7 +39,13 @@ class TVPProject:
 
 
 class BackgroundMode(Enum):
-    """The project background mode."""
+    """The project background mode.
+
+    Attributes:
+        CHECK:
+        COLOR:
+        NONE:
+    """
 
     CHECK = "check"
     COLOR = "color"

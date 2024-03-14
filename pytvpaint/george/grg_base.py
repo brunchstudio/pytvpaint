@@ -22,7 +22,13 @@ from pytvpaint.george.client.parse import (
 
 
 class GrgErrorValue:
-    """Common George error values."""
+    """Common George error values.
+
+    Attributes:
+        EMPTY (str): See `tv_clipinfo` for example
+        NONE (str): See `tv_clipenumid` for example
+        ERROR (str): See `tv_setapen` for example
+    """
 
     EMPTY = ""
     NONE = "none"
@@ -30,14 +36,25 @@ class GrgErrorValue:
 
 
 class GrgBoolState(Enum):
-    """George booleans."""
+    """George booleans.
+
+    Attributes:
+        ON:
+        OFF:
+    """
 
     ON = "on"
     OFF = "off"
 
 
 class FieldOrder(Enum):
-    """Field order of the camera."""
+    """Field order of the camera.
+
+    Attributes:
+        NONE:
+        LOWER:
+        UPPER:
+    """
 
     NONE = "none"
     LOWER = "lower"
@@ -45,28 +62,48 @@ class FieldOrder(Enum):
 
 
 class MarkType(Enum):
-    """The mark command."""
+    """The mark command.
+
+    Attributes:
+        MARKIN:
+        MARKOUT:
+    """
 
     MARKIN = "tv_markin"
     MARKOUT = "tv_markout"
 
 
 class MarkReference(Enum):
-    """The object to mark."""
+    """The object to mark.
+
+    Attributes:
+        PROJECT:
+        CLIP:
+    """
 
     PROJECT = "project"
     CLIP = "clip"
 
 
 class MarkAction(Enum):
-    """The mark action."""
+    """The mark action.
+
+    Attributes:
+        SET:
+        CLEAR:
+    """
 
     SET = "set"
     CLEAR = "clear"
 
 
 class RectButton(Enum):
-    """The rect button when drawing."""
+    """The rect button when drawing.
+
+    Attributes:
+        LEFT:
+        RIGHT:
+    """
 
     LEFT = 0
     RIGHT = 1
@@ -78,6 +115,52 @@ class TVPShape(Enum):
     Attributes:
         B_SPLINE:
         BEZIER:
+        BEZIER_FILL:
+        CAMERA:
+        CIRCLE:
+        CIRCLE_2PTS:
+        CIRCLE_3PTS:
+        CIRCLE_FILL:
+        CIRCLE_2PTS_FILL:
+        CIRCLE_3PTS_FILL:
+        CROP:
+        CUT_RECT:
+        CUT_POLY:
+        CUT_FREE_HAND:
+        CUT_FLOOD:
+        DOT:
+        FLOOD:
+        FREE_HAND_LINE:
+        FREE_HAND_FILL:
+        ELLIPSE:
+        ELLIPSE_FILL:
+        ELLIPSE_2PTS:
+        ELLIPSE_2PTS_FILL:
+        LINE:
+        LINE_FILL:
+        PLANNING:
+        POSITION:
+        RECTANGLE:
+        RECTANGLE_FILL:
+        SELECT_RECTANGLE:
+        SELECT_ELLIPSE:
+        SELECT_2PTS:
+        SELECT_3PTS:
+        SELECT_POLY:
+        SELECT_FREE_HAND:
+        SELECT_FLOOD:
+        SELECT_COLOR:
+        SELECT_BEZIER:
+        SELECT_B_SPLINE:
+        SINGLE_DOT:
+        SPLIT_3PTS:
+        SPLINE_FILL:
+        WARP:
+        WRAP:
+        ZOOM_IN:
+        ZOOM_OUT:
+        ZOOM_HAND:
+        ZOOM_RECT:
     """
 
     B_SPLINE = "bspline"
@@ -131,7 +214,13 @@ class TVPShape(Enum):
 
 
 class ResizeOption(Enum):
-    """Resize options for projects."""
+    """Resize options for projects.
+
+    Attributes:
+        EMPTY:
+        CROP:
+        STRETCH:
+    """
 
     EMPTY = 0
     CROP = 1
@@ -139,7 +228,15 @@ class ResizeOption(Enum):
 
 
 class SpriteLayout(Enum):
-    """Sprite layout when exporting as sprites."""
+    """Sprite layout when exporting as sprites.
+
+    Attributes:
+        RECTANGLE:
+        HORIZONTAL:
+        VERTICAL:
+        DIAGONAL:
+        ANTI_DIAGONAL:
+    """
 
     RECTANGLE = "rectangle"
     HORIZONTAL = "horizontal"
@@ -149,7 +246,15 @@ class SpriteLayout(Enum):
 
 
 class AlphaMode(Enum):
-    """The alpha load mode."""
+    """The alpha load mode.
+
+    Attributes:
+        PREMULTIPLY:
+        NO_PREMULTIPLY:
+        NO_ALPHA:
+        ALPHA_ONLY:
+        GUESS:
+    """
 
     PREMULTIPLY = "premultiply"
     NO_PREMULTIPLY = "nopremultiply"
@@ -159,7 +264,16 @@ class AlphaMode(Enum):
 
 
 class AlphaSaveMode(Enum):
-    """The alpha save mode."""
+    """The alpha save mode.
+
+    Attributes:
+        PREMULTIPLY:
+        NO_PREMULTIPLY:
+        NO_ALPHA:
+        ALPHA_ONLY:
+        GUESS:
+        ALPHA_BINARY:
+    """
 
     PREMULTIPLY = "premultiply"
     NO_PREMULTIPLY = "nopremultiply"
@@ -170,7 +284,33 @@ class AlphaSaveMode(Enum):
 
 
 class SaveFormat(Enum):
-    """All save formats."""
+    """All save formats.
+
+    Attributes:
+        AVI:
+        BMP:
+        CINEON:
+        DEEP:
+        DPX:
+        FLI:
+        GIF:
+        ILBM:
+        JPG: jpeg
+        MKV: Mode=1017
+        MOV: Mode=1015
+        MP4: Mode=1016
+        PCX:
+        PDF:
+        PNG:
+        PSD:
+        SGI: Mode=16
+        SOFTIMAGE: Mode=10
+        SUNRASTER: sun
+        TGA: tga
+        TIFF: Mode=15
+        VPB:
+        WEBM: Mode=1018
+    """
 
     AVI = "avi"
     BMP = "bmp"
@@ -226,7 +366,38 @@ class HSLColor:
 
 
 class BlendingMode(Enum):
-    """All the blending modes."""
+    """All the blending modes.
+
+    Attributes:
+        COLOR:
+        BEHIND:
+        ERASE:
+        SHADE:
+        LIGHT:
+        COLORIZE:
+        HUE:
+        SATURATION:
+        VALUE:
+        ADD:
+        SUB:
+        MULTIPLY:
+        SCREEN:
+        REPLACE:
+        COPY:
+        DIFFERENCE:
+        DIVIDE:
+        OVERLAY:
+        OVERLAY2:
+        LIGHT2:
+        SHADE2:
+        HARDLIGHT:
+        SOFTLIGHT:
+        GRAIN_EXTRACT:
+        GRAIN_MERGE:
+        SUB2:
+        DARKEN:
+        LIGHTEN:
+    """
 
     COLOR = "color"
     BEHIND = "behind"
@@ -259,7 +430,38 @@ class BlendingMode(Enum):
 
 
 class DrawingMode(Enum):
-    """All the drawing modes."""
+    """All the drawing modes.
+
+    Attributes:
+        COLOR:
+        BEHIND:
+        ERASE:
+        PANTO:
+        MERGE:
+        SHADE:
+        LIGHT:
+        COLORIZE:
+        TINT:
+        GRAIN:
+        BLUR:
+        NOISE:
+        NEGATIVE:
+        SHARP:
+        EMBOSS:
+        SOLARIZE:
+        SATURATE:
+        UNSATURATE:
+        ADD:
+        SUB:
+        MULTIPLY:
+        SCREEN:
+        DIFF:
+        HEALING:
+        BURN:
+        DODGE:
+        DARKEN:
+        LIGHTEN:
+    """
 
     COLOR = "color"
     BEHIND = "behind"
@@ -292,7 +494,22 @@ class DrawingMode(Enum):
 
 
 class MenuElement(Enum):
-    """All the TVPaint menu elements."""
+    """All the TVPaint menu elements.
+
+    Attributes:
+        SHOW_UI:
+        HIDE_UI:
+        RESIZE_UI:
+        CENTER_DISPLAY:
+        FIT_DISPLAY:
+        FRONT:
+        BACK:
+        ASPECT_RATIO:
+        CLIP:
+        PROJECT:
+        XSHEET:
+        NOTES:
+    """
 
     SHOW_UI = "showui"
     HIDE_UI = "hideui"
@@ -309,7 +526,12 @@ class MenuElement(Enum):
 
 
 class FileMode(Enum):
-    """File mode save or load."""
+    """File mode save or load.
+
+    Attributes:
+        SAVE:
+        LOAD:
+    """
 
     SAVE = "<"
     LOAD = ">"
@@ -716,7 +938,8 @@ def _tv_set_ab_pen(
     z: int,
     color_format: Literal["rgb"],
     a: int | None = None,
-) -> RGBColor: ...
+) -> RGBColor:
+    ...
 
 
 @overload
@@ -727,7 +950,8 @@ def _tv_set_ab_pen(
     z: int,
     color_format: Literal["hsl"],
     a: int | None = None,
-) -> HSLColor: ...
+) -> HSLColor:
+    ...
 
 
 def _tv_set_ab_pen(
