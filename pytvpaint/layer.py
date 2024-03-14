@@ -703,6 +703,9 @@ class Layer(Removable):
             frame: the frame where the image will be loaded, if none provided, image will be loaded at current frame
             stretch: whether to stretch the image to fit the view
 
+        Raises:
+            FileNotFoundError: if the render failed and it can't find file on disk
+
         """
         image_path = Path(image_path)
         if not image_path.exists():
