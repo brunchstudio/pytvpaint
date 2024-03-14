@@ -53,13 +53,17 @@ spdlog::info(ss.str());
 So we suppose that [control characters](https://en.wikipedia.org/wiki/Control_character) are not properly encoded.
 
 Therefore, it is currently impossible to determine if it's actually an antislash followed by `n` or simply the line break character. (the case if there is a Windows path returns from any George function starting with `n` like `C:\Users\jhenry\new.tvpp`).
-The TVPaint dev team have been made aware of the issue, and we are hopeful that it will be fixed in the future.
 
-!!! Bug
+!!! Info
 
-    This is the answer we got from TVPaint's technical support:
+    We contacted the TVPaint technical support and they'll see what they can do to fix it in the future.
 
-    > After consulting with the developers, this behaviour was intended, but not known.
-    > When the command was created in the 90s, it replaces "\n" by "\\n" and returns the modified text, and it was never changed.
+## Misbehaving George functions
 
-    > We'll see what we can do to fix this, but I don't have an ETA.
+Here is a list of the bugs/inconsistencies in the George commands:
+
+| Method                                                                                | Description                                                                                                       |
+| :------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------- |
+| [`tv_ratio`](api/george/project.md#pytvpaint.george.grg_project.tv_ratio)             | Always return an empty string (`""`)                                                                              |
+| [`tv_instance_name`](api/george/layer.md#pytvpaint.george.grg_layer.tv_instance_name) | Crashes if we give a wrong `layer_id`                                                                             |
+| `tv_camera_path`                                                                      | Confusing arguments and seemingly incorrect results (see [this](https://forum.tvpaint.com/viewtopic.php?t=15677)) |
