@@ -608,7 +608,10 @@ class Clip(Removable):
                 mark_out=end,
             )
 
-        # TODO check whether output was successful and files exist or not for this function and the others
+        if not export_path.exists():
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
+            )
 
     @set_as_current
     def export_csv(

@@ -8,7 +8,7 @@ from typing import Any
 class GeorgeError(Exception):
     """George error exception.
 
-    Used for return values in the [ERROR] section of functions in TVPaint's documentation.
+    Used for return values in the `[ERROR]` section of functions in TVPaint's documentation.
     """
 
     def __init__(

@@ -621,14 +621,12 @@ def tv_sound_clip_remove(track_index: int) -> None:
 def tv_sound_clip_reload(clip_id: int, track_index: int) -> None:
     """Reload a sound track from its file.
 
-    TODO: check this: Also you can give any track_index you want and it returns 0
-
     Args:
-        clip_id (int): the clip id
-        track_index (int): the sound clip track index
+        clip_id: the clip id (only works with `0` being the current clip)
+        track_index: the sound clip track index
 
     Warning:
-        It doesn't accept a proper clip id and it works with a sound clip id...
+        It doesn't accept a proper clip id, only `0` seem to work for the current clip
     """
     send_cmd("tv_SoundClipReload", clip_id, track_index, error_values=[-1, -2, -3])
 

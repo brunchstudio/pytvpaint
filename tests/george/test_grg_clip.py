@@ -808,10 +808,9 @@ def test_tv_sound_clip_remove_wrong_pos() -> None:
         tv_sound_clip_remove(1)
 
 
-@pytest.mark.skip("Super weird because it doesn't accept the clip_id")
 def test_tv_sound_clip_reload(test_clip: TVPClip, wav_file: Path) -> None:
     tv_sound_clip_new(wav_file)
-    tv_sound_clip_reload(test_clip.id, 0)
+    tv_sound_clip_reload(0, 0)
 
 
 def test_tv_sound_clip_reload_wrong_sound_clip_id() -> None:
@@ -819,7 +818,6 @@ def test_tv_sound_clip_reload_wrong_sound_clip_id() -> None:
         tv_sound_clip_reload(6, 0)
 
 
-@pytest.mark.skip("It doesn't behave correctly, see above")
 def test_tv_sound_clip_reload_wrong_track_index(test_clip: TVPClip) -> None:
     with pytest.raises(GeorgeError):
         tv_sound_clip_reload(test_clip.id, 5)
@@ -833,7 +831,6 @@ def args_optional_combine(args: list[list[Any]]) -> list[list[Any]]:
     ]
 
 
-# TODO: might do that later, fade_ arguments are in block
 @pytest.mark.skip("Too difficult to test")
 @pytest.mark.parametrize(
     "args",
