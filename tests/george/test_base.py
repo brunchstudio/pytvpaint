@@ -63,6 +63,7 @@ def test_tv_version() -> None:
     assert lang in ["en", "fr", "ja", "zh"]
 
 
+@pytest.mark.skip("Will break the UI")
 @pytest.mark.parametrize(
     "cmd",
     [
@@ -76,6 +77,7 @@ def test_menu_show_simple(cmd: MenuElement) -> None:
     tv_menu_show(cmd)
 
 
+@pytest.mark.skip("Will break the UI")
 @pytest.mark.parametrize(
     "cmd",
     [
@@ -92,12 +94,14 @@ def test_menu_show_current(cmd: MenuElement, current: bool) -> None:
     tv_menu_show(cmd, current=current)
 
 
+@pytest.mark.skip("Will break the UI")
 @pytest.mark.parametrize("args", [(0, 0, 50, 50), (-10, -50, 20, 20)])
 @pytest.mark.parametrize("current", [True, False])
 def test_menu_show_resize_ui(args: tuple[int], current: bool) -> None:
     tv_menu_show(MenuElement.RESIZE_UI, *args, current=current)
 
 
+@pytest.mark.skip("Will break the UI")
 @pytest.mark.parametrize("arg", [0, 1])
 @pytest.mark.parametrize("current", [True, False])
 def test_menu_show_aspect_ratio(arg: int, current: bool) -> None:
