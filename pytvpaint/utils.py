@@ -215,11 +215,11 @@ def render_context(
 ) -> Generator[None, None, None]:
     """Context used to do renders in TVPaint.
 
-    It does multiple things:
+    It does the following things:
 
-    - Set the given alpha mode and save format (with custom options)
+    - Set the alpha mode and save format (with custom options)
     - Hide / Show the given layers (some render functions only render by visibility)
-    - Restore the previous values
+    - Restore the previous values after rendering
 
     Args:
         alpha_mode: the render alpha save mode
@@ -288,7 +288,7 @@ def get_tvp_element(
     Args:
         tvp_elements: a collection of TVPaint objects
         by_id: search by id. Defaults to None.
-        by_name: search by name. Defaults to None.
+        by_name: search by name, search is case-insensitive. Defaults to None.
         by_path: search by path. Defaults to None.
 
     Raises:

@@ -11,7 +11,6 @@ from fileseq.frameset import FrameSet
 
 from pytvpaint import george
 from pytvpaint.camera import Camera
-from pytvpaint.george import RGBColor
 from pytvpaint.layer import Layer, LayerColor
 from pytvpaint.sound import ClipSound
 from pytvpaint.utils import (
@@ -88,7 +87,7 @@ class Clip(Removable):
         scene = scene or project.current_scene
         scene.make_current()
 
-        name = get_unique_name(project._clip_names(), name)
+        name = get_unique_name(project.clip_names, name)
         george.tv_clip_new(name)
 
         return Clip.current_clip()
@@ -118,7 +117,7 @@ class Clip(Removable):
 
     @property
     def scene(self) -> Scene:
-        """The scene of the clip."""
+        """The clip's scene."""
         for scene in self.project.scenes:
             for other_clip in scene.clips:
                 if other_clip == self:
@@ -128,12 +127,12 @@ class Clip(Removable):
 
     @scene.setter
     def scene(self, value: Scene) -> None:
-        """Moves the clip in another scene."""
+        """Moves the clip to another scene."""
         george.tv_clip_move(self.id, value.id, self.position)
 
     @property
     def camera(self) -> Camera:
-        """The clip camera."""
+        """the clip camera."""
         return Camera(clip=self)
 
     @property
@@ -152,15 +151,15 @@ class Clip(Removable):
     @property
     @set_as_current
     def name(self) -> str:
-        """The name of the clip."""
+        """The clip name."""
         return george.tv_clip_name_get(self.id)
 
     @name.setter
     def name(self, value: str) -> None:
-        """Sets the name of the clip."""
+        """Set the clip name."""
         if self.name == value:
             return
-        value = get_unique_name(self.project._clip_names(), value)
+        value = get_unique_name(self.project.clip_names, value)
         george.tv_clip_name_set(self.id, value)
 
     @refreshed_property
@@ -200,7 +199,7 @@ class Clip(Removable):
 
     @property
     @set_as_current
-    def background(self) -> tuple[RGBColor, RGBColor] | RGBColor | None:
+    def background(self) -> tuple[george.RGBColor, george.RGBColor] | george.RGBColor | None:
         """Get the background color(s).
 
         Returns:
@@ -214,12 +213,12 @@ class Clip(Removable):
         george.tv_background_set(george.BackgroundMode.NONE)
 
     @set_as_current
-    def set_background_solid_color(self, color: RGBColor) -> None:
+    def set_background_solid_color(self, color: george.RGBColor) -> None:
         """Set the solid background color."""
         george.tv_background_set(george.BackgroundMode.COLOR, color)
 
     @set_as_current
-    def set_background_checker_colors(self, c1: RGBColor, c2: RGBColor) -> None:
+    def set_background_checker_colors(self, c1: george.RGBColor, c2: george.RGBColor) -> None:
         """Set the checker background colors."""
         george.tv_background_set(george.BackgroundMode.CHECK, c1, c2)
 
@@ -301,7 +300,7 @@ class Clip(Removable):
         """
         george.tv_clip_duplicate(self.id)
         new_clip = self.project.current_clip
-        new_clip.name = get_unique_name(self.project._clip_names(), new_clip.name)
+        new_clip.name = get_unique_name(self.project.clip_names, new_clip.name)
         return new_clip
 
     def remove(self) -> None:
@@ -327,7 +326,9 @@ class Clip(Removable):
         for layer_id in self.layer_ids:
             yield Layer(layer_id, clip=self)
 
-    def _layer_names(self) -> Iterator[str]:
+    @property
+    @set_as_current
+    def layer_names(self) -> Iterator[str]:
         """Iterator over the clip's layer names."""
         for layer in self.layers:
             yield layer.name
@@ -345,7 +346,7 @@ class Clip(Removable):
         by_id: int | None = None,
         by_name: str | None = None,
     ) -> Layer | None:
-        """Get a specific layer by or or name."""
+        """Get a specific layer by id or name."""
         return get_tvp_element(self.layers, by_id, by_name)
 
     @set_as_current
@@ -498,7 +499,11 @@ class Clip(Removable):
 
     @set_as_current
     def export_tvp(self, export_path: Path | str) -> None:
-        """Exports the clip in .tvp format which can be imported again in TVPaint."""
+        """Exports the clip in .tvp format which can be imported as a project in TVPaint.
+
+        Raises:
+            FileNotFoundError: if the render failed and no files were found on disk
+        """
         export_path = Path(export_path)
 
         if export_path.suffix != ".tvp":
@@ -537,6 +542,9 @@ class Clip(Removable):
             format_opts: custom format options. Defaults to None.
             all_images: export all images (not only the instances). Defaults to False.
             ignore_duplicates: Ignore duplicates images. Defaults to None.
+
+        Raises:
+            FileNotFoundError: if the render failed and no files were found on disk
         """
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
@@ -552,7 +560,8 @@ class Clip(Removable):
                 ignore_duplicates=ignore_duplicates,
             )
 
-        # TODO check if files exist, raise errors if not
+        if not export_path.exists():
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_psd(
@@ -593,6 +602,8 @@ class Clip(Removable):
                 mark_out=end,
             )
 
+        # TODO check whether output was successful and files exist or not for this function and the others
+
     @set_as_current
     def export_csv(
         self,
@@ -617,6 +628,7 @@ class Clip(Removable):
 
         Raises:
             ValueError: if the extension is not .csv
+            FileNotFoundError: if the render failed and no files were found on disk
         """
         export_path = Path(export_path)
 
@@ -625,6 +637,9 @@ class Clip(Removable):
 
         with render_context(alpha_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_csv(export_path, all_images, exposure_label)
+
+        if not export_path.exists():
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_sprites(
@@ -762,7 +777,7 @@ class Clip(Removable):
         color: george.RGBColor,
         name: str | None = None,
     ) -> None:
-        """Set the layer color at that index.
+        """Set the layer color at the provided index.
 
         Args:
             index: the layer color index
@@ -815,17 +830,17 @@ class Clip(Removable):
 
     @set_as_current
     def go_to_previous_bookmark(self) -> None:
-        """Change the frame to the previous bookmark."""
+        """Go to the previous bookmarks frame."""
         george.tv_bookmark_prev()
 
     @set_as_current
     def go_to_next_bookmark(self) -> None:
-        """Change the frame to the next bookmark."""
+        """Go to the next bookmarks frame."""
         george.tv_bookmark_next()
 
     @property
     def sounds(self) -> Iterator[ClipSound]:
-        """Iterates through the clip's sound tracks."""
+        """Iterates through the clip's soundtracks."""
         sounds_data = position_generator(
             lambda pos: george.tv_sound_clip_info(self.id, pos)
         )

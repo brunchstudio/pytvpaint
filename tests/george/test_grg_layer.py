@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
-from pytvpaint.george.grg_base import BlendingMode, RGBColor, tv_rect
+from pytvpaint.george.grg_base import BlendingMode, RGBColor, tv_rect, SaveFormat, tv_save_mode_get
 from pytvpaint.george.grg_clip import TVPClip, tv_clip_current_id, tv_layer_image
 from pytvpaint.george.grg_layer import (
     InsertDirection,
@@ -78,6 +80,8 @@ from pytvpaint.george.grg_layer import (
     tv_layer_stencil_set,
     tv_preserve_get,
     tv_preserve_set,
+    tv_save_image,
+    tv_load_image
 )
 from pytvpaint.george.grg_project import TVPProject
 from pytvpaint.layer import Layer
@@ -720,8 +724,7 @@ def test_tv_instance_name(
     initial_name: str,
 ) -> None:
     """
-    TODO: this test is overly complicated because I couldn't find a way
-    to correctly grasp the logic
+    TODO: this test is overly complicated because I couldn't find a way to correctly grasp the logic
     """
     instance = 0
 
@@ -903,3 +906,29 @@ def test_tv_layer_merge_all(
     keep_instance_name: bool,
 ) -> None:
     tv_layer_merge_all(keep_color_grp, keep_img_mark, keep_instance_name)
+
+
+def test_tv_save_image(tmp_path: Path) -> None:
+    save_ext, _ = tv_save_mode_get()
+    ext = "jpg" if save_ext == SaveFormat.JPG else save_ext.value
+    out_img = (tmp_path / "out").with_suffix("." + ext)
+    tv_save_image(out_img)
+    assert out_img.exists()
+
+
+@pytest.mark.parametrize("stretch", [False, True])
+def test_tv_load_image(
+    test_clip: TVPClip,
+    test_layer: TVPLayer,
+    ppm_sequence: list[Path],
+    stretch: bool | None,
+) -> None:
+    tv_load_image(ppm_sequence[0], stretch)
+    # Verify that there's an instance frame
+    assert tv_instance_get_name(test_layer.id, 0) == ""
+
+
+@pytest.mark.skip("Will block the UI")
+def test_tv_load_image_file_does_not_exist(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError):
+        tv_load_image(tmp_path / "file.png")

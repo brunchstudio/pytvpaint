@@ -6,12 +6,12 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 from pytvpaint import george
-from pytvpaint.george.grg_camera import TVPCameraPoint
 from pytvpaint.utils import (
     Refreshable,
     Removable,
     position_generator,
     refreshed_property,
+    set_as_current,
 )
 
 if TYPE_CHECKING:
@@ -45,30 +45,40 @@ class Camera(Refreshable):
         """The camera's clip."""
         return self._clip
 
+    def make_current(self):
+        """Makes the parent clip the current one, thereby making sure the correct camera will be set."""
+        self._clip.make_current()
+
     @refreshed_property
+    @set_as_current
     def width(self) -> int:
         """The sensor width of the camera."""
         return self._data.width
 
     @width.setter
+    @set_as_current
     def width(self, value: int) -> None:
         george.tv_camera_info_set(width=value, height=self.height)
 
     @refreshed_property
+    @set_as_current
     def height(self) -> int:
         """The sensor height of the camera."""
         return self._data.height
 
     @height.setter
+    @set_as_current
     def height(self, value: int) -> None:
         george.tv_camera_info_set(height=value, width=self.width)
 
     @refreshed_property
+    @set_as_current
     def fps(self) -> float:
         """The framerate of the camera."""
         return self._data.frame_rate
 
     @fps.setter
+    @set_as_current
     def fps(self, value: float) -> None:
         george.tv_camera_info_set(
             self.width,
@@ -78,11 +88,13 @@ class Camera(Refreshable):
         )
 
     @refreshed_property
+    @set_as_current
     def pixel_aspect_ratio(self) -> float:
         """The pixel aspect ratio of the camera."""
         return self._data.pixel_aspect_ratio
 
     @pixel_aspect_ratio.setter
+    @set_as_current
     def pixel_aspect_ratio(self, value: float) -> None:
         george.tv_camera_info_set(
             self.width,
@@ -93,19 +105,23 @@ class Camera(Refreshable):
         )
 
     @refreshed_property
+    @set_as_current
     def anti_aliasing(self) -> int:
-        """The anti aliasing value of the camera."""
+        """The antialiasing value of the camera."""
         return self._data.anti_aliasing
 
     @refreshed_property
+    @set_as_current
     def field_order(self) -> george.FieldOrder:
         """The field order of the camera."""
         return self._data.field_order
 
     @field_order.setter
+    @set_as_current
     def field_order(self, value: george.FieldOrder) -> None:
         george.tv_camera_info_set(self.width, self.height, field_order=value)
 
+    @set_as_current
     def insert_point(
         self,
         index: int,
@@ -117,22 +133,21 @@ class Camera(Refreshable):
         """Insert a new point in the camera path."""
         return CameraPoint.new(self, index, x, y, angle, scale)
 
-    @staticmethod
-    def current_points_data() -> Iterator[TVPCameraPoint]:
-        """Iterator over the camera points data."""
-        return position_generator(lambda pos: george.tv_camera_enum_points(pos))
-
     @property
+    @set_as_current
     def points(self) -> Iterator[CameraPoint]:
-        """Iterator over the `CameraPoint` objects of the camera."""
-        for index, point_data in enumerate(self.current_points_data()):
+        """Iterator for the `CameraPoint` objects of the camera."""
+        points_data = position_generator(lambda pos: george.tv_camera_enum_points(pos))
+        for index, point_data in enumerate(points_data):
             yield CameraPoint(index, camera=self, data=point_data)
 
+    @set_as_current
     def get_point_data_at(self, position: float) -> george.TVPCameraPoint:
         """Get the points data interpolated at that position (between 0 and 1)."""
         position = max(0.0, min(position, 1.0))
         return george.tv_camera_interpolation(position)
 
+    @set_as_current
     def remove_point(self, index: int) -> None:
         """Remove a point at that index."""
         try:
@@ -171,7 +186,7 @@ class CameraPoint(Removable):
         return f"CameraPoint({self.camera.clip.name})<index:{self._index}>"
 
     def __eq__(self, other: object) -> bool:
-        """Two camera points only equal if their internal data is the same."""
+        """Two camera points are equal if their internal data is the same."""
         if not isinstance(other, CameraPoint):
             return NotImplemented
         self.refresh()

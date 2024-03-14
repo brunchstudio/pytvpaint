@@ -54,7 +54,7 @@ class Scene(Removable):
         return cls.current_scene()
 
     def make_current(self) -> None:
-        """Make the scene the current one."""
+        """Make this scene the current one."""
         if self.is_current:
             return
 
@@ -79,7 +79,7 @@ class Scene(Removable):
 
     @property
     def position(self) -> int:
-        """The scene position in the project."""
+        """The scene's position in the project."""
         for pos, other_id in enumerate(self.project.current_scene_ids()):
             if other_id == self.id:
                 return pos

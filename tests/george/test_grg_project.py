@@ -57,7 +57,6 @@ from pytvpaint.george.grg_project import (
     tv_resize_project,
     tv_save_palette,
     tv_save_project,
-    tv_save_sequence,
     tv_sound_project_adjust,
     tv_sound_project_info,
     tv_sound_project_new,
@@ -92,7 +91,7 @@ def test_tv_background_set(test: tuple[BackgroundMode, list[RGBColor]]) -> None:
 
     if mode == BackgroundMode.NONE:
         assert current_color is None
-    elif type(current_color) == tuple:
+    elif isinstance(current_color, tuple):
         assert list(current_color) == args
     else:
         assert current_color == args[0]
@@ -154,7 +153,7 @@ def test_tv_load_project(
 
 
 def test_tv_load_project_wrong_path(tmp_path: Path) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(FileNotFoundError):
         tv_load_project(tmp_path / "folder" / "project.tvpp")
 
 
@@ -307,41 +306,6 @@ def test_tv_get_field(test_project: TVPProject) -> None:
     assert tv_get_field() == test_project.field_order
 
 
-@pytest.mark.parametrize(
-    "mark_in, mark_out", [(None, None), (0, 5), (0, 0), (0, 1), (2, 5)]
-)
-def test_tv_save_sequence(
-    test_project: TVPProject,
-    tmp_path: Path,
-    ppm_sequence: list[Path],
-    mark_in: int | None,
-    mark_out: int | None,
-) -> None:
-    tv_load_sequence(ppm_sequence[0])
-
-    save_ext, _ = tv_save_mode_get()
-    out_sequence = tmp_path / "out"
-    tv_save_sequence(out_sequence, mark_in, mark_out)
-
-    clip = tv_clip_info(tv_clip_current_id())
-    start, end = (
-        (mark_in, mark_out)
-        if mark_in and mark_out
-        else (clip.first_frame, clip.last_frame)
-    )
-
-    for i in range(end - start):
-        image_name = out_sequence.name + str(i).zfill(5)
-        image_ext = "." + ("jpg" if save_ext == SaveFormat.JPG else save_ext.value)
-        image_path = out_sequence.with_name(image_name).with_suffix(image_ext)
-        assert image_path.exists()
-
-
-def test_tv_save_sequence_wrong_path(tmp_path: Path) -> None:
-    with pytest.raises(ValueError):
-        tv_save_sequence(tmp_path / "folder" / "out")
-
-
 @pytest.mark.parametrize("use_camera", [None, False, True])
 @pytest.mark.parametrize("start_end_frame", [None, (0, 5), (0, 0), (0, 1), (2, 5)])
 def test_tv_project_save_sequence(
@@ -423,12 +387,12 @@ def test_tv_load_palette(tmp_path: Path) -> None:
 
 
 def test_tv_load_palette_wrong_path(tmp_path: Path) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(FileNotFoundError):
         tv_load_palette(tmp_path / "palette.tvpx")
 
 
 def test_tv_save_palette_wrong_path(tmp_path: Path) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(NotADirectoryError):
         tv_save_palette(tmp_path / "out" / "palette.tvpx")
 
 

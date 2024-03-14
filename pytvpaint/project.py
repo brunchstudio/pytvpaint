@@ -41,7 +41,7 @@ class Project(Refreshable):
         return f"Project({self.name})<id:{self.id}>"
 
     def __eq__(self, other: object) -> bool:
-        """Two projects are equal if their id are the same."""
+        """Two project's are equal if their id are the same."""
         if not isinstance(other, Project):
             return NotImplemented
         return self.id == other.id
@@ -67,10 +67,10 @@ class Project(Refreshable):
 
     @property
     def position(self) -> int:
-        """The project position in the project tabs.
+        """The project's position in the project tabs.
 
         Note:
-            the indices are visually increasing from right to left in the interface
+            the indices are go from right to left in the UI
         """
         for pos, project_id in enumerate(self.open_projects_ids()):
             if project_id == self.id:
@@ -95,7 +95,7 @@ class Project(Refreshable):
 
     @property
     def is_current(self) -> bool:
-        """Returns `True` if the project is current in the UI."""
+        """Returns `True` if the project is the current selected one in the UI."""
         return self.id == Project.current_project_id()
 
     def make_current(self) -> None:
@@ -139,7 +139,7 @@ class Project(Refreshable):
         Args:
             width: the new width
             height: the new height
-            overwrite: ovewrite the original project, default is to create a new project
+            overwrite: overwrite the original project, default is to create a new project
             resize_opt: how to resize the project
 
         Returns:
@@ -168,14 +168,14 @@ class Project(Refreshable):
     @property
     @set_as_current
     def fps(self) -> float:
-        """The project framerate."""
+        """The project's framerate."""
         project_fps, _ = george.tv_frame_rate_get()
         return project_fps
 
     @property
     @set_as_current
     def playback_fps(self) -> float:
-        """The project playback framerate."""
+        """The project's playback framerate."""
         _, playback_fps = george.tv_frame_rate_get()
         return playback_fps
 
@@ -186,7 +186,7 @@ class Project(Refreshable):
         time_stretch: bool = False,
         preview: bool = False,
     ) -> None:
-        """Set the project framerate."""
+        """Set the project's framerate."""
         george.tv_frame_rate_set(fps, time_stretch, preview)
 
     @property
@@ -197,13 +197,13 @@ class Project(Refreshable):
     @refreshed_property
     @set_as_current
     def pixel_aspect_ratio(self) -> float:
-        """The project pixel aspect ratio."""
+        """The project's pixel aspect ratio."""
         return self._data.pixel_aspect_ratio
 
     @property
     @set_as_current
     def start_frame(self) -> int:
-        """The project start frame."""
+        """The project's start frame."""
         return george.tv_start_frame_get()
 
     @start_frame.setter
@@ -214,7 +214,7 @@ class Project(Refreshable):
     @property
     @set_as_current
     def current_frame(self) -> int:
-        """Get the current frame relative to the clip mark in or the start frame."""
+        """Get the current frame relative to the timeline"""
         mark_in = self.current_clip.mark_in or self.start_frame
         return george.tv_project_current_frame_get() + mark_in
 
@@ -226,7 +226,7 @@ class Project(Refreshable):
 
     @property
     def header_info(self) -> str:
-        """The project header info."""
+        """The project's header info."""
         return george.tv_project_header_info_get(self.id)
 
     @header_info.setter
@@ -235,7 +235,7 @@ class Project(Refreshable):
 
     @property
     def author(self) -> str:
-        """The project author info."""
+        """The project's author info."""
         return george.tv_project_header_author_get(self.id)
 
     @author.setter
@@ -244,7 +244,7 @@ class Project(Refreshable):
 
     @property
     def notes(self) -> str:
-        """The project notes text."""
+        """The project's notes text."""
         return george.tv_project_header_notes_get(self.id)
 
     @notes.setter
@@ -265,7 +265,7 @@ class Project(Refreshable):
 
     @staticmethod
     def current_scene_ids() -> Iterator[int]:
-        """Yields the current project scene ids."""
+        """Yields the current project's scene ids."""
         return position_generator(lambda pos: george.tv_scene_enum_id(pos))
 
     @property
@@ -279,7 +279,7 @@ class Project(Refreshable):
     @property
     @set_as_current
     def scenes(self) -> Iterator[Scene]:
-        """Yields the project scenes."""
+        """Yields the project's scenes."""
         from pytvpaint.scene import Scene
 
         for scene_id in self.current_scene_ids():
@@ -290,7 +290,7 @@ class Project(Refreshable):
         by_id: int | None = None,
         by_name: str | None = None,
     ) -> Scene:
-        """Find a scene in that project by id or by name."""
+        """Find a scene in the project by id or name."""
         for scene in self.scenes:
             if (by_id and scene.id == by_id) or (by_name and scene.name == by_name):
                 return scene
@@ -298,7 +298,7 @@ class Project(Refreshable):
 
     @set_as_current
     def add_scene(self) -> Scene:
-        """Add a new scene in that project."""
+        """Add a new scene in the project."""
         from pytvpaint.scene import Scene
 
         return Scene.new(project=self)
@@ -317,8 +317,9 @@ class Project(Refreshable):
         for scene in self.scenes:
             yield from scene.clips
 
+    @property
     @set_as_current
-    def _clip_names(self) -> Iterator[str]:
+    def clip_names(self) -> Iterator[str]:
         """Optimized way to get the clip names. Useful for `get_unique_name`."""
         for scene_id in self.current_scene_ids():
             clip_ids = position_generator(
@@ -343,7 +344,7 @@ class Project(Refreshable):
         raise ValueError("Clip not found")
 
     def add_clip(self, clip_name: str, scene: Scene | None = None) -> Clip:
-        """Add a new clip in the given scene or the current one."""
+        """Add a new clip in the given scene or the current one if no scene provided."""
         scene = scene or self.current_scene
         return scene.add_clip(clip_name)
 
@@ -373,7 +374,7 @@ class Project(Refreshable):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         format_opts: list[str] | None = None,
     ) -> None:
-        """Render the given clip or the current one. See the `Clip.render` method."""
+        """Render the given clip or the current one if no clip provided. See the `Clip.render` method for details."""
         clip = clip or self.current_clip
         clip.render(
             export_path,
@@ -392,24 +393,24 @@ class Project(Refreshable):
 
     @staticmethod
     def current_project() -> Project:
-        """Returns the current project object."""
+        """Returns the current project."""
         return Project(project_id=Project.current_project_id())
 
     @staticmethod
     def open_projects_ids() -> Iterator[str]:
-        """Yields the ids of the currently opened projects."""
+        """Yields the ids of the currently open projects."""
         return position_generator(lambda pos: george.tv_project_enum_id(pos))
 
     @classmethod
     def open_projects(cls) -> Iterator[Project]:
-        """Iterator over the currently opened projects."""
+        """Iterator over the currently open projects."""
         for project_id in Project.open_projects_ids():
             yield Project(project_id)
 
     @property
     @set_as_current
     def mark_in(self) -> int | None:
-        """Get the project mark in or None if no mark."""
+        """Get the project mark in or None if no mark in set."""
         frame, mark_action = george.tv_mark_in_get(
             reference=george.MarkReference.PROJECT
         )
@@ -436,7 +437,7 @@ class Project(Refreshable):
     @property
     @set_as_current
     def mark_out(self) -> int | None:
-        """Get the project mark out or None if no mark."""
+        """Get the project mark out or None if no mark out set."""
         frame, mark_action = george.tv_mark_out_get(
             reference=george.MarkReference.PROJECT
         )
@@ -515,7 +516,7 @@ class Project(Refreshable):
 
     @classmethod
     def load(cls, project_path: Path | str, silent: bool = True) -> Project:
-        """Load an existing .tvpp/.tvp project or .tvpx extension."""
+        """Load an existing .tvpp/.tvp project or .tvpx file."""
         project_path = Path(project_path)
 
         # Check if project not already open, if so, return it

@@ -12,7 +12,7 @@ You need to manually install it in your TVPaint installation folder.
 - Copy it in your TVPaint `plugins` folder:
 
   ```
-  C:/PROGRA~1/TVPaint Developpement/TVPaint Animation <version> Pro (64bits)/plugins
+  C:/Program Files/TVPaint Developpement/TVPaint Animation <version> Pro (64bits)/plugins
   ```
 
 !!! note

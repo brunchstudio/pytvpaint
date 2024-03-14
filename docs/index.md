@@ -16,14 +16,16 @@ It communicates through WebSocket to a [custom C++ plugin](https://github.com/br
 
 !!! warning
 
-    Pytvpaint only works on Windows for now (because of the C++ plugin).
-    Support for Linux and MacOS can be added later. If you're interested, please [submit an issue](https://github.com/brunchstudio/tvpaint-rpc/issues/new)!
+    Pytvpaint only works on Windows for now (because of the C++ plugin, the python code is agnostic to the platform but hasn't yet been tested on other OSes).
+    Support for Linux and MacOS can be added later. If you're interested, please [submit an issue](https://github.com/brunchstudio/tvpaint-rpc/issues/new)! Any pull requests ar also welcome !
 
 ## Why use Pytvpaint?
 
 - **Coding in George is not optimal** - it produces hard to maintain code, has bugs and poor support in IDEs (only syntax highlighting [in VSCode](https://marketplace.visualstudio.com/items?itemName=johhnry.vscode-george)).
 
-- **Fully type-hinted, tested and documented API** - our library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with 3000+ unit tests and has a test coverage of more than 90%.
+- **Fully Documented** - all modules are fully documented and the george docstring is up-to-date, clearer and fixes some of the mistakes in TVPaints George documentation. 
+
+- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with 3000+ unit tests and has a test coverage of more than 90%.
 
 - **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and Pytvpaint will do everything for you! Just code in your favourite language (Python) and it will work!
 
@@ -82,15 +84,3 @@ from pytvpaint import Layer
 for instance in Layer.current_layer().instances:
     print(instance.start, instance.name)
 ```
-
-## Credits
-
-- The [George commands documentation](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands) from TVPaint.
-
-- The C++ plugin was made possible with the already existing codebase of Ynput's [OpenPype TVPaint plugin](https://github.com/ynput/OpenPype/tree/develop/openpype/hosts/tvpaint/tvpaint_plugin/plugin_code).
-
-- Also thanks to [Jakub Trllo](https://www.linkedin.com/in/jakub-trllo-751387a6/) from Ynput who helped with the C++ implementation on their Discord server 🙏.
-
-!!! Quote "Quote from Milan Kolar (ynput)"
-
-    Great things happen when open-source builds on open-source that builds on open-source!

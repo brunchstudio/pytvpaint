@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 from pytvpaint.george.client import send_cmd, try_cmd
@@ -12,7 +13,7 @@ from pytvpaint.george.client.parse import (
     tv_cast_to_type,
     tv_parse_list,
 )
-from pytvpaint.george.exceptions import NoObjectWithIdError
+from pytvpaint.george.exceptions import NoObjectWithIdError, GeorgeError
 from pytvpaint.george.grg_base import (
     BlendingMode,
     GrgErrorValue,
@@ -105,7 +106,7 @@ class InsertDirection(Enum):
 
 @dataclass(frozen=True)
 class TVPClipLayerColor:
-    """Clip layer color data."""
+    """Clip layer color values."""
 
     clip_id: int
     color_index: int
@@ -117,7 +118,7 @@ class TVPClipLayerColor:
 
 @dataclass(frozen=True)
 class TVPLayer:
-    """TVPaint's layer data."""
+    """TVPaint layer info values."""
 
     id: int = field(metadata={"parsed": False})
 
@@ -140,20 +141,38 @@ def tv_layer_current_id() -> int:
 
 @try_cmd(exception_msg="No layer at provided position")
 def tv_layer_get_id(position: int) -> int:
-    """Get the id of the layer at the given position."""
+    """Get the id of the layer at the given position.
+
+    Raises:
+        GeorgeError: if no layer found at the provided position
+    """
     result = send_cmd("tv_LayerGetID", position, error_values=[GrgErrorValue.NONE])
     return int(result)
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_get_pos(layer_id: int) -> int:
-    """Get the position of the given layer."""
+    """Get the position of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     return int(send_cmd("tv_LayerGetPos", layer_id, error_values=[GrgErrorValue.NONE]))
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_info(layer_id: int) -> TVPLayer:
-    """Get information of the given layer."""
+    """Get information of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     result = send_cmd("tv_LayerInfo", layer_id, error_values=[GrgErrorValue.EMPTY])
     layer = tv_parse_list(result, with_fields=TVPLayer, unused_indices=[7, 8])
     layer["id"] = layer_id
@@ -162,37 +181,55 @@ def tv_layer_info(layer_id: int) -> TVPLayer:
 
 @try_cmd(exception_msg="Couldn't move current layer to position")
 def tv_layer_move(position: int) -> None:
-    """Move the current layer to a new position in the layers stack."""
+    """Move the current layer to a new position in the layer stack.
+
+    Raises:
+        GeorgeError: if layer could not be moved
+    """
     send_cmd("tv_LayerMove", position)
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_set(layer_id: int) -> None:
-    """Make the given layer the current one."""
+    """Make the given layer the current one.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerSet", layer_id)
 
 
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid layer id")
 def tv_layer_selection_get(layer_id: int) -> bool:
-    """Get the selection state of a layer."""
+    """Get the selection state of a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerSelection", layer_id, error_values=[-1])
     return tv_cast_to_type(res, bool)
 
 
 @try_cmd(raise_exc=NoObjectWithIdError, exception_msg="Invalid layer id")
 def tv_layer_selection_set(layer_id: int, new_state: bool) -> None:
-    """Set the selection state of a layer."""
+    """Set the selection state of a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerSelection", layer_id, int(new_state), error_values=[-1])
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
 def tv_layer_select(start_frame: int, frame_count: int) -> int:
-    """Select image(s) in the current layer."""
-    return int(send_cmd("tv_layerselect", start_frame, frame_count, error_values=[-1]))
+    """Select frames in the current layer."""
+    return int(send_cmd("tv_LayerSelect", start_frame, frame_count, error_values=[-1]))
 
 
 def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
-    """Select image(s) in the current layer.
+    """Select all frame in the current layer.
 
     Args:
         full:  Always get the selection range, even on a non anim/ctg layer
@@ -202,7 +239,7 @@ def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
         count: the number of frames in the selection
     """
     args = ["full"] if full else []
-    res = send_cmd("tv_LayerSelectInfo", *args)
+    res = send_cmd("tv_layer'selectInfo", *args)
     frame, count = tuple(map(int, res.split(" ")))
     return frame, count
 
@@ -213,29 +250,41 @@ def tv_layer_create(name: str) -> int:
 
 
 def tv_layer_duplicate(name: str) -> int:
-    """Duplicate the current layer and make it current."""
+    """Duplicate the current layer and make it the current one"""
     return int(send_cmd("tv_LayerDuplicate", name, handle_string=False))
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_rename(layer_id: int, name: str) -> None:
-    """Rename a layer."""
+    """Rename a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerRename", layer_id, name)
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_kill(layer_id: int) -> None:
-    """Delete a layer that has the provided id."""
+    """Delete the layer with provided id.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerKill", layer_id)
 
 
-@try_cmd(exception_msg="Couldn't get layer density")
 def tv_layer_density_get() -> int:
     """Get the current layer density (opacity)."""
     return int(send_cmd("tv_LayerDensity"))
 
 
-@try_cmd(exception_msg="Couldn't set layer density")
 def tv_layer_density_set(new_density: int) -> None:
     """Set the current layer density (opacity ranging from 0 to 100)."""
     send_cmd("tv_LayerDensity", new_density)
@@ -243,19 +292,30 @@ def tv_layer_density_set(new_density: int) -> None:
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't get layer visibility",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_display_get(layer_id: int) -> bool:
-    """Get the visibility state of the given layer."""
+    """Get the visibility of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerDisplay", layer_id, error_values=[0])
     return tv_cast_to_type(res.lower(), bool)
 
 
-@try_cmd(exception_msg="Couldn't set layer visibility")
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_display_set(
     layer_id: int, new_state: bool, light_table: bool = False
 ) -> None:
-    """Set the visibility state of the given layer."""
+    """Set the visibility of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     args: list[Any] = [layer_id, int(new_state)]
     if light_table:
         args.insert(1, "lighttable")
@@ -264,20 +324,28 @@ def tv_layer_display_set(
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't get layer lock state",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_lock_get(layer_id: int) -> bool:
-    """Get the lock state of the given layer."""
+    """Get the lock state of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerLock", layer_id, error_values=[GrgErrorValue.ERROR])
     return tv_cast_to_type(res.lower(), bool)
 
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't set layer lock state",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_lock_set(layer_id: int, new_state: bool) -> None:
-    """Set the lock state of the given layer."""
+    """Set the lock state of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd(
         "tv_LayerLock",
         layer_id,
@@ -288,47 +356,67 @@ def tv_layer_lock_set(layer_id: int, new_state: bool) -> None:
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't get layer collapse state",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_collapse_get(layer_id: int) -> bool:
-    """Get the collapse mode of the given layer."""
+    """Get the collapse mode of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     return bool(int(send_cmd("tv_LayerCollapse", layer_id, error_values=[-2])))
 
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't set layer collapse state",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_collapse_set(layer_id: int, new_state: bool) -> None:
-    """Set the collapse mode of the given layer."""
+    """Set the collapse mode of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerCollapse", layer_id, int(new_state), error_values=[-2])
 
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't get layer blending mode",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_blending_mode_get(layer_id: int) -> BlendingMode:
-    """Get the blending mode of the given layer."""
+    """Get the blending mode of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerBlendingMode", layer_id)
     return tv_cast_to_type(res.lower(), BlendingMode)
 
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't set layer blending mode",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_blending_mode_set(layer_id: int, mode: BlendingMode) -> None:
-    """Set the blending mode of the given layer."""
+    """Set the blending mode of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerBlendingMode", layer_id, mode.value)
 
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't get layer stencil mode",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_stencil_get(layer_id: int) -> StencilMode:
-    """Get the stencil state and mode of the given layer."""
+    """Get the stencil state and mode of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerStencil", layer_id)
     _, state, mode = res.split(" ")
 
@@ -340,10 +428,14 @@ def tv_layer_stencil_get(layer_id: int) -> StencilMode:
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
-    exception_msg="Couldn't set layer stencil mode",
+    exception_msg="Invalid layer id",
 )
 def tv_layer_stencil_set(layer_id: int, mode: StencilMode) -> None:
-    """Set the stencil state and mode of the given layer."""
+    """Set the stencil state and mode of the given layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     if mode == StencilMode.OFF:
         args = ["off"]
     elif mode == StencilMode.ON:
@@ -361,7 +453,11 @@ def tv_layer_stencil_set(layer_id: int, mode: StencilMode) -> None:
 def tv_layer_show_thumbnails_get(
     layer_id: int,
 ) -> bool:
-    """Get the show thumbnail option in the layer."""
+    """Get the show thumbnails state for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd(
         "tv_LayerShowThumbnails", layer_id, error_values=[GrgErrorValue.ERROR]
     )
@@ -376,7 +472,11 @@ def tv_layer_show_thumbnails_set(
     layer_id: int,
     state: bool,
 ) -> None:
-    """Set the show thumbnail option in the layer."""
+    """Set the show thumbnail state for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd(
         "tv_LayerShowThumbnails",
         layer_id,
@@ -390,7 +490,11 @@ def tv_layer_show_thumbnails_set(
     exception_msg="Invalid layer id",
 )
 def tv_layer_auto_break_instance_get(layer_id: int) -> bool:
-    """Get the layer auto break instance value on a layer."""
+    """Get the layer auto break instance value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerAutoBreakInstance", layer_id, error_values=[-1, -2, -3])
     return res == "1"
 
@@ -403,7 +507,11 @@ def tv_layer_auto_break_instance_set(
     layer_id: int,
     state: bool,
 ) -> None:
-    """Set the layer auto break instance value on a layer."""
+    """Set the layer auto break instance value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd(
         "tv_LayerAutoBreakInstance",
         layer_id,
@@ -419,7 +527,11 @@ def tv_layer_auto_break_instance_set(
 def tv_layer_auto_create_instance_get(
     layer_id: int,
 ) -> bool:
-    """Get the layer auto break instance value on a layer."""
+    """Get the layer auto create instance value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerAutoCreateInstance", layer_id, error_values=[-1, -2, -3])
     return res == "1"
 
@@ -432,7 +544,11 @@ def tv_layer_auto_create_instance_set(
     layer_id: int,
     state: bool,
 ) -> None:
-    """Manage the layer auto create instance."""
+    """Set the layer auto create instance value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd(
         "tv_LayerAutoCreateInstance", layer_id, int(state), error_values=[-1, -2, -3]
     )
@@ -443,7 +559,11 @@ def tv_layer_auto_create_instance_set(
     exception_msg="Invalid layer id",
 )
 def tv_layer_pre_behavior_get(layer_id: int) -> LayerBehavior:
-    """Get the pre-behavior value of the given layer."""
+    """Get the pre-behavior value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerPreBehavior", layer_id)
     return tv_cast_to_type(res, LayerBehavior)
 
@@ -453,7 +573,11 @@ def tv_layer_pre_behavior_get(layer_id: int) -> LayerBehavior:
     exception_msg="Invalid layer id",
 )
 def tv_layer_pre_behavior_set(layer_id: int, behavior: LayerBehavior) -> None:
-    """Set the pre-behavior value of the given layer."""
+    """Set the pre-behavior value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerPreBehavior", layer_id, behavior.value)
 
 
@@ -462,7 +586,11 @@ def tv_layer_pre_behavior_set(layer_id: int, behavior: LayerBehavior) -> None:
     exception_msg="Invalid layer id",
 )
 def tv_layer_post_behavior_get(layer_id: int) -> LayerBehavior:
-    """Get the post-behavior value of the given layer."""
+    """Get the post-behavior value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerPostBehavior", layer_id)
     return tv_cast_to_type(res, LayerBehavior)
 
@@ -472,7 +600,11 @@ def tv_layer_post_behavior_get(layer_id: int) -> LayerBehavior:
     exception_msg="Invalid layer id",
 )
 def tv_layer_post_behavior_set(layer_id: int, behavior: LayerBehavior) -> None:
-    """Set the post-behavior value of the given layer."""
+    """Set the post-behavior value for a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerPostBehavior", layer_id, behavior.value)
 
 
@@ -481,7 +613,11 @@ def tv_layer_post_behavior_set(layer_id: int, behavior: LayerBehavior) -> None:
     exception_msg="Invalid layer id",
 )
 def tv_layer_lock_position_get(layer_id: int) -> bool:
-    """Get the lock position state of the current/given layer."""
+    """Get the lock position state of a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd("tv_LayerLockPosition", layer_id)
     return tv_cast_to_type(res, bool)
 
@@ -491,19 +627,23 @@ def tv_layer_lock_position_get(layer_id: int) -> bool:
     exception_msg="Invalid layer id",
 )
 def tv_layer_lock_position_set(layer_id: int, state: bool) -> None:
-    """Set the lock position state of the current/given layer."""
+    """Set the lock position state of a layer.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerLockPosition", layer_id, int(state))
 
 
 def tv_preserve_get() -> LayerTransparency:
-    """Get the preserve transparency of the current layer."""
+    """Get the preserve transparency state of the current layer."""
     res = send_cmd("tv_Preserve")
     _, state = res.split(" ")
     return tv_cast_to_type(state, LayerTransparency)
 
 
 def tv_preserve_set(state: LayerTransparency) -> None:
-    """Set the preserve transparency of the current layer."""
+    """Set the preserve transparency state of the current layer."""
     send_cmd("tv_Preserve", "alpha", state.value)
 
 
@@ -512,14 +652,14 @@ def tv_preserve_set(state: LayerTransparency) -> None:
     exception_msg="Invalid layer id",
 )
 def tv_layer_mark_get(layer_id: int, frame: int) -> int:
-    """Get the mark color of the layer's frame.
+    """Get the mark color of a layer at a frame.
 
     Args:
         layer_id: the layer id
         frame: the frame with a mark
 
     Raises:
-        NoObjectWithIdError: invalid layer id
+        NoObjectWithIdError: if given an invalid layer id
 
     Returns:
         int: the mark color index
@@ -538,12 +678,15 @@ def tv_layer_mark_set(layer_id: int, frame: int, color_index: int) -> None:
         layer_id: the layer id
         frame: the frame to set the mark (use 0 to remove it).
         color_index: the mark color
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
     """
     send_cmd("tv_LayerMarkSet", layer_id, frame, color_index)
 
 
 def tv_layer_anim(layer_id: int) -> None:
-    """Convert a layer to an anim layer."""
+    """Convert the layer to an anim layer."""
     send_cmd("tv_LayerAnim", *([layer_id] if layer_id else []))
 
 
@@ -558,7 +701,7 @@ def tv_layer_cut() -> None:
 
 
 def tv_layer_paste() -> None:
-    """Paste the previously copy/cut images on the current layer."""
+    """Paste the previously copied/cut images to the current layer."""
     send_cmd("tv_LayerPaste")
 
 
@@ -650,15 +793,29 @@ def tv_layer_shift(layer_id: int, start: int) -> None:
     send_cmd("tv_LayerShift", layer_id, start)
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_load_dependencies(layer_id: int) -> None:
-    """Load all dependencies of the given layer in memory."""
+    """Load all dependencies of the given layer in memory.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd("tv_LayerLoadDependencies", layer_id)
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_color_get_color(clip_id: int, color_index: int) -> TVPClipLayerColor:
-    """Get color information of colors list of the given clip."""
+    """Get a specific colors information in the clips color list.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     result = send_cmd(
         "tv_LayerColor",
         LayerColorAction.GETCOLOR.value,
@@ -670,17 +827,23 @@ def tv_layer_color_get_color(clip_id: int, color_index: int) -> TVPClipLayerColo
     return TVPClipLayerColor(**parsed)
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_color_set_color(
     clip_id: int,
     color_index: int,
     color: RGBColor,
     name: str | None = None,
 ) -> None:
-    """Set color information of colors list of the given clip.
+    """Set a specific colors information in the clips color list.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
 
     Note:
-        The color with index 0 is the "Default" color and it can't be changed
+        The color with index 0 is the "Default" color, and it can't be changed
     """
     args: list[Any] = [
         LayerColorAction.SETCOLOR.value,
@@ -697,9 +860,16 @@ def tv_layer_color_set_color(
     send_cmd("tv_LayerColor", *args, error_values=[GrgErrorValue.ERROR])
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_color_get(layer_id: int) -> int:
-    """Get the layer color index."""
+    """Get the layer's color index from the clips color list.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     res = send_cmd(
         "tv_LayerColor",
         LayerColorAction.GET.value,
@@ -711,7 +881,11 @@ def tv_layer_color_get(layer_id: int) -> int:
 
 @try_cmd(raise_exc=NoObjectWithIdError)
 def tv_layer_color_set(layer_id: int, color_index: int) -> None:
-    """Set the layer color index."""
+    """Set the layer's color index from the clips color list.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     send_cmd(
         "tv_LayerColor",
         LayerColorAction.SET.value,
@@ -722,7 +896,7 @@ def tv_layer_color_set(layer_id: int, color_index: int) -> None:
 
 
 def tv_layer_color_lock(color_index: int) -> int:
-    """Lock all layers with the color index.
+    """Lock all layers that use the given color index.
 
     Args:
         color_index: the layer color index
@@ -734,7 +908,7 @@ def tv_layer_color_lock(color_index: int) -> int:
 
 
 def tv_layer_color_unlock(color_index: int) -> int:
-    """Unlock all layers with the color index.
+    """Unlock all layers that use the given color index.
 
     Args:
         color_index: the layer color index
@@ -746,7 +920,15 @@ def tv_layer_color_unlock(color_index: int) -> int:
 
 
 def tv_layer_color_show(mode: LayerColorDisplayOpt, color_index: int) -> int:
-    """Show all layers with the color index."""
+    """Show all layers that use the given color index.
+
+    Args:
+        mode: the display mode
+        color_index: the layer color index
+
+    Returns:
+        the number of unlocked layers
+    """
     res = send_cmd(
         "tv_LayerColor",
         LayerColorAction.SHOW.value,
@@ -758,7 +940,15 @@ def tv_layer_color_show(mode: LayerColorDisplayOpt, color_index: int) -> int:
 
 
 def tv_layer_color_hide(mode: LayerColorDisplayOpt, color_index: int) -> int:
-    """Hide all layers with the color index."""
+    """Hide all layers that use the given color index.
+
+    Args:
+        mode: the display mode
+        color_index: the layer color index
+
+    Returns:
+        the number of unlocked layers
+    """
     return int(
         send_cmd(
             "tv_LayerColor",
@@ -770,9 +960,16 @@ def tv_layer_color_hide(mode: LayerColorDisplayOpt, color_index: int) -> int:
     )
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
 def tv_layer_color_visible(color_index: int) -> bool:
-    """Get the visibility of the color index (2px height) in the timeline."""
+    """Get the visibility of the color index (2px height) in the timeline.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     return bool(
         send_cmd(
             "tv_LayerColor",
@@ -783,15 +980,29 @@ def tv_layer_color_visible(color_index: int) -> bool:
     )
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid color index",
+)
 def tv_layer_color_select(color_index: int) -> int:
-    """Select all layers of the given color index."""
+    """Select all layers that use the given color index.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     return int(send_cmd("tv_LayerColor", LayerColorAction.SELECT.value, color_index))
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid color index",
+)
 def tv_layer_color_unselect(color_index: int) -> int:
-    """Unselect all layers of the given color index."""
+    """Unselect all layers that use the given color index.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+    """
     return int(send_cmd("tv_LayerColor", LayerColorAction.UNSELECT.value, color_index))
 
 
@@ -841,6 +1052,9 @@ def tv_instance_get_name(layer_id: int, frame: int) -> str:
         layer_id: the layer id
         frame: the frame of the instance
 
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+
     Returns:
         the instance name
     """
@@ -849,5 +1063,58 @@ def tv_instance_get_name(layer_id: int, frame: int) -> str:
 
 @try_cmd(exception_msg="Invalid layer id or no instance at given frame")
 def tv_instance_set_name(layer_id: int, frame: int, name: str) -> str:
-    """Set the name of an instance."""
+    """Set the name of an instance.
+
+    Raises:
+        GeorgeError: if an invalid layer id was provided or no instance was found at the given frame
+    """
     return send_cmd("tv_InstanceSetName", layer_id, frame, name)
+
+
+def tv_exposure_next() -> int:
+    """Go to the next layer instance head.
+
+    Returns:
+        The next instances start frame
+    """
+    return int(send_cmd("tv_ExposureNext"))
+
+
+def tv_exposure_prev() -> int:
+    """Go to the previous layer instance head (*before* the current instance).
+
+    Returns:
+        The previous instances start frame
+    """
+    return int(send_cmd("tv_ExposurePrev"))
+
+
+@try_cmd(exception_msg="No file found or invalid format")
+def tv_save_image(export_path: Path | str) -> None:
+    """Save the current image of the current layer.
+
+    Raises:
+        GeorgeError: if the file couldn't be saved or an invalid format was provided
+    """
+    export_path = Path(export_path)
+    send_cmd("tv_SaveImage", export_path.as_posix())
+
+
+@try_cmd(exception_msg="Invalid image format")
+def tv_load_image(img_path: Path | str, stretch: bool | None = None) -> None:
+    """Load an image in the current image layer.
+
+    Raises:
+        FileNotFoundError: if the input file doesn't exist
+        GeorgeError: if the provided file is in an invalid format
+    """
+    img_path = Path(img_path)
+
+    if not img_path.exists():
+        raise FileNotFoundError(f"File not found at: {img_path.as_posix()}")
+
+    args: list[Any] = [img_path.as_posix()]
+    if stretch is not None:
+        args.append("stretch")
+
+    send_cmd("tv_LoadImage", *args)

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.client.parse import (
-    consecutive_optional_args_to_list,
+    validate_args_list,
     tv_parse_list,
 )
 from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue
@@ -14,7 +14,7 @@ from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue
 
 @dataclass(frozen=True)
 class TVPCamera:
-    """The TVPaint camera."""
+    """TVPaint camera info values"""
 
     width: int
     height: int
@@ -26,7 +26,7 @@ class TVPCamera:
 
 @dataclass(frozen=True)
 class TVPCameraPoint:
-    """A camera 2D point."""
+    """camera 2D point info"""
 
     x: float
     y: float
@@ -54,7 +54,7 @@ def tv_camera_info_set(
         pixel_aspect_ratio,
     ]
 
-    args = consecutive_optional_args_to_list(optional_args)
+    args = validate_args_list(optional_args)
 
     result = send_cmd("tv_CameraInfo", *args)
     return TVPCamera(**tv_parse_list(result, with_fields=TVPCamera))

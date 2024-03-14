@@ -76,10 +76,10 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
         cast_type: the type to cast to
 
     Raises:
-        ValueError: if given an enum and it can't find the value or the enum index is too high
+        ValueError: if given an enum, and it can't find the value or the enum index is invalid
 
     Returns:
-        the value casted to the provided type
+        the value cast to the provided type
     """
     if issubclass(cast_type, Enum):
         value = value.strip().strip('"')
@@ -153,14 +153,14 @@ def tv_parse_dict(
 ) -> dict[str, Any]:
     """Parse a list of values as key value pairs returned from TVPaint commands.
 
-    Cast the values to a provided Data Class type or list of key/types pairs.
+    Cast the values to a provided dataclass type or list of key/types pairs.
 
     Args:
         input_text: the George string result
         with_fields: the field types (can be a dataclass)
 
     Returns:
-        a dict with the values casted to the given types
+        a dict with the values cast to the given types
     """
     # For dataclasses get the type hints and filter those with metadata
     if is_dataclass(with_fields):
@@ -212,7 +212,7 @@ def tv_parse_list(
 ) -> dict[str, Any]:
     """Parse a list of values returned from TVPaint commands.
 
-    Cast the values to a provided Data Class type or list of key/types pairs.
+    Cast the values to a provided dataclass type or list of key/types pairs.
 
     You can specify unused indices to exclude positional values from being parsed.
     This is useful because some George commands have unused return values.
@@ -223,7 +223,7 @@ def tv_parse_list(
         unused_indices: Some George functions return positional arguments that are unused. Defaults to None.
 
     Returns:
-        a dict with the values casted to the given types
+        a dict with the values cast to the given types
     """
     start = 0
     current = 0
@@ -290,13 +290,13 @@ def args_dict_to_list(args: dict[str, Any]) -> list[Any]:
 Value = Union[int, float, str, bool, None]
 
 
-def consecutive_optional_args_to_list(
+def validate_args_list(
     optional_args: Sequence[Value | tuple[Value, ...]]
 ) -> list[Any]:
-    """Some George functions accept optional arguments but consecutively it means that to set the last positional argument you need to give all the previous ones.
+    """Some George functions only accept a list of values and not key:value pairs, so to set the last positional
+    argument for instance, you need to give all the previous ones.
 
-    This function allows you to give a list of argument or argument blocks (as tuples)
-    and check that they are not None up to a point.
+    This function allows you to give a list of argument or key:value pairs (as tuples) and check that they are not None.
 
     For example, for `tv_camerainfo [<iWidth> <iHeight> [<field_order>]]`
     you can't give `[500, None, "upper"]` because `<iHeight>` is not defined.
@@ -313,11 +313,11 @@ def consecutive_optional_args_to_list(
     args: list[Any] = []
 
     for arg in optional_args:
-        if arg is None or (type(arg) == tuple and all(a is None for a in arg)):
+        if arg is None or (isinstance(arg, tuple) and all(a is None for a in arg)):
             break
 
         # If it's a tuple they need to be defined
-        if type(arg) == tuple:
+        if isinstance(arg, tuple):
             if any(a is None for a in arg):
                 raise ValueError(f"You must pass all the parameters: {arg}")
             args.extend(arg)

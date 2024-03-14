@@ -66,7 +66,7 @@ class BaseSound(Removable, ABC, Generic[P]):
 
     @classmethod
     def iter_sounds_data(cls, parent_id: str | int) -> Iterator[george.TVPSound]:
-        """Iterator over the sounds data."""
+        """Iterator over the sound's data."""
         return position_generator(lambda track_index: cls._info(parent_id, track_index))
 
     def make_current(self) -> None:
@@ -90,7 +90,7 @@ class BaseSound(Removable, ABC, Generic[P]):
 
     @property
     def track_index(self) -> int:
-        """Get the sound track index in the sound stack."""
+        """Get the soundtrack index in the sound stack."""
         # Recomputes the track_index each time because some track
         # can be deleted in the meantime
         for index, data in enumerate(self.iter_sounds_data(self._parent.id)):
@@ -104,7 +104,6 @@ class BaseSound(Removable, ABC, Generic[P]):
         return self._data.offset
 
     @offset.setter
-    @set_as_current
     def offset(self, value: float) -> None:
         self._adjust(offset=value)
 
@@ -217,8 +216,8 @@ class ClipSound(BaseSound["Clip"]):
     def _info(parent_id: str | int, track_index: int) -> george.TVPSound:
         return george.tv_sound_clip_info(int(parent_id), track_index)
 
+    @set_as_current
     def _adjust(self, **kwargs: Any) -> None:
-        self.clip.make_current()
         return george.tv_sound_clip_adjust(self.track_index, **kwargs)
 
     @staticmethod
@@ -234,9 +233,9 @@ class ClipSound(BaseSound["Clip"]):
         """Makes the sound clip current."""
         self.clip.make_current()
 
+    @set_as_current
     def remove(self) -> None:
-        """Remove the clip sound."""
-        self.clip.make_current()
+        """Remove the sound from the clip."""
         george.tv_sound_clip_remove(self.track_index)
         self.mark_removed()
 
@@ -274,7 +273,6 @@ class ProjectSound(BaseSound["Project"]):
 
     @set_as_current
     def _adjust(self, **kwargs: Any) -> None:
-        self.project.make_current()
         return george.tv_sound_project_adjust(self.track_index, **kwargs)
 
     @property
@@ -282,9 +280,9 @@ class ProjectSound(BaseSound["Project"]):
         """The sound's project."""
         return self._parent
 
+    @set_as_current
     def remove(self) -> None:
         """Remove the sound from the project."""
-        self.project.make_current()
         george.tv_sound_project_remove(self.track_index)
         self.mark_removed()
 

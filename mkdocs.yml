@@ -43,7 +43,7 @@ nav:
           - How it works: contributing/how_it_works.md
           - Wrapping George commands: contributing/wrap_george.md
           - Modifying high-level classes: contributing/modify_objects.md
-      - Logo: logo.md
+      - Credits: Credits.md
   - C++ plugin:
       - Introduction: cpp/index.md
       - Building: cpp/building.md

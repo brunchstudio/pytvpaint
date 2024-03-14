@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import threading
+from time import time
 from typing import Any, Union, cast
 
 from typing_extensions import NotRequired, TypedDict
@@ -63,7 +64,7 @@ class JSONRPCClient:
     See: https://www.jsonrpc.org/specification#notification
     """
 
-    def __init__(self, url: str, version: str = "2.0") -> None:
+    def __init__(self, url: str, timeout: int = 60, version: str = "2.0") -> None:
         """Initialize a new JSON-RPC client with a WebSocket url endpoint.
 
         Args:
@@ -74,11 +75,13 @@ class JSONRPCClient:
         self.ws_handle.settimeout(5)
         self.url = url
         self.rpc_id = 0
+        self.timeout = timeout
         self.jsonrpc_version = version
 
         self.stop_ping = threading.Event()
         self.run_forever = False
         self.ping_thread: threading.Thread | None = None
+        self._ping_start_time: float = 0
 
     def _auto_reconnect(self) -> None:
         """Automatic WebSocket reconnection in a thread by pinging the server."""
@@ -92,6 +95,12 @@ class JSONRPCClient:
                     log.info(f"Reconnected automatically to TVPaint {self.url}")
                 except ConnectionRefusedError:
                     continue
+
+            if self.timeout and time() > (self._ping_start_time + self.timeout):
+                raise ConnectionRefusedError(
+                    "Could not establish connection with a tvpaint instance before timeout !"
+                )
+
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""
@@ -107,6 +116,7 @@ class JSONRPCClient:
         self.ws_handle.connect(self.url, timeout=timeout)
 
         if not self.ping_thread:
+            self._ping_start_time = time()
             self.ping_thread = threading.Thread(
                 target=self._auto_reconnect, daemon=True
             )

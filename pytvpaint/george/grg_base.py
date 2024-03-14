@@ -52,7 +52,7 @@ class MarkType(Enum):
 
 
 class MarkReference(Enum):
-    """The object on which the mark is applied."""
+    """The object to mark"""
 
     PROJECT = "project"
     CLIP = "clip"
@@ -73,7 +73,12 @@ class RectButton(Enum):
 
 
 class TVPShape(Enum):
-    """The shape tools."""
+    """
+    The shape tools.
+    Attributes:
+        B_SPLINE:
+        BEZIER:
+    """
 
     B_SPLINE = "bspline"
     BEZIER = "bezier"
@@ -126,7 +131,7 @@ class TVPShape(Enum):
 
 
 class ResizeOption(Enum):
-    """Resize options for project."""
+    """Resize options for projects."""
 
     EMPTY = 0
     CROP = 1
@@ -193,7 +198,7 @@ class SaveFormat(Enum):
 
     @classmethod
     def from_extension(cls, extension: str) -> SaveFormat:
-        """Returns the enum value from a string extension."""
+        """Returns the correct tvpaint format value from a string extension."""
         extension = extension.replace(".", "").lower()
         if not hasattr(SaveFormat, extension.upper()):
             raise ValueError(
@@ -398,9 +403,11 @@ def tv_menu_hide() -> None:
 
 
 def tv_menu_show(
-    menu_element: MenuElement | None = None, *args: Any, current: bool = False
+    menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False
 ) -> None:
-    """For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow."""
+    """
+    For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow.
+    """
     cmd_args: list[str] = []
 
     if current:
@@ -409,11 +416,11 @@ def tv_menu_show(
     if menu_element:
         cmd_args.append(menu_element.value)
 
-    send_cmd("tv_MenuShow", *cmd_args, *args)
+    send_cmd("tv_MenuShow", *cmd_args, *menu_options)
 
 
 def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> bool:
-    """Open a custom requester.
+    """Open a confirmation prompt with a message.
 
     Args:
         msg: the message to display
@@ -429,13 +436,13 @@ def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> 
 def tv_req_num(
     value: int, min: int, max: int, title: str = "Enter Value"
 ) -> int | None:
-    """Open an integer requester.
+    """open a prompt to request an integer (within a range).
 
     Args:
         value: the initial value
         min: the minimum value
         max: the maximum value
-        title: title of the requester. Defaults to "Enter Value".
+        title: title of the prompt dialog. Defaults to "Enter Value".
 
     Returns:
         the value or None if cancelled
@@ -447,13 +454,13 @@ def tv_req_num(
 def tv_req_angle(
     value: float, min: float, max: float, title: str = "Enter Value"
 ) -> float | None:
-    """Open an angle (in degree) requester.
+    """open a prompt to request an angle (in degree).
 
     Args:
         value: the initial value
         min: the minimum value
         max: the maximum value
-        title: title of the requester. Defaults to "Enter Value".
+        title: title of the prompt. Defaults to "Enter Value".
 
     Returns:
         the value or None if cancelled
@@ -465,13 +472,13 @@ def tv_req_angle(
 def tv_req_float(
     value: float, min: float, max: float, title: str = "Enter value"
 ) -> float | None:
-    """Open a decimal requester.
+    """open a prompt to request a float.
 
     Args:
         value: the initial value
         min: the minimum value
         max: the maximum value
-        title: title of the requester. Defaults to "Enter Value".
+        title: title of the prompt. Defaults to "Enter Value".
 
     Returns:
         the value or None if cancelled
@@ -481,7 +488,7 @@ def tv_req_float(
 
 
 def tv_req_string(title: str, text: str) -> str | None:
-    """Open a string requester.
+    """open a prompt to request a string.
 
     Args:
         title: title of the requester. Defaults to "Enter Value".
@@ -510,7 +517,7 @@ def _entry_to_str(entry: Entry) -> str:
 
 
 def tv_list_request(entries: list[Entry]) -> tuple[int, str]:
-    """Open a popup to select an entry.
+    """open a prompt to request a selection in a list.
 
     Args:
         entries: the list of entries (either a single entry or sub entries)
@@ -538,7 +545,7 @@ def tv_req_file(
     default_name: str | None = None,
     extension_filter: str | None = None,
 ) -> Path | None:
-    """Open a file requester.
+    """open a prompt to request a file.
 
     Args:
         mode: save or load
@@ -600,9 +607,9 @@ def tv_save_mode_get() -> tuple[SaveFormat, list[str]]:
     return save_format, res_split
 
 
-def tv_save_mode_set(save_format: SaveFormat, *args: str) -> None:
+def tv_save_mode_set(save_format: SaveFormat, *format_options: str | int | float) -> None:
     """Set the saving alpha mode."""
-    send_cmd("tv_SaveMode", save_format.value, *args)
+    send_cmd("tv_SaveMode", save_format.value, *format_options)
 
 
 def tv_alpha_load_mode_get() -> AlphaMode:
@@ -823,7 +830,7 @@ def tv_rect(
     bry: float,
     button: RectButton | None = None,
 ) -> None:
-    """Draws a rectangle with stroke only.
+    """Draws an unfilled rectangle.
 
     Args:
         tlx: top left x coordinate
@@ -864,21 +871,3 @@ def tv_rect_fill(
     if tool_mode:
         args.insert(0, "toolmode")
     send_cmd("tv_RectFill", *args)
-
-
-def tv_exposure_next() -> int:
-    """Go to the next instance head.
-
-    Returns:
-        The 'new' current frame
-    """
-    return int(send_cmd("tv_ExposureNext"))
-
-
-def tv_exposure_prev() -> int:
-    """Go to the previous instance head (*before* the current instance).
-
-    Returns:
-        The 'new' current frame
-    """
-    return int(send_cmd("tv_ExposurePrev"))

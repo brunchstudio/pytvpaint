@@ -26,10 +26,10 @@ if TYPE_CHECKING:
 
 
 @contextlib.contextmanager
-def _restore_current_frame(
+def restore_current_frame(
     clip: Clip, frame: int | None = None
 ) -> Generator[None, None, None]:
-    """Context that changes the current frame temporarly and restores the previous value.
+    """Context that changes the current frame temporarily and restores the previous value.
 
     Args:
         clip: clip to change
@@ -77,7 +77,7 @@ class LayerInstance:
     def duplicate(self) -> None:
         """Duplicate the instance and insert it next to it."""
         self.layer.make_current()
-        with _restore_current_frame(self.layer.clip, self.start):
+        with restore_current_frame(self.layer.clip, self.start):
             george.tv_layer_insert_image(duplicate=True)
 
     @property
@@ -87,7 +87,7 @@ class LayerInstance:
         Returns:
             the next instance or None if at the end of the layer
         """
-        with _restore_current_frame(self.layer.clip, self.start):
+        with restore_current_frame(self.layer.clip, self.start):
             next_frame = george.tv_exposure_next()
 
         return self.layer.get_instance(next_frame)
@@ -99,7 +99,7 @@ class LayerInstance:
         Returns:
             the previous instance, None if there isn't
         """
-        with _restore_current_frame(self.layer.clip, self.start):
+        with restore_current_frame(self.layer.clip, self.start):
             prev_frame = george.tv_exposure_prev()
 
         return self.layer.get_instance(prev_frame)
@@ -195,7 +195,7 @@ class LayerColor(Refreshable):
         """Show or hide layers with this color.
 
         Args:
-            show: wether to show or not
+            show: whether to show the layers using this color or not
             mode: the display mode. Defaults to george.LayerColorDisplayOpt.DISPLAY.
         """
         self.clip.make_current()
@@ -247,7 +247,7 @@ class Layer(Removable):
 
     @property
     def id(self) -> int:
-        """The layer unique identifier.
+        """The layers unique identifier.
 
         Warning:
             layer ids are not persistent across project load/close
@@ -271,7 +271,7 @@ class Layer(Removable):
 
     @property
     def position(self) -> int:
-        """The layer position in the layer stack.
+        """The position in the layer stack.
 
         Note:
             layer positions start at 0
@@ -280,7 +280,7 @@ class Layer(Removable):
 
     @position.setter
     def position(self, value: int) -> None:
-        """Moves the layer to that position."""
+        """Moves the layer to the provided position."""
         if self.position == value:
             return
         self.make_current()
@@ -294,14 +294,14 @@ class Layer(Removable):
     @name.setter
     @set_as_current
     def name(self, value: str) -> None:
-        """Sets the layer name.
+        """Set the layer name.
 
         Note:
             it uses `get_unique_name` to find a unique layer name across all the layers in the clip
         """
         if value == self.name:
             return
-        value = get_unique_name(self.clip._layer_names(), value)
+        value = get_unique_name(self.clip.layer_names, value)
         george.tv_layer_rename(self.id, value)
 
     @refreshed_property
@@ -314,14 +314,14 @@ class Layer(Removable):
         """Get the layer opacity value.
 
         Note:
-            In George, this is call density so we renamed that
+            In George, this is called density, we renamed it to `opacity` as it seems more appropriate
         """
         return george.tv_layer_density_get()
 
     @opacity.setter
     @set_as_current
     def opacity(self, value: int) -> None:
-        """Sets the layer opacity value (between 0 and 100)."""
+        """Set the layers opacity value (between 0 and 100)."""
         value = max(0, min(value, 100))
         george.tv_layer_density_set(value)
 
@@ -343,7 +343,7 @@ class Layer(Removable):
 
     @color.setter
     def color(self, color: LayerColor) -> None:
-        """Sets the layer color."""
+        """Set the layer color."""
         george.tv_layer_color_set(self.id, color.index)
 
     @property
@@ -352,7 +352,7 @@ class Layer(Removable):
         return self.id == self.current_layer_id()
 
     def make_current(self) -> None:
-        """Make the layer current if not already, it also makes the clip current."""
+        """Make the layer current, it also makes the clip current."""
         if self.is_current:
             return
         if self.clip:
@@ -376,7 +376,7 @@ class Layer(Removable):
 
     @is_visible.setter
     def is_visible(self, value: bool) -> None:
-        """Sets the visibility value of the layer."""
+        """Set the visibility state of the layer."""
         george.tv_layer_display_set(self.id, new_state=value)
 
     @property
@@ -601,7 +601,7 @@ class Layer(Removable):
         clip = clip or Clip.current_clip()
         clip.make_current()
 
-        name = get_unique_name(clip._layer_names(), name)
+        name = get_unique_name(clip.layer_names, name)
         layer_id = george.tv_layer_create(name)
 
         layer = Layer(layer_id=layer_id, clip=clip)
@@ -644,18 +644,25 @@ class Layer(Removable):
         name: str,
         clip: Clip | None = None,
         color: LayerColor | None = None,
+        image: Path | str | None = None
     ) -> Layer:
-        """Create a new background layer with hold as pre and post behavior.
+        """Create a new background layer with hold as pre- and post-behavior.
 
         Args:
             name: the name of the new layer
             clip: the parent clip
             color: the layer color
+            image: the background image to load
 
         Returns:
             Layer: the new animation layer
         """
-        layer = cls.new(name, clip, color)
+        image = Path(image)
+        if image.is_file() and image.exists():
+            clip = clip or Clip.current_clip()
+            layer = clip.load_media(media_path=image)
+        else:
+            layer = cls.new(name, clip, color)
         layer.thumbnails_visible = True
         layer.pre_behavior = george.LayerBehavior.HOLD
         layer.post_behavior = george.LayerBehavior.HOLD
@@ -672,7 +679,7 @@ class Layer(Removable):
         Returns:
             Layer: the duplicated layer
         """
-        name = get_unique_name(self.clip._layer_names(), name)
+        name = get_unique_name(self.clip.layer_names, name)
         layer_id = george.tv_layer_duplicate(name)
 
         return Layer(layer_id=layer_id, clip=self.clip)
@@ -687,6 +694,24 @@ class Layer(Removable):
         george.tv_layer_kill(self.id)
         self.mark_removed()
 
+    @set_as_current
+    def load_image(self, image_path: str | Path, frame: int | None = None, stretch: bool = False) -> None:
+        """Load an image in the current layer at a given frame
+
+        Args:
+            image_path: path to the image to load
+            frame: the frame where the image will be loaded, if none provided, image will be loaded at current frame
+            stretch: whether to stretch the image to fit the view
+
+        """
+        image_path = Path(image_path)
+        if not image_path.exists():
+            raise FileNotFoundError(f'Image not found at : {image_path}')
+        if frame is not None:
+            self.clip.current_frame = frame
+        george.tv_load_image(image_path.as_posix(), stretch)
+
+    @set_as_current
     def render_frame(
         self,
         export_path: Path | str,
@@ -842,7 +867,7 @@ class Layer(Removable):
             if instance is None:
                 break
             yield instance
-            with _restore_current_frame(self.clip, instance_frame):
+            with restore_current_frame(self.clip, instance_frame):
                 instance_frame = george.tv_exposure_next() + project_start_frame
 
     def get_instance(self, frame: int) -> LayerInstance | None:

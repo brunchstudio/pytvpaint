@@ -8,7 +8,11 @@ from pytvpaint.george.grg_base import GrgErrorValue
 
 @try_cmd(exception_msg="No scene at provided position")
 def tv_scene_enum_id(position: int) -> int:
-    """Get the id of the scene at the given position in the current project."""
+    """Get the id of the scene at the given position in the current project.
+
+    Raises:
+        GeorgeError: if no scene found at the provided position
+    """
     return int(send_cmd("tv_SceneEnumId", position, error_values=[GrgErrorValue.NONE]))
 
 
@@ -18,12 +22,12 @@ def tv_scene_current_id() -> int:
 
 
 def tv_scene_move(scene_id: int, position: int) -> None:
-    """Move a scene to a another position."""
+    """Move a scene to another position."""
     send_cmd("tv_SceneMove", scene_id, position)
 
 
 def tv_scene_new() -> None:
-    """Create a new scene (with a new clip) after the scene of the current clip."""
+    """Create a new scene (with a new clip) after the current scene."""
     send_cmd("tv_SceneNew")
 
 

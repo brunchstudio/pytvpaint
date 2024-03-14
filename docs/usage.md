@@ -126,9 +126,15 @@ project.close()
 print(layer.name)
 ```
 
-### Frame range
+### Frame ranges and timeline
 
-Some George functions have a frame parameter that's absolute, meaning it starts at zero even if the project start frame is different. We adapted that so you can use the most intuitive frame number each time.
+Handling frame ranges in TVPaint can be difficult, depending on the object (project, clip, layer) and on the mark in/out, 
+range values tend to change and are sometimes absolute, meaning the range starts at zero (like a list index) even if 
+the project start frame is different or the drawing doesn't start at the first frame. 
+
+We adapted this to use the timeline (as in the UI) for all objects, just like Maya, Premiere or any other industry software.
+Meaning that a range of (15-49) for instance is the same across the project, scene, clip and layers no matter what, 
+pytvpaint handles the conversion to the correct range for each object behind the scenes 
 
 For example:
 
@@ -139,16 +145,19 @@ from pytvpaint.project import Project
 p = Project.current_project()
 p.start_frame = 9
 
-# Works as expected, otherwise you would need
-# to do tv_project_current_frame_set(1)
+# this will set the current frame to 10 in the UI which is the expected behaviour
 p.current_frame = 10
+# in regular George you would need to do tv_project_current_frame_set(1), 
+# which tvpaint then understands as start_frame (9) + 1 = 10
 
-# It also take into account the clip mark_in value
+
+# It also takes into account the clip mark_in value
 p.current_clip.mark_in = 8
 
-# Does "tv_ProjectCurrentFrame 2" because the frame
-# is now relative to the mark_in
+# this will also set the current frame to 10 in the UI,  which is again, is the expected behaviour
 p.current_frame = 10
+# in regular George you would need to do "tv_ProjectCurrentFrame 2" because the frame
+# is now relative to the mark_in
 ```
 
 ### Rendering and Fileseq

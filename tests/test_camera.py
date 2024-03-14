@@ -1,7 +1,7 @@
 import pytest
 
 from pytvpaint import george
-from pytvpaint.camera import Camera
+from pytvpaint.camera import Camera, CameraPoint
 from pytvpaint.clip import Clip
 from pytvpaint.george.grg_base import FieldOrder
 from tests.conftest import FixtureYield
@@ -68,7 +68,7 @@ def test_camera_insert_point(current_camera: Camera) -> None:
 def test_camera_current_points_data(current_camera: Camera) -> None:
     george.tv_camera_insert_point(0, 50, 50, 34, 1.5)
     point = george.tv_camera_enum_points(0)
-    assert next(Camera.current_points_data()) == point
+    assert next(Camera.current_points()) == CameraPoint(0, camera=current_camera, data=point)
 
 
 def test_camera_get_point_data_at(current_camera: Camera) -> None:

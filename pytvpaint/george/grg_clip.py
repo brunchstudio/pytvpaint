@@ -7,10 +7,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from george import send_cmd
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     args_dict_to_list,
-    consecutive_optional_args_to_list,
+    validate_args_list,
     tv_parse_dict,
     tv_parse_list,
 )
@@ -26,7 +27,7 @@ from pytvpaint.george.grg_base import (
 
 @dataclass(frozen=True)
 class TVPClip:
-    """A TVPaint clip."""
+    """TVPaint clip info values"""
 
     id: int = field(metadata={"parsed": False})
 
@@ -51,9 +52,16 @@ class PSDSaveMode(Enum):
     MARKIN = "markin"
 
 
-@try_cmd(raise_exc=NoObjectWithIdError)
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid clip id",
+)
 def tv_clip_info(clip_id: int) -> TVPClip:
-    """Get the information of the given clip."""
+    """Get the information of the given clip.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     result = send_cmd("tv_ClipInfo", clip_id, error_values=[GrgErrorValue.EMPTY])
     clip = tv_parse_dict(result, with_fields=TVPClip)
     clip["id"] = clip_id
@@ -64,7 +72,11 @@ def tv_clip_info(clip_id: int) -> TVPClip:
     exception_msg="Invalid scene id or clip position or elements have been removed"
 )
 def tv_clip_enum_id(scene_id: int, clip_position: int) -> int:
-    """Get the id of the clip at the given position inside the given scene."""
+    """Get the id of the clip at the given position inside the given scene.
+
+    Raises:
+        GeorgeError: if given an invalid scene id or clip position or elements have been removed
+    """
     return int(
         send_cmd(
             "tv_ClipEnumId",
@@ -100,7 +112,11 @@ def tv_clip_close(clip_id: int) -> None:
     exception_msg="Invalid clip id",
 )
 def tv_clip_name_get(clip_id: int) -> str:
-    """Get the clip name."""
+    """Get the clip name.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     return send_cmd("tv_ClipName", clip_id, error_values=[GrgErrorValue.EMPTY])
 
 
@@ -109,7 +125,11 @@ def tv_clip_name_get(clip_id: int) -> str:
     exception_msg="Invalid clip id",
 )
 def tv_clip_name_set(clip_id: int, name: str) -> None:
-    """Set the clip name."""
+    """Set the clip name.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     send_cmd("tv_ClipName", clip_id, name, error_values=[GrgErrorValue.EMPTY])
 
 
@@ -123,7 +143,11 @@ def tv_clip_move(clip_id: int, scene_id: int, position: int) -> None:
     exception_msg="Invalid clip id",
 )
 def tv_clip_hidden_get(clip_id: int) -> bool:
-    """Get clip hidability."""
+    """Get clip visibility.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     res = send_cmd("tv_ClipHidden", clip_id, error_values=[GrgErrorValue.EMPTY])
     return bool(int(res))
 
@@ -133,7 +157,11 @@ def tv_clip_hidden_get(clip_id: int) -> bool:
     exception_msg="Invalid clip id",
 )
 def tv_clip_hidden_set(clip_id: int, new_state: bool) -> None:
-    """Set clip hidability."""
+    """Set clip visibility.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     send_cmd(
         "tv_ClipHidden", clip_id, int(new_state), error_values=[GrgErrorValue.EMPTY]
     )
@@ -149,7 +177,11 @@ def tv_clip_select(clip_id: int) -> None:
     exception_msg="Invalid clip id",
 )
 def tv_clip_selection_get(clip_id: int) -> bool:
-    """Get the given clip selection state."""
+    """Get the clip's selection state.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     res = send_cmd("tv_ClipSelection", clip_id, error_values=[-1])
     return bool(int(res))
 
@@ -159,7 +191,11 @@ def tv_clip_selection_get(clip_id: int) -> bool:
     exception_msg="Invalid clip id",
 )
 def tv_clip_selection_set(clip_id: int, new_state: bool) -> None:
-    """Set the given clip selection state."""
+    """Set the clip's selection state.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid clip id
+    """
     send_cmd("tv_ClipSelection", clip_id, int(new_state), error_values=[-1])
 
 
@@ -182,7 +218,7 @@ def tv_load_sequence(
     time_stretch: bool | None = None,
     preload: bool | None = None,
 ) -> int:
-    """Open a sequence of files in a new layer.
+    """load a sequence of images or movie in a new layer.
 
     Args:
         seq_path: the first file of the sequence to load
@@ -193,7 +229,8 @@ def tv_load_sequence(
         preload: Load all the images in memory, no more reference on the files. Defaults to None.
 
     Raises:
-        ValueError: if the input file path doesn't exist
+        FileNotFoundError: if the sequence file doesn't exist
+        GeorgeError: if the input file is in an invalid format
 
     Returns:
         the number of images of the new layer
@@ -201,7 +238,7 @@ def tv_load_sequence(
     seq_path = Path(seq_path)
 
     if not seq_path.exists():
-        raise ValueError(f"File not found at: {seq_path.as_posix()}")
+        raise FileNotFoundError(f"File not found at: {seq_path.as_posix()}")
 
     args: list[int | str | None] = [field_order.value if field_order else None]
 
@@ -231,31 +268,61 @@ def tv_load_sequence(
     return int(result)
 
 
+def tv_save_sequence(
+    export_path: Path | str,
+    mark_in: int | None = None,
+    mark_out: int | None = None,
+) -> None:
+    """Save the current clip.
+
+    Raises:
+        NotADirectoryError: if the export directory doesn't exist
+    """
+    export_path = Path(export_path).resolve()
+
+    if not export_path.parent.exists():
+        raise NotADirectoryError(
+            "Can't save the sequence because parent"
+            f"folder does not exist: {export_path.parent.as_posix()}"
+        )
+
+    args: list[Any] = [export_path.as_posix()]
+
+    if mark_in and mark_out:
+        args.extend([mark_in, mark_out])
+
+    send_cmd("tv_SaveSequence", *args)
+
+
 @try_cmd(exception_msg="No bookmark at provided position")
 def tv_bookmarks_enum(position: int) -> int:
-    """Get the image index (in the clip) corresponding to the bookmark at the given position."""
+    """Get the frame (in the clip) corresponding to the bookmark at the given position.
+
+    Raises:
+        GeorgeError: if no bookmark found at provided position
+    """
     return int(
         send_cmd("tv_BookmarksEnum", position, error_values=[GrgErrorValue.NONE])
     )
 
 
 def tv_bookmark_set(frame: int) -> None:
-    """Set a bookmark at the given image index."""
+    """Set a bookmark at the given frame"""
     send_cmd("tv_BookmarkSet", frame)
 
 
 def tv_bookmark_clear(frame: int) -> None:
-    """Remove a bookmark at the given image index."""
+    """Remove a bookmark at the given frame"""
     send_cmd("tv_BookmarkClear", frame)
 
 
 def tv_bookmark_next() -> None:
-    """Change the current image to the next bookmarked image."""
+    """Go to the next bookmarked frame"""
     send_cmd("tv_BookmarkNext")
 
 
 def tv_bookmark_prev() -> None:
-    """Change the current image to the previous bookmarked image."""
+    """Go to the previous bookmarked frame"""
     send_cmd("tv_BookmarkPrev")
 
 
@@ -271,8 +338,8 @@ def tv_clip_color_set(clip_id: int, color_index: int) -> None:
 
 def tv_clip_action_get(clip_id: int) -> str:
     """Get the action text of the clip."""
-    # We explicitly check if the clip exists because the error value is an empty string
-    # and we can't determine if the action text is empty or the clip_id is invalid...
+    # We explicitly check if the clip exists because the error value is an empty string, and we can't determine if the
+    # action text is empty or the clip_id is invalid...
     tv_clip_name_get(clip_id)
     return send_cmd("tv_ClipAction", clip_id)
 
@@ -314,7 +381,11 @@ def tv_clip_note_set(clip_id: int, note: str) -> None:
 
 @try_cmd(exception_msg="Can't create file")
 def tv_save_clip(export_path: Path | str) -> None:
-    """Save the current clip as .tvp format."""
+    """Save the current clip in .tvp format.
+
+    Raises:
+        GeorgeError: if file couldn't be saved
+    """
     export_path = Path(export_path)
     send_cmd("tv_SaveClip", export_path.as_posix())
 
@@ -323,25 +394,6 @@ def tv_save_display(export_path: Path | str) -> None:
     """Save the display."""
     export_path = Path(export_path).resolve()
     send_cmd("tv_SaveDisplay", export_path.as_posix())
-
-
-@try_cmd(exception_msg="No file found or invalid format")
-def tv_save_image(export_path: Path | str) -> None:
-    """Save the current image of the current layer."""
-    export_path = Path(export_path)
-    send_cmd("tv_SaveImage", export_path.as_posix())
-
-
-@try_cmd(exception_msg="Invalid image format")
-def tv_load_image(img_path: Path | str, stretch: bool | None = None) -> None:
-    """Load an image in the current image layer."""
-    img_path = Path(img_path)
-
-    args: list[Any] = [img_path.as_posix()]
-    if stretch is not None:
-        args.append("stretch")
-
-    send_cmd("tv_LoadImage", *args)
 
 
 def tv_clip_save_structure_json(
@@ -497,7 +549,7 @@ def tv_clip_save_structure_sprite(
     )
 
     send_cmd(
-        "tv_clipsavestructure",
+        "tv_ClipSaveStructure",
         export_path.as_posix(),
         "sprite",
         *args,
@@ -539,7 +591,7 @@ def tv_clip_save_structure_flix(
     args = args_dict_to_list(args_dict)
 
     send_cmd(
-        "tv_clipsavestructure",
+        "tv_ClipSaveStructure",
         export_path.as_posix(),
         "Flix",
         *args,
@@ -548,14 +600,14 @@ def tv_clip_save_structure_flix(
 
 
 def tv_sound_clip_info(clip_id: int, track_index: int) -> TVPSound:
-    """Get information about a sound track."""
+    """Get information about a soundtrack."""
     res = send_cmd("tv_SoundClipInfo", clip_id, track_index, error_values=[-1, -2, -3])
     res_parse = tv_parse_list(res, with_fields=TVPSound)
     return TVPSound(**res_parse)
 
 
 def tv_sound_clip_new(sound_path: Path | str) -> None:
-    """Add a new sound track."""
+    """Add a new soundtrack."""
     path = Path(sound_path)
     if not path.exists():
         raise ValueError(f"Sound file not found at : {path.as_posix()}")
@@ -563,7 +615,7 @@ def tv_sound_clip_new(sound_path: Path | str) -> None:
 
 
 def tv_sound_clip_remove(track_index: int) -> None:
-    """Remove a sound track."""
+    """Remove a soundtrack."""
     send_cmd("tv_SoundClipRemove", track_index, error_values=[-2])
 
 
@@ -593,7 +645,7 @@ def tv_sound_clip_adjust(
     fade_out_stop: float | None = None,
     color_index: int | None = None,
 ) -> None:
-    """Modify a sound track."""
+    """Change a soundtracks settings."""
     optional_args = [
         int(mute) if mute is not None else None,
         volume,
@@ -602,15 +654,16 @@ def tv_sound_clip_adjust(
         color_index,
     ]
 
-    args = consecutive_optional_args_to_list(optional_args)
+    args = validate_args_list(optional_args)
     send_cmd("tv_SoundClipAdjust", track_index, *args, error_values=[-2, -3])
 
 
 def tv_layer_image_get() -> int:
-    """Get the current image in the current clip."""
+    """Get the current frame of the current clip."""
     return int(send_cmd("tv_LayerGetImage"))
 
 
 def tv_layer_image(frame: int) -> None:
-    """Set the current image in the current clip."""
+    """Set the current frame of the current clip."""
     send_cmd("tv_LayerImage", frame)
+

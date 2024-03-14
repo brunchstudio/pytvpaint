@@ -4,9 +4,9 @@ This page list all the current limitations of Pytvpaint in its current state.
 
 ## Windows only
 
-As stated on the homepage, the [`tvpaint-rpc`](https://github.com/brunchstudio/tvpaint-rpc) C++ plugin is currently Windows only.
+As stated on the homepage, the [`tvpaint-rpc`](https://github.com/brunchstudio/tvpaint-rpc) C++ plugin is currently compiled for Windows only.
 
-So Pytvpaint only work on this platform. It comes from the fact that we have Windows workstations in our studio so we didn't have time to compile the plugin and test it on Linux/MacOS. If you want to contribute, please open an issue or do a pull request on the [plugin repository](https://github.com/brunchstudio/tvpaint-rpc/issues).
+We are interested in making it available for Linux and MacOS, but being a Windows Studio we have not needed nor have we had time to do so yet. If you want to contribute on this, please open an issue or do a pull request on the [plugin repository](https://github.com/brunchstudio/tvpaint-rpc/issues).
 
 ## Control characters in George results
 
@@ -52,4 +52,5 @@ spdlog::info(ss.str());
 
 So we suppose that [control characters](https://en.wikipedia.org/wiki/Control_character) are not properly encoded.
 
-Therefore it's impossible to determine if it's actually an antislash followed by `n` or simply the line break character. (the case if there is a Windows path returns from any George function starting with `n` like `C:\Users\jhenry\new.tvpp`)
+Therefore, it is currently impossible to determine if it's actually an antislash followed by `n` or simply the line break character. (the case if there is a Windows path returns from any George function starting with `n` like `C:\Users\jhenry\new.tvpp`). 
+The TVPaint dev team have been made aware of the issue, and we are hopeful that it will be fixed in the future.

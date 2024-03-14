@@ -24,40 +24,34 @@ def _connect_client(
 ) -> JSONRPCClient:
     host = os.getenv("PYTVPAINT_WS_HOST", host)
     port = int(os.getenv("PYTVPAINT_WS_PORT", port))
-    timeout = int(os.getenv("PYTVPAINT_WS_CONNECT_TIMEOUT", timeout))
+    startup_connect = bool(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1))
+    timeout = int(os.getenv("PYTVPAINT_WS_TIMEOUT", timeout))
+    if timeout == 0:
+        timeout = -1
 
-    rpc_client = JSONRPCClient(f"{host}:{port}")
+    rpc_client = JSONRPCClient(f"{host}:{port}", timeout)
 
     start_time = time()
-    failed_attempts = 0
-    wait_duration = 1
+    wait_duration = 5
     connection_successful = False
 
-    while failed_attempts < 3:
+    while ((time() - start_time) < timeout) and startup_connect:
         with contextlib.suppress(ConnectionRefusedError):
             rpc_client.connect()
             connection_successful = True
             break
 
-        # Connection could not be established after timeout
-        if time() > start_time + timeout:
-            raise ConnectionRefusedError(
-                "Could not establish connection with a tvpaint instance !"
-            )
-
         log.warning(f"Connection refused, trying again in {wait_duration} seconds...")
-
-        # Use exponential backoff duration to reconnect
         sleep(wait_duration)
 
-        wait_duration *= 2
-        failed_attempts += 1
-
-    if not connection_successful:
+    if not connection_successful and startup_connect:
+        # Connection could not be established after timeout
         if rpc_client.is_connected:
             rpc_client.disconnect()
-        log.info("Could not reconnect to TVPaint")
-    else:
+        raise ConnectionRefusedError(
+            "Could not establish connection with a tvpaint instance before timeout !"
+        )
+    elif startup_connect and connection_successful:
         log.info(f"Connected to TVPaint on port {port}")
 
     return rpc_client
