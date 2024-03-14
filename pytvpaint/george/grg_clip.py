@@ -7,13 +7,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from george import send_cmd
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     args_dict_to_list,
-    validate_args_list,
     tv_parse_dict,
     tv_parse_list,
+    validate_args_list,
 )
 from pytvpaint.george.exceptions import NoObjectWithIdError
 from pytvpaint.george.grg_base import (
@@ -27,7 +26,7 @@ from pytvpaint.george.grg_base import (
 
 @dataclass(frozen=True)
 class TVPClip:
-    """TVPaint clip info values"""
+    """TVPaint clip info values."""
 
     id: int = field(metadata={"parsed": False})
 
@@ -218,7 +217,7 @@ def tv_load_sequence(
     time_stretch: bool | None = None,
     preload: bool | None = None,
 ) -> int:
-    """load a sequence of images or movie in a new layer.
+    """Load a sequence of images or movie in a new layer.
 
     Args:
         seq_path: the first file of the sequence to load
@@ -307,22 +306,22 @@ def tv_bookmarks_enum(position: int) -> int:
 
 
 def tv_bookmark_set(frame: int) -> None:
-    """Set a bookmark at the given frame"""
+    """Set a bookmark at the given frame."""
     send_cmd("tv_BookmarkSet", frame)
 
 
 def tv_bookmark_clear(frame: int) -> None:
-    """Remove a bookmark at the given frame"""
+    """Remove a bookmark at the given frame."""
     send_cmd("tv_BookmarkClear", frame)
 
 
 def tv_bookmark_next() -> None:
-    """Go to the next bookmarked frame"""
+    """Go to the next bookmarked frame."""
     send_cmd("tv_BookmarkNext")
 
 
 def tv_bookmark_prev() -> None:
-    """Go to the previous bookmarked frame"""
+    """Go to the previous bookmarked frame."""
     send_cmd("tv_BookmarkPrev")
 
 
@@ -666,4 +665,3 @@ def tv_layer_image_get() -> int:
 def tv_layer_image(frame: int) -> None:
     """Set the current frame of the current clip."""
     send_cmd("tv_LayerImage", frame)
-

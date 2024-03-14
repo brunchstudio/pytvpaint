@@ -5,7 +5,13 @@ from pathlib import Path
 import pytest
 
 from pytvpaint.george.exceptions import GeorgeError, NoObjectWithIdError
-from pytvpaint.george.grg_base import BlendingMode, RGBColor, tv_rect, SaveFormat, tv_save_mode_get
+from pytvpaint.george.grg_base import (
+    BlendingMode,
+    RGBColor,
+    SaveFormat,
+    tv_rect,
+    tv_save_mode_get,
+)
 from pytvpaint.george.grg_clip import TVPClip, tv_clip_current_id, tv_layer_image
 from pytvpaint.george.grg_layer import (
     InsertDirection,
@@ -78,10 +84,10 @@ from pytvpaint.george.grg_layer import (
     tv_layer_show_thumbnails_set,
     tv_layer_stencil_get,
     tv_layer_stencil_set,
+    tv_load_image,
     tv_preserve_get,
     tv_preserve_set,
     tv_save_image,
-    tv_load_image
 )
 from pytvpaint.george.grg_project import TVPProject
 from pytvpaint.layer import Layer

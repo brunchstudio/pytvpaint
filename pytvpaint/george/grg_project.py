@@ -9,9 +9,9 @@ from typing import Any
 
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
-    validate_args_list,
     tv_cast_to_type,
     tv_parse_list,
+    validate_args_list,
 )
 from pytvpaint.george.exceptions import NoObjectWithIdError
 from pytvpaint.george.grg_base import (
@@ -108,7 +108,7 @@ def tv_project_new(
 
 @try_cmd(exception_msg="Invalid format")
 def tv_load_project(project_path: Path | str, silent: bool | None = None) -> str:
-    """Load a file as a project if possible or open Import panel
+    """Load a file as a project if possible or open Import panel.
 
     Raises:
         FileNotFoundError: if the project file doesn't exist
@@ -343,7 +343,9 @@ def tv_save_palette(palette_path: Path | str) -> None:
 
     if not palette_path.parent.exists():
         parent_path = palette_path.parent.as_posix()
-        raise NotADirectoryError(f"Can't save palette because parent folder doesn't exist: {parent_path}")
+        raise NotADirectoryError(
+            f"Can't save palette because parent folder doesn't exist: {parent_path}"
+        )
 
     send_cmd("tv_SavePalette", palette_path.as_posix())
 

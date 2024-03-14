@@ -13,7 +13,7 @@ from pytvpaint.george.client.parse import (
     tv_cast_to_type,
     tv_parse_list,
 )
-from pytvpaint.george.exceptions import NoObjectWithIdError, GeorgeError
+from pytvpaint.george.exceptions import NoObjectWithIdError
 from pytvpaint.george.grg_base import (
     BlendingMode,
     GrgErrorValue,
@@ -239,7 +239,7 @@ def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
         count: the number of frames in the selection
     """
     args = ["full"] if full else []
-    res = send_cmd("tv_layer'selectInfo", *args)
+    res = send_cmd("tv_layerSelectInfo", *args)
     frame, count = tuple(map(int, res.split(" ")))
     return frame, count
 
@@ -250,7 +250,7 @@ def tv_layer_create(name: str) -> int:
 
 
 def tv_layer_duplicate(name: str) -> int:
-    """Duplicate the current layer and make it the current one"""
+    """Duplicate the current layer and make it the current one."""
     return int(send_cmd("tv_LayerDuplicate", name, handle_string=False))
 
 

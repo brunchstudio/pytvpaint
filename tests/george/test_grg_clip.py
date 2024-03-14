@@ -55,9 +55,9 @@ from pytvpaint.george.grg_clip import (
     tv_layer_image,
     tv_layer_image_get,
     tv_load_sequence,
-    tv_save_sequence,
     tv_save_clip,
     tv_save_display,
+    tv_save_sequence,
     tv_sound_clip_adjust,
     tv_sound_clip_info,
     tv_sound_clip_new,
@@ -368,7 +368,8 @@ def test_tv_clip_action_get_wrong_id() -> None:
         tv_clip_action_get(-3)
 
 
-TEST_TEXTS = ["", "l", "0", "ab", "a0l", "ap*", "a\nb"]
+# Note: we removed the \n test because there's a bug with TVPaint that handle control characters
+TEST_TEXTS = ["", "l", "0", "ab", "a0l", "ap*"]  # "a\nb"]
 
 
 @pytest.mark.parametrize("text", TEST_TEXTS)

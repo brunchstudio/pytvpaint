@@ -25,8 +25,7 @@ if TYPE_CHECKING:
 
 
 class _CanRefresh(Protocol):
-    def refresh(self) -> None:
-        ...
+    def refresh(self) -> None: ...
 
 
 if TYPE_CHECKING:
@@ -266,12 +265,10 @@ def render_context(
 
 class _TVPElement(Protocol):
     @property
-    def id(self) -> int | str:
-        ...
+    def id(self) -> int | str: ...
 
     @property
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
 TVPElementType = TypeVar("TVPElementType", bound=_TVPElement)

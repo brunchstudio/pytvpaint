@@ -45,7 +45,7 @@ class Camera(Refreshable):
         """The camera's clip."""
         return self._clip
 
-    def make_current(self):
+    def make_current(self) -> None:
         """Makes the parent clip the current one, thereby making sure the correct camera will be set."""
         self._clip.make_current()
 

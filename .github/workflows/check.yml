@@ -1,0 +1,30 @@
+name: Publish documentation
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      - name: Install Poetry Action
+        uses: snok/install-poetry@v1.3.4
+        with:
+          version: 1.7.0
+
+      - name: Installing dependencies...
+        run: poetry install --with dev
+
+      - name: Formatting check
+        run: poetry run black --check .
+
+      - name: Type checking
+        run: poetry run mypy .
+
+      - name: Linting
+        run: poetry run ruff .

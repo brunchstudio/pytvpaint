@@ -52,5 +52,14 @@ spdlog::info(ss.str());
 
 So we suppose that [control characters](https://en.wikipedia.org/wiki/Control_character) are not properly encoded.
 
-Therefore, it is currently impossible to determine if it's actually an antislash followed by `n` or simply the line break character. (the case if there is a Windows path returns from any George function starting with `n` like `C:\Users\jhenry\new.tvpp`). 
+Therefore, it is currently impossible to determine if it's actually an antislash followed by `n` or simply the line break character. (the case if there is a Windows path returns from any George function starting with `n` like `C:\Users\jhenry\new.tvpp`).
 The TVPaint dev team have been made aware of the issue, and we are hopeful that it will be fixed in the future.
+
+!!! Bug
+
+    This is the answer we got from TVPaint's technical support:
+
+    > After consulting with the developers, this behaviour was intended, but not known.
+    > When the command was created in the 90s, it replaces "\n" by "\\n" and returns the modified text, and it was never changed.
+
+    > We'll see what we can do to fix this, but I don't have an ETA.

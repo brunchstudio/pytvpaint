@@ -6,15 +6,15 @@ from dataclasses import dataclass
 
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.client.parse import (
-    validate_args_list,
     tv_parse_list,
+    validate_args_list,
 )
 from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue
 
 
 @dataclass(frozen=True)
 class TVPCamera:
-    """TVPaint camera info values"""
+    """TVPaint camera info values."""
 
     width: int
     height: int
@@ -26,7 +26,7 @@ class TVPCamera:
 
 @dataclass(frozen=True)
 class TVPCameraPoint:
-    """camera 2D point info"""
+    """camera 2D point info."""
 
     x: float
     y: float

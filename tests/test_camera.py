@@ -68,7 +68,9 @@ def test_camera_insert_point(current_camera: Camera) -> None:
 def test_camera_current_points_data(current_camera: Camera) -> None:
     george.tv_camera_insert_point(0, 50, 50, 34, 1.5)
     point = george.tv_camera_enum_points(0)
-    assert next(Camera.current_points()) == CameraPoint(0, camera=current_camera, data=point)
+    assert next(current_camera.points) == CameraPoint(
+        0, camera=current_camera, data=point
+    )
 
 
 def test_camera_get_point_data_at(current_camera: Camera) -> None:

@@ -289,3 +289,7 @@ class ProjectSound(BaseSound["Project"]):
     def reload(self) -> None:
         """Reload the sound from file."""
         george.tv_sound_project_reload(self.project.id, self.track_index)
+
+    def make_current(self) -> None:
+        """Makes the sound project current."""
+        self.project.make_current()

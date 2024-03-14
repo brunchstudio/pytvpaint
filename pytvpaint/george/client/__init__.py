@@ -48,10 +48,12 @@ def _connect_client(
         # Connection could not be established after timeout
         if rpc_client.is_connected:
             rpc_client.disconnect()
+
         raise ConnectionRefusedError(
             "Could not establish connection with a tvpaint instance before timeout !"
         )
-    elif startup_connect and connection_successful:
+
+    if startup_connect and connection_successful:
         log.info(f"Connected to TVPaint on port {port}")
 
     return rpc_client

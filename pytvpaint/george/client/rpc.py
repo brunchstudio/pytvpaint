@@ -59,7 +59,7 @@ class JSONRPCResponseError(Exception):
 
 
 class JSONRPCClient:
-    """Simple JSON-RPC 2.0 client over websockets.
+    """Simple JSON-RPC 2.0 client over websockets with automatic reconnection.
 
     See: https://www.jsonrpc.org/specification#notification
     """
@@ -68,8 +68,9 @@ class JSONRPCClient:
         """Initialize a new JSON-RPC client with a WebSocket url endpoint.
 
         Args:
-            url (str): the WebSocket url endpoint
-            version (str, optional): The JSON-RPC version. Defaults to "2.0".
+            url: the WebSocket url endpoint
+            timeout: the reconnection timeout
+            version: The JSON-RPC version. Defaults to "2.0".
         """
         self.ws_handle = WebSocket()
         self.ws_handle.settimeout(5)
@@ -88,19 +89,19 @@ class JSONRPCClient:
         while self.run_forever and not self.stop_ping.wait(1):
             try:
                 self.ws_handle.ping()
-            except (WebSocketException, ConnectionError):  # noqa: PERF203
+            except (WebSocketException, ConnectionError):
                 self.ws_handle.close()
                 try:
                     self.connect()
-                    log.info(f"Reconnected automatically to TVPaint {self.url}")
+                    log.info(f"Reconnected automatically to endpoint: {self.url}")
                 except ConnectionRefusedError:
                     continue
 
-            if self.timeout and time() > (self._ping_start_time + self.timeout):
+            # There's a timeout after which we stop reconnecting
+            if self.timeout and time() - self._ping_start_time > self.timeout:
                 raise ConnectionRefusedError(
                     "Could not establish connection with a tvpaint instance before timeout !"
                 )
-
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""

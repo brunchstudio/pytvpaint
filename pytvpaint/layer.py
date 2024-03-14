@@ -644,7 +644,7 @@ class Layer(Removable):
         name: str,
         clip: Clip | None = None,
         color: LayerColor | None = None,
-        image: Path | str | None = None
+        image: Path | str | None = None,
     ) -> Layer:
         """Create a new background layer with hold as pre- and post-behavior.
 
@@ -657,15 +657,18 @@ class Layer(Removable):
         Returns:
             Layer: the new animation layer
         """
-        image = Path(image)
-        if image.is_file() and image.exists():
+        image = Path(image or "")
+
+        if image.is_file():
             clip = clip or Clip.current_clip()
             layer = clip.load_media(media_path=image)
         else:
             layer = cls.new(name, clip, color)
+
         layer.thumbnails_visible = True
         layer.pre_behavior = george.LayerBehavior.HOLD
         layer.post_behavior = george.LayerBehavior.HOLD
+
         return layer
 
     @set_as_current
@@ -695,8 +698,10 @@ class Layer(Removable):
         self.mark_removed()
 
     @set_as_current
-    def load_image(self, image_path: str | Path, frame: int | None = None, stretch: bool = False) -> None:
-        """Load an image in the current layer at a given frame
+    def load_image(
+        self, image_path: str | Path, frame: int | None = None, stretch: bool = False
+    ) -> None:
+        """Load an image in the current layer at a given frame.
 
         Args:
             image_path: path to the image to load
@@ -709,7 +714,7 @@ class Layer(Removable):
         """
         image_path = Path(image_path)
         if not image_path.exists():
-            raise FileNotFoundError(f'Image not found at : {image_path}')
+            raise FileNotFoundError(f"Image not found at : {image_path}")
         if frame is not None:
             self.clip.current_frame = frame
         george.tv_load_image(image_path.as_posix(), stretch)

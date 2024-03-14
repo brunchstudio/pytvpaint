@@ -290,11 +290,8 @@ def args_dict_to_list(args: dict[str, Any]) -> list[Any]:
 Value = Union[int, float, str, bool, None]
 
 
-def validate_args_list(
-    optional_args: Sequence[Value | tuple[Value, ...]]
-) -> list[Any]:
-    """Some George functions only accept a list of values and not key:value pairs, so to set the last positional
-    argument for instance, you need to give all the previous ones.
+def validate_args_list(optional_args: Sequence[Value | tuple[Value, ...]]) -> list[Any]:
+    """Some George functions only accept a list of values and not key:value pairs, so to set the last positional argument for instance, you need to give all the previous ones.
 
     This function allows you to give a list of argument or key:value pairs (as tuples) and check that they are not None.
 

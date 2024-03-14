@@ -43,7 +43,7 @@ nav:
           - How it works: contributing/how_it_works.md
           - Wrapping George commands: contributing/wrap_george.md
           - Modifying high-level classes: contributing/modify_objects.md
-      - Credits: Credits.md
+      - Credits: credits.md
   - C++ plugin:
       - Introduction: cpp/index.md
       - Building: cpp/building.md
@@ -88,6 +88,7 @@ plugins:
             - https://docs.python.org/3/objects.inv
           options:
             members_order: source
+            show_source: true
             annotations_path: full
             signature_crossrefs: true
             docstring_options:

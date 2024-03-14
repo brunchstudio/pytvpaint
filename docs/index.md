@@ -17,15 +17,15 @@ It communicates through WebSocket to a [custom C++ plugin](https://github.com/br
 !!! warning
 
     Pytvpaint only works on Windows for now (because of the C++ plugin, the python code is agnostic to the platform but hasn't yet been tested on other OSes).
-    Support for Linux and MacOS can be added later. If you're interested, please [submit an issue](https://github.com/brunchstudio/tvpaint-rpc/issues/new)! Any pull requests ar also welcome !
+    Support for Linux and MacOS can be added later. If you're interested, please [submit an issue](https://github.com/brunchstudio/tvpaint-rpc/issues/new) or a pull request !
 
 ## Why use Pytvpaint?
 
-- **Coding in George is not optimal** - it produces hard to maintain code, has bugs and poor support in IDEs (only syntax highlighting [in VSCode](https://marketplace.visualstudio.com/items?itemName=johhnry.vscode-george)).
+- **Coding in George is not optimal** - it produces hard to maintain code, has bugs and poor support in IDEs (except syntax highlighting in IDEs, for example [VSCode](https://marketplace.visualstudio.com/items?itemName=johhnry.vscode-george)).
 
-- **Fully Documented** - all modules are fully documented and the george docstring is up-to-date, clearer and fixes some of the mistakes in TVPaints George documentation. 
+- **Fully documented** - all modules are fully documented and the george docstring is up-to-date, clearer and fixes some of the mistakes in TVPaints George documentation.
 
-- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with 3000+ unit tests and has a test coverage of more than 90%.
+- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with ~2500 unit tests and has a test coverage of more than 90%.
 
 - **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and Pytvpaint will do everything for you! Just code in your favourite language (Python) and it will work!
 

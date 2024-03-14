@@ -1,8 +1,8 @@
-
-
 ## Credits
 
 - The [George commands documentation](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands) from TVPaint.
+
+- The [Pydantic documentation](https://docs.pydantic.dev) was a great inspiration 💅.
 
 - The C++ plugin was made possible with the already existing codebase of Ynput's [OpenPype TVPaint plugin](https://github.com/ynput/OpenPype/tree/develop/openpype/hosts/tvpaint/tvpaint_plugin/plugin_code).
 
@@ -11,7 +11,6 @@
 !!! Quote "Quote from Milan Kolar (ynput)"
 
     Great things happen when open-source builds on open-source that builds on open-source!
-
 
 # Logo
 

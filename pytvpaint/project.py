@@ -214,7 +214,7 @@ class Project(Refreshable):
     @property
     @set_as_current
     def current_frame(self) -> int:
-        """Get the current frame relative to the timeline"""
+        """Get the current frame relative to the timeline."""
         mark_in = self.current_clip.mark_in or self.start_frame
         return george.tv_project_current_frame_get() + mark_in
 

@@ -132,7 +132,7 @@ class Clip(Removable):
 
     @property
     def camera(self) -> Camera:
-        """the clip camera."""
+        """The clip camera."""
         return Camera(clip=self)
 
     @property
@@ -199,7 +199,9 @@ class Clip(Removable):
 
     @property
     @set_as_current
-    def background(self) -> tuple[george.RGBColor, george.RGBColor] | george.RGBColor | None:
+    def background(
+        self,
+    ) -> tuple[george.RGBColor, george.RGBColor] | george.RGBColor | None:
         """Get the background color(s).
 
         Returns:
@@ -218,7 +220,9 @@ class Clip(Removable):
         george.tv_background_set(george.BackgroundMode.COLOR, color)
 
     @set_as_current
-    def set_background_checker_colors(self, c1: george.RGBColor, c2: george.RGBColor) -> None:
+    def set_background_checker_colors(
+        self, c1: george.RGBColor, c2: george.RGBColor
+    ) -> None:
         """Set the checker background colors."""
         george.tv_background_set(george.BackgroundMode.CHECK, c1, c2)
 
@@ -561,7 +565,9 @@ class Clip(Removable):
             )
 
         if not export_path.exists():
-            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
+            )
 
     @set_as_current
     def export_psd(
@@ -639,7 +645,9 @@ class Clip(Removable):
             george.tv_clip_save_structure_csv(export_path, all_images, exposure_label)
 
         if not export_path.exists():
-            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
+            )
 
     @set_as_current
     def export_sprites(

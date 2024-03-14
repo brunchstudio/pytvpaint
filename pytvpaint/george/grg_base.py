@@ -52,7 +52,7 @@ class MarkType(Enum):
 
 
 class MarkReference(Enum):
-    """The object to mark"""
+    """The object to mark."""
 
     PROJECT = "project"
     CLIP = "clip"
@@ -73,8 +73,8 @@ class RectButton(Enum):
 
 
 class TVPShape(Enum):
-    """
-    The shape tools.
+    """The shape tools.
+
     Attributes:
         B_SPLINE:
         BEZIER:
@@ -405,9 +405,7 @@ def tv_menu_hide() -> None:
 def tv_menu_show(
     menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False
 ) -> None:
-    """
-    For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow.
-    """
+    """For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow."""
     cmd_args: list[str] = []
 
     if current:
@@ -436,7 +434,7 @@ def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> 
 def tv_req_num(
     value: int, min: int, max: int, title: str = "Enter Value"
 ) -> int | None:
-    """open a prompt to request an integer (within a range).
+    """Open a prompt to request an integer (within a range).
 
     Args:
         value: the initial value
@@ -454,7 +452,7 @@ def tv_req_num(
 def tv_req_angle(
     value: float, min: float, max: float, title: str = "Enter Value"
 ) -> float | None:
-    """open a prompt to request an angle (in degree).
+    """Open a prompt to request an angle (in degree).
 
     Args:
         value: the initial value
@@ -472,7 +470,7 @@ def tv_req_angle(
 def tv_req_float(
     value: float, min: float, max: float, title: str = "Enter value"
 ) -> float | None:
-    """open a prompt to request a float.
+    """Open a prompt to request a float.
 
     Args:
         value: the initial value
@@ -488,7 +486,7 @@ def tv_req_float(
 
 
 def tv_req_string(title: str, text: str) -> str | None:
-    """open a prompt to request a string.
+    """Open a prompt to request a string.
 
     Args:
         title: title of the requester. Defaults to "Enter Value".
@@ -517,7 +515,7 @@ def _entry_to_str(entry: Entry) -> str:
 
 
 def tv_list_request(entries: list[Entry]) -> tuple[int, str]:
-    """open a prompt to request a selection in a list.
+    """Open a prompt to request a selection in a list.
 
     Args:
         entries: the list of entries (either a single entry or sub entries)
@@ -545,7 +543,7 @@ def tv_req_file(
     default_name: str | None = None,
     extension_filter: str | None = None,
 ) -> Path | None:
-    """open a prompt to request a file.
+    """Open a prompt to request a file.
 
     Args:
         mode: save or load
@@ -607,7 +605,9 @@ def tv_save_mode_get() -> tuple[SaveFormat, list[str]]:
     return save_format, res_split
 
 
-def tv_save_mode_set(save_format: SaveFormat, *format_options: str | int | float) -> None:
+def tv_save_mode_set(
+    save_format: SaveFormat, *format_options: str | int | float
+) -> None:
     """Set the saving alpha mode."""
     send_cmd("tv_SaveMode", save_format.value, *format_options)
 
@@ -716,8 +716,7 @@ def _tv_set_ab_pen(
     z: int,
     color_format: Literal["rgb"],
     a: int | None = None,
-) -> RGBColor:
-    ...
+) -> RGBColor: ...
 
 
 @overload
@@ -728,8 +727,7 @@ def _tv_set_ab_pen(
     z: int,
     color_format: Literal["hsl"],
     a: int | None = None,
-) -> HSLColor:
-    ...
+) -> HSLColor: ...
 
 
 def _tv_set_ab_pen(
