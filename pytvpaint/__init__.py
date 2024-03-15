@@ -1,4 +1,4 @@
-"""Pytvpaint package logger."""
+"""PyTVPaint package logger."""
 
 from __future__ import annotations
 

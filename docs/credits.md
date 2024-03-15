@@ -1,17 +1,17 @@
 # Credits
 
-## 💻 Brunch Dev Team
+## :computer: Brunch Dev Team
 
 - [:simple-github:](https://github.com/rlahmidi) Radouane Lahmidi
 - [:simple-github:](https://github.com/jhenrybrunch) Joseph Henry
 - [:simple-firefoxbrowser:](https://www.chloeoternaud.com/about) Chloe Oternaud
 - [:simple-github:](https://github.com/aprayez) Alexis Prayez
 
-## 🙏 Special Thanks
+## :pray: Special Thanks
 
 ### Brunch Studio for supporting the project
 
-- Fabin Cellier : Head of Studio [:simple-linkedin:](https://www.linkedin.com/in/fabien-cellier-03545826/)
+- Fabien Cellier : Head of Studio [:simple-linkedin:](https://www.linkedin.com/in/fabien-cellier-03545826/)
 - Jean-Charles Kerninon : Head of CG [:simple-linkedin:](https://www.linkedin.com/in/jean-charles-kerninon-14309b3/)
 - Emilie Revert : Head of 2D Productions [:simple-linkedin:](https://www.linkedin.com/in/emilie-revert-236279109/)
 
@@ -21,13 +21,13 @@
 - Also thanks to [Jakub Trllo](https://www.linkedin.com/in/jakub-trllo-751387a6/) from Ynput who helped with the C++ implementation on their Discord server.
 - The TVPaint dev team for their patience and help with our questions and the [George commands documentation](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands) from TVPaint.
 
-### Logo
+## :snake: Logo
 
 ![](./assets/pytvpaint_logo.png){ width="300" }
 
-The official Pytvpaint logo was made by Juliette Danesi ( [:simple-linkedin:](https://www.linkedin.com/in/juliette-danesi-1427561b6/) [:link:](https://juliettedanesi.wixsite.com/monsite/layout-posing) ) at BRUNCH Studio. :sparkles:
+The official PyTVPaint logo was made by Juliette Danesi ( [:simple-linkedin:](https://www.linkedin.com/in/juliette-danesi-1427561b6/) [:link:](https://juliettedanesi.wixsite.com/monsite/layout-posing) ) at BRUNCH Studio. :sparkles:
 
-## 💎 Brunch gems
+## :gem: Brunch gems
 
 A special thanks also to our wonderful artists at the studio who also submitted some very interesting logos for the project.
 

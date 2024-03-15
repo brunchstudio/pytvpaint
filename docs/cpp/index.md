@@ -1,4 +1,4 @@
-# Pytvpaint's C++ plugin
+# PyTVPaint's C++ plugin
 
 To communicate with TVPaint, we developed a TVPaint plugin using C++ and their SDK.
 

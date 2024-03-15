@@ -88,7 +88,7 @@ def scenes(self) -> Iterator[Scene]:
 
 !!! Tip
 
-    Most of the `Iterator` in Pytvpaint are generators which mean it will only get the data (and send requests to TVPaint) if you want the next element.
+    Most of the `Iterator` in PyTVPaint are generators which mean it will only get the data (and send requests to TVPaint) if you want the next element.
 
     So you can stop whenever you want:
 

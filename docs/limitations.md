@@ -1,12 +1,12 @@
 # Limitations
 
-This page list all the current limitations of Pytvpaint in its current state.
+This page list all the current limitations of PyTVPaint in its current state.
 
 ## Windows only
 
 As stated on the homepage, the [`tvpaint-rpc`](https://github.com/brunchstudio/tvpaint-rpc) C++ plugin is currently compiled for Windows only.
 
-We are interested in making it available for Linux and MacOS, but being a Windows Studio we have not needed nor have we had time to do so yet. If you want to contribute on this, please open an issue or do a pull request on the [plugin repository](https://github.com/brunchstudio/tvpaint-rpc/issues).
+We are interested in making it available for Linux and MacOS, but since we only have Windows workstations we didn't have time to do it yet. If you want to contribute on this, please open an issue or do a pull request on the [plugin repository](https://github.com/brunchstudio/tvpaint-rpc/issues).
 
 ## Control characters in George results
 

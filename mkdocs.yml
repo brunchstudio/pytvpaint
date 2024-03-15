@@ -1,4 +1,4 @@
-site_name: Pytvpaint
+site_name: PyTVPaint
 site_description: Python scripting for TVPaint
 strict: true
 site_url: https://brunchstudio.github.io/pytvpaint/
@@ -35,7 +35,7 @@ extra:
 
 nav:
   - Get Started:
-      - Welcome to Pytvpaint: index.md
+      - Welcome to PyTVPaint: index.md
       - Installation: installation.md
       - Usage: usage.md
       - Limitations: limitations.md

@@ -1,4 +1,4 @@
-# Pytvpaint 🐍 → 🦋
+# PyTVPaint 🐍 → 🦋
 
 [![](https://img.shields.io/github/actions/workflow/status/brunchstudio/pytvpaint/docs-deploy.yml?label=docs)](https://brunchstudio.github.io/pytvpaint/)
 [![](https://img.shields.io/github/license/brunchstudio/pytvpaint)](https://github.com/brunchstudio/pytvpaint/blob/main/LICENSE.md)
@@ -6,20 +6,20 @@
 [![Downloads](https://static.pepy.tech/badge/pytvpaint/month)](https://pepy.tech/project/pytvpaint)
 [![](https://img.shields.io/pypi/pyversions/pytvpaint)](https://pypi.org/project/pytvpaint/)
 
-Pytvpaint is a library that allows you to script for [TVPaint](https://www.tvpaint.com/) in Python instead of [George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction).
+PyTVPaint is a library that allows you to script for [TVPaint](https://www.tvpaint.com/) in Python instead of [George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction).
 
-Python is the go-to language when it comes to scripting, Pytvpaint offers a high level object-oriented API as well as low-level George commands in a fully type-hinted library.
+Python is the go-to language when it comes to scripting, PyTVPaint offers a high level object-oriented API as well as low-level George commands in a fully type-hinted library.
 
-Pytvpaint communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
+PyTVPaint communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
 
 ![](./assets/pytvpaint_code_banner.png)
 
 !!! warning
 
-    Pytvpaint only works on Windows for now (because of the C++ plugin, the python code is agnostic to the platform but hasn't yet been tested on other OSes).
+    PyTVPaint only works on Windows for now (because of the C++ plugin, the python code is agnostic to the platform but hasn't yet been tested on other OSes).
     Support for Linux and MacOS can be added later. If you're interested, please [submit an issue](https://github.com/brunchstudio/tvpaint-rpc/issues/new) or a pull request !
 
-## Why use Pytvpaint?
+## Why use PyTVPaint?
 
 - **Coding in George is not optimal** - it produces hard to maintain code, has bugs and poor support in IDEs (except syntax highlighting in IDEs, for example [VSCode](https://marketplace.visualstudio.com/items?itemName=johhnry.vscode-george)).
 
@@ -27,13 +27,13 @@ Pytvpaint communicates through WebSocket to a [custom C++ plugin](https://github
 
 - **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with ~2500 unit tests and has a test coverage of more than 90%.
 
-- **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and Pytvpaint will do everything for you! Just code in your favourite language (Python) and it will work!
+- **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and PyTVPaint will do everything for you! Just code in your favourite language (Python) and it will work!
 
 - **Fully extensible** - a George function wasn't implemented? You can either submit an issue on the repository or [code it yourself](./contributing/wrap_george.md)! We provide tools to directly speak in George with TVPaint and parse the resulting values.
 
-- **Used in production** - Pytvpaint comes from a frustration of coding in the George programming language which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support our pipeline.
+- **Used in production** - PyTVPaint comes from a frustration of coding in the George programming language which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support our pipeline.
 
-## Pytvpaint examples
+## PyTVPaint examples
 
 Get the name of all the layers in the current clip:
 

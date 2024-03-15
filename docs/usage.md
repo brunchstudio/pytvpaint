@@ -1,6 +1,6 @@
 # Usage
 
-Pytvpaint offers **two ways** to interact with TVPaint.
+PyTVPaint offers **two ways** to interact with TVPaint.
 
 The recommended one is to use the [**object-oriented API**](#object-oriented-api) which handles all the nitty-gritty details of George and provide an extra layer of features. The classes can be imported from `pytvpaint.*`
 
@@ -23,7 +23,7 @@ For example in an interactive Python shell:
 
 ## Object-oriented API
 
-Pytvpaint provides a high level object-oriented API that handles the George calls behind the scene. Every element in TVPaint has its own object (`Project`, `Scene`, `Clip`, `Layer`...).
+PyTVPaint provides a high level object-oriented API that handles the George calls behind the scene. Every element in TVPaint has its own object (`Project`, `Scene`, `Clip`, `Layer`...).
 
 ### Getting the current data in TVPaint
 

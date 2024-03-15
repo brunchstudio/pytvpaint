@@ -1,4 +1,4 @@
-# Pytvpaint 🐍 → 🦋
+# PyTVPaint 🐍 → 🦋
 
 [![](https://img.shields.io/github/actions/workflow/status/brunchstudio/pytvpaint/docs-deploy.yml?label=docs)](https://brunchstudio.github.io/pytvpaint/)
 [![](https://img.shields.io/github/license/brunchstudio/pytvpaint)](https://github.com/brunchstudio/pytvpaint/blob/main/LICENSE.md)
@@ -10,7 +10,7 @@
     <img src="https://raw.githubusercontent.com/brunchstudio/pytvpaint/main/docs/assets/pytvpaint_code_banner.png" width=700 />
 </p>
 
-**Pytvpaint** is a type-safe Python library that wraps the George programming language commands in order to interact with the 2D animation software TVPaint.
+**PyTVPaint** is a type-safe Python library that wraps the George programming language commands in order to interact with the 2D animation software TVPaint.
 
 It communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
 
