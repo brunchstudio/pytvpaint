@@ -3,7 +3,7 @@ name: Unit tests
 on: [push]
 
 jobs:
-  check:
+  unit-tests:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
