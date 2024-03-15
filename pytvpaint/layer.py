@@ -645,6 +645,7 @@ class Layer(Removable):
         clip: Clip | None = None,
         color: LayerColor | None = None,
         image: Path | str | None = None,
+        stretch: bool = False
     ) -> Layer:
         """Create a new background layer with hold as pre- and post-behavior.
 
@@ -653,21 +654,19 @@ class Layer(Removable):
             clip: the parent clip
             color: the layer color
             image: the background image to load
+            stretch: whether to stretch the image to fit the view
 
         Returns:
             Layer: the new animation layer
         """
-        image = Path(image or "")
-
-        if image.is_file():
-            clip = clip or Clip.current_clip()
-            layer = clip.load_media(media_path=image)
-        else:
-            layer = cls.new(name, clip, color)
-
-        layer.thumbnails_visible = True
+        layer = cls.new(name, clip, color)
         layer.pre_behavior = george.LayerBehavior.HOLD
         layer.post_behavior = george.LayerBehavior.HOLD
+        layer.thumbnails_visible = True
+
+        image = Path(image or '')
+        if image.is_file():
+            layer.load_image(image, stretch=stretch)
 
         return layer
 
@@ -709,14 +708,16 @@ class Layer(Removable):
             stretch: whether to stretch the image to fit the view
 
         Raises:
-            FileNotFoundError: if the render failed and it can't find file on disk
+            FileNotFoundError: if the file doesn't exist at provided path
 
         """
         image_path = Path(image_path)
         if not image_path.exists():
             raise FileNotFoundError(f"Image not found at : {image_path}")
+
         if frame is not None:
             self.clip.current_frame = frame
+
         george.tv_load_image(image_path.as_posix(), stretch)
 
     @set_as_current

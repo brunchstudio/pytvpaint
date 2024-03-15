@@ -1175,7 +1175,7 @@ def tv_load_image(img_path: Path | str, stretch: bool | None = None) -> None:
         raise FileNotFoundError(f"File not found at: {img_path.as_posix()}")
 
     args: list[Any] = [img_path.as_posix()]
-    if stretch is not None:
+    if stretch:
         args.append("stretch")
 
     send_cmd("tv_LoadImage", *args)
