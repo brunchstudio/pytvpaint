@@ -1,0 +1,24 @@
+name: Unit tests
+
+on: [push]
+
+jobs:
+  check:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      # - uses: actions/setup-python@v5
+      #   with:
+      #     python-version: 3.9
+
+      # - name: Install Poetry Action
+      #   uses: snok/install-poetry@v1.3.4
+      #   with:
+      #     version: 1.7.0
+
+      - name: Installing dependencies...
+        run: poetry install --no-interaction --with test
+
+      - name: Pytest
+        run: poetry run pytest
