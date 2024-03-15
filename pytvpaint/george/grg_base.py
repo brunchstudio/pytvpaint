@@ -938,8 +938,7 @@ def _tv_set_ab_pen(
     z: int,
     color_format: Literal["rgb"],
     a: int | None = None,
-) -> RGBColor:
-    ...
+) -> RGBColor: ...
 
 
 @overload
@@ -950,8 +949,7 @@ def _tv_set_ab_pen(
     z: int,
     color_format: Literal["hsl"],
     a: int | None = None,
-) -> HSLColor:
-    ...
+) -> HSLColor: ...
 
 
 def _tv_set_ab_pen(
