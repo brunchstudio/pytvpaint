@@ -26,6 +26,7 @@ def _connect_client(
     port = int(os.getenv("PYTVPAINT_WS_PORT", port))
     startup_connect = bool(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1))
     timeout = int(os.getenv("PYTVPAINT_WS_TIMEOUT", timeout))
+
     if timeout == 0:
         timeout = -1
 
@@ -35,7 +36,7 @@ def _connect_client(
     wait_duration = 5
     connection_successful = False
 
-    while ((time() - start_time) < timeout) and startup_connect:
+    while startup_connect and ((time() - start_time) < timeout):
         with contextlib.suppress(ConnectionRefusedError):
             rpc_client.connect()
             connection_successful = True
@@ -44,7 +45,7 @@ def _connect_client(
         log.warning(f"Connection refused, trying again in {wait_duration} seconds...")
         sleep(wait_duration)
 
-    if not connection_successful and startup_connect:
+    if startup_connect and not connection_successful:
         # Connection could not be established after timeout
         if rpc_client.is_connected:
             rpc_client.disconnect()
