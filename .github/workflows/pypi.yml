@@ -1,7 +1,7 @@
 name: Publish package to PyPi
 
 on:
-  create:
+  push:
     tags:
       - "*"
 
