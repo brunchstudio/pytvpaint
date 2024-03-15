@@ -659,13 +659,14 @@ class Layer(Removable):
         Returns:
             Layer: the new animation layer
         """
-        image = Path(image or '')
         layer = cls.new(name, clip, color)
-        if image.is_file():
-            layer.load_image(image, stretch=stretch)
-        layer.thumbnails_visible = True
         layer.pre_behavior = george.LayerBehavior.HOLD
         layer.post_behavior = george.LayerBehavior.HOLD
+        layer.thumbnails_visible = True
+
+        image = Path(image or '')
+        if image.is_file():
+            layer.load_image(image, stretch=stretch)
 
         return layer
 

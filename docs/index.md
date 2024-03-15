@@ -10,7 +10,7 @@ Pytvpaint is a library that allows you to script for [TVPaint](https://www.tvpai
 
 Python is the go-to language when it comes to scripting, Pytvpaint offers a high level object-oriented API as well as low-level George commands in a fully type-hinted library.
 
-It communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
+Pytvpaint communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
 
 ![](./assets/pytvpaint_code_banner.png)
 
@@ -31,7 +31,7 @@ It communicates through WebSocket to a [custom C++ plugin](https://github.com/br
 
 - **Fully extensible** - a George function wasn't implemented? You can either submit an issue on the repository or [code it yourself](./contributing/wrap_george.md)! We provide tools to directly speak in George with TVPaint and parse the resulting values.
 
-- **Used in production** - Pytvpaint comes from a frustration of coding in the George programming language which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support the 2D movie pipeline.
+- **Used in production** - Pytvpaint comes from a frustration of coding in the George programming language which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support our pipeline.
 
 ## Pytvpaint examples
 
