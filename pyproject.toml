@@ -47,6 +47,9 @@ mkdocstrings = { extras = ["python"], version = "^0.24.0" }
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+target-version = ["py39", "py310", "py311", "py312"]
+
 [tool.ruff]
 target-version = "py39"
 

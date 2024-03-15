@@ -645,7 +645,7 @@ class Layer(Removable):
         clip: Clip | None = None,
         color: LayerColor | None = None,
         image: Path | str | None = None,
-        stretch: bool = False
+        stretch: bool = False,
     ) -> Layer:
         """Create a new background layer with hold as pre- and post-behavior.
 
@@ -664,7 +664,7 @@ class Layer(Removable):
         layer.post_behavior = george.LayerBehavior.HOLD
         layer.thumbnails_visible = True
 
-        image = Path(image or '')
+        image = Path(image or "")
         if image.is_file():
             layer.load_image(image, stretch=stretch)
 
@@ -698,7 +698,10 @@ class Layer(Removable):
 
     @set_as_current
     def load_image(
-        self, image_path: str | Path, frame: int | None = None, stretch: bool = False
+        self,
+        image_path: str | Path,
+        frame: int | None = None,
+        stretch: bool = False,
     ) -> None:
         """Load an image in the current layer at a given frame.
 
