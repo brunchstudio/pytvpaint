@@ -96,3 +96,4 @@ warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
 extra_checks = true
+untyped_calls_exclude = "fileseq,websocket"

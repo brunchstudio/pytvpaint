@@ -1,0 +1,24 @@
+name: Publish package to PyPi
+
+on:
+  create:
+    tags:
+      - "*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      - name: Install Poetry Action
+        uses: snok/install-poetry@v1.3.4
+        with:
+          version: 1.7.0
+
+      - name: Publish to PyPi
+        run: poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}

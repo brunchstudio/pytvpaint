@@ -1,6 +1,6 @@
 name: Format, types and lint check
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   check:
@@ -23,8 +23,8 @@ jobs:
       - name: Formatting check
         run: poetry run black --check .
 
-      - name: Type checking
-        run: poetry run mypy .
-
       - name: Linting
         run: poetry run ruff .
+
+      - name: Type checking
+        run: poetry run mypy .

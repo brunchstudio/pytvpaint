@@ -1,9 +1,9 @@
 name: Publish documentation
 
 on:
-  push:
-    branches:
-      - main
+  create:
+    tags:
+      - "*"
 
 permissions:
   contents: write
