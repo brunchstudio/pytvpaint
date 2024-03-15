@@ -10,7 +10,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.9
 
       - name: Install Poetry Action
         uses: snok/install-poetry@v1.3.4
@@ -18,7 +18,7 @@ jobs:
           version: 1.7.0
 
       - name: Installing dependencies...
-        run: poetry install --with dev
+        run: poetry install --with dev,test
 
       - name: Formatting check
         run: poetry run black --check .
