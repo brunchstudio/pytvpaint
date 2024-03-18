@@ -494,13 +494,9 @@ class Project(Refreshable):
     def duplicate(self) -> Project:
         """Duplicate the project and return the new one."""
         george.tv_project_duplicate()
-
-        duplicated_name = f"{self.name}Copy"
-        for project in Project.open_projects():
-            if project.name == duplicated_name:
-                return project
-
-        raise Exception(f"Couldn't find project {duplicated_name}")
+        duplicated = Project.current_project()
+        self.make_current()
+        return duplicated
 
     def close(self) -> None:
         """Closes the project."""

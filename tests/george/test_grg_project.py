@@ -176,16 +176,16 @@ def projects_equal(p1: TVPProject, p2: TVPProject) -> bool:
     p1_dict = asdict(p1)
     p2_dict = asdict(p2)
 
-    del p1_dict["id"]
-    del p1_dict["path"]
-    del p2_dict["id"]
-    del p2_dict["path"]
+    for attr in ["id", "path"]:
+        del p1_dict[attr]
+        del p2_dict[attr]
 
     return p1_dict == p2_dict
 
 
 def test_tv_project_duplicate(
-    test_project: TVPProject, cleanup_current_project: None
+    test_project: TVPProject,
+    cleanup_current_project: None,
 ) -> None:
     tv_project_duplicate()
     dup_project = tv_project_info(tv_project_current_id())

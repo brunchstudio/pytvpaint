@@ -330,9 +330,10 @@ def test_project_new_from_camera(test_project_obj: Project) -> None:
 
 def test_project_duplicate(
     test_project_obj: Project,
-    cleanup_current_project: None,
 ) -> None:
-    assert test_project_obj.duplicate() != test_project_obj
+    dup = test_project_obj.duplicate()
+    assert dup != test_project_obj
+    dup.close()
 
 
 def test_project_close(test_project_obj: Project) -> None:
