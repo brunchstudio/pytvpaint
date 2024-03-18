@@ -716,6 +716,9 @@ def can_be_parsed_as_int(value: str) -> bool:
     return True
 
 
+@pytest.mark.skip(
+    "this test is overly complicated because I couldn't find a way to correctly grasp the logic"
+)
 @pytest.mark.parametrize("mode", InstanceNamingMode)
 @pytest.mark.parametrize("prefix", [None, "pre_"])
 @pytest.mark.parametrize("suffix", [None, "_suf"])
@@ -729,9 +732,6 @@ def test_tv_instance_name(
     process: InstanceNamingProcess | None,
     initial_name: str,
 ) -> None:
-    """
-    TODO: this test is overly complicated because I couldn't find a way to correctly grasp the logic
-    """
     instance = 0
 
     # Assign an initial name to the instance

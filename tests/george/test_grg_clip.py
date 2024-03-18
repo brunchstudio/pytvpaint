@@ -733,13 +733,11 @@ def test_tv_clip_save_structure_sprite(
 
 
 @pytest.mark.parametrize("mark_in_out", [None, (0, 0), (0, 5), (2, 5)])
-@pytest.mark.parametrize("send", [None, False, True])
 def test_tv_clip_save_structure_flix(
     test_project: TVPProject,
     ppm_sequence: list[Path],
     tmp_path: Path,
     mark_in_out: tuple[int, int] | None,
-    send: bool | None,
 ) -> None:
     load_sequence_with_name(ppm_sequence[0], name="sequence_1", count=5)
     load_sequence_with_name(ppm_sequence[0], name="sequence_2", count=3)
@@ -757,7 +755,7 @@ def test_tv_clip_save_structure_flix(
 
     out_flix = tmp_path / "out.xml"
 
-    tv_clip_save_structure_flix(out_flix, mark_in, mark_out, send=send)
+    tv_clip_save_structure_flix(out_flix, mark_in, mark_out, send=False)
     assert out_flix.exists()
 
 

@@ -25,7 +25,7 @@ PyTVPaint communicates through WebSocket to a [custom C++ plugin](https://github
 
 - **Fully documented** - all modules are fully documented and the george docstring is up-to-date, clearer and fixes some of the mistakes in TVPaints George documentation.
 
-- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with ~2500 unit tests and has a test coverage of more than 90%.
+- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with 2000+ unit tests and has a test coverage of more than 90%.
 
 - **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and PyTVPaint will do everything for you! Just code in your favourite language (Python) and it will work!
 

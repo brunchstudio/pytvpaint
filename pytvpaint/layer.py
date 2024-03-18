@@ -910,15 +910,22 @@ class Layer(Removable):
 
         # Exposure frames starts at 0
         instance_frame = self.start
-        self.clip.current_frame = self.start
 
-        while True:
-            instance = self.get_instance(instance_frame)
-            if instance is None:
-                break
-            yield instance
-            with restore_current_frame(self.clip, instance_frame):
-                instance_frame = george.tv_exposure_next() + project_start_frame
+        with restore_current_frame(self.clip, self.start):
+            while True:
+                instance = self.get_instance(instance_frame)
+                if instance is None:
+                    break
+                yield instance
+
+                self.clip.current_frame = instance_frame
+                new_instance_frame = george.tv_exposure_next() + project_start_frame
+
+                # In TVPaint 11.5 and before, tv_exposure_next returns the same frame if it's the last one
+                if new_instance_frame == instance_frame:
+                    break
+
+                instance_frame = new_instance_frame
 
     def get_instance(self, frame: int) -> LayerInstance | None:
         """Get the instance at that frame.
