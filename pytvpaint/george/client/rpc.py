@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import contextlib
 import json
 import sys
 import threading
+import contextlib
 from time import time
 from typing import Any, Union, cast
 
@@ -89,19 +89,20 @@ class JSONRPCClient:
         while self.run_forever and not self.stop_ping.wait(1):
             try:
                 self.ws_handle.ping()
+                continue
             except (WebSocketException, ConnectionError):  # noqa: PERF203
                 self.ws_handle.close()
 
-                with contextlib.suppress(ConnectionRefusedError):
-                    self.connect()
-                    log.info(f"Reconnected automatically to endpoint: {self.url}")
-                    continue
+            with contextlib.suppress(ConnectionRefusedError):
+                self.connect()
+                log.info(f"Reconnected automatically to endpoint: {self.url}")
+                continue
 
-                # There's a timeout after which we stop reconnecting
-                if self.timeout and time() - self._ping_start_time > self.timeout:
-                    raise ConnectionRefusedError(
-                        "Could not establish connection with a tvpaint instance before timeout !"
-                    )
+            # There's a timeout after which we stop reconnecting
+            if self.timeout and (time() - self._ping_start_time) > self.timeout:
+                raise ConnectionRefusedError(
+                    "Could not establish connection with a tvpaint instance before timeout !"
+                )
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""

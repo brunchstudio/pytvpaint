@@ -6,7 +6,7 @@ This page list all the current limitations of PyTVPaint in its current state.
 
 As stated on the homepage, the [`tvpaint-rpc`](https://github.com/brunchstudio/tvpaint-rpc) C++ plugin is currently compiled for Windows only.
 
-We are interested in making it available for Linux and MacOS, but since we only have Windows workstations we didn't have time to do it yet. If you want to contribute on this, please open an issue or do a pull request on the [plugin repository](https://github.com/brunchstudio/tvpaint-rpc/issues).
+We are interested in making it available for Linux and MacOS, but being a Windows Studio we have not needed nor had time to do so yet. If you want to contribute on this, please open an issue or do a pull request on the [plugin repository](https://github.com/brunchstudio/tvpaint-rpc/issues).
 
 ## Control characters in George results
 
@@ -56,14 +56,15 @@ Therefore, it is currently impossible to determine if it's actually an antislash
 
 !!! Info
 
-    We contacted the TVPaint technical support and they'll see what they can do to fix it in the future.
+    The TVPaint dev team have been made aware of the issue, and we are hopeful that it will be fixed in the future.
 
 ## Misbehaving George functions
 
 Here is a list of the bugs/inconsistencies in the George commands:
 
-| Method                                                                                | Description                                                                                                       |
-| :------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------- |
-| [`tv_ratio`](api/george/project.md#pytvpaint.george.grg_project.tv_ratio)             | Always return an empty string (`""`)                                                                              |
-| [`tv_instance_name`](api/george/layer.md#pytvpaint.george.grg_layer.tv_instance_name) | Crashes if we give a wrong `layer_id`                                                                             |
-| `tv_camera_path`                                                                      | Confusing arguments and seemingly incorrect results (see [this](https://forum.tvpaint.com/viewtopic.php?t=15677)) |
+| Method                                                                               | Description                                                                                                       |
+|:-------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------|
+| [`tv_Ratio`](api/george/project.md#pytvpaint.george.grg_project.tv_ratio)            | Always return an empty string (`""`)                                                                              |
+| [`tv_InstanceName`](api/george/layer.md#pytvpaint.george.grg_layer.tv_instance_name) | Crashes if we give a wrong `layer_id`                                                                             |
+| `tv_CameraPath`                                                                      | Confusing arguments and seemingly incorrect results (see [this](https://forum.tvpaint.com/viewtopic.php?t=15677)) |
+| `tv_SoundClipReload`                                                                 | Doesn't accept a proper clip id, only `0` seem to work for the current clip                                       |

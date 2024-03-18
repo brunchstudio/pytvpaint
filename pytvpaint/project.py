@@ -508,11 +508,17 @@ class Project(Refreshable):
         george.tv_project_close(self._id)
 
     @classmethod
-    def close_all(cls) -> None:
-        """Closes all the projects."""
-        projects = list(cls.open_projects())
-        for project in projects:
+    def close_all(cls, close_tvp: bool = False) -> None:
+        """Closes all open projects.
+
+        Args:
+            close_tvp: close the TVPaint instance as well
+        """
+        for project in cls.open_projects():
             project.close()
+
+        if close_tvp:
+            george.tv_quit()
 
     @classmethod
     def load(cls, project_path: Path | str, silent: bool = True) -> Project:

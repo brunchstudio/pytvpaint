@@ -346,6 +346,29 @@ class SaveFormat(Enum):
             )
         return cast(SaveFormat, getattr(cls, extension.upper()))
 
+    @classmethod
+    def is_image(cls, extension: str) -> bool:
+        extension = extension.replace(".", "").lower()
+        image_formats = [
+            'bmp',
+            'cin',
+            'deep',
+            'dpx',
+            'ilbm',
+            'jpg',
+            'jpeg',
+            'pcx',
+            'png',
+            'psd',
+            'sgi',
+            'pic',
+            'ras',
+            'sun',
+            'tga',
+            'tiff',
+        ]
+        return extension in image_formats
+
 
 @dataclass(frozen=True)
 class RGBColor:
@@ -607,6 +630,11 @@ def tv_version() -> tuple[str, str, str]:
     res = tv_parse_list(send_cmd("tv_Version"), with_fields=cmd_fields)
     software_name, version, language = res.values()
     return software_name, version, language
+
+
+def tv_quit() -> None:
+    """Closes the TVPaint instance."""
+    send_cmd("tv_Quit")
 
 
 def tv_host2back() -> None:

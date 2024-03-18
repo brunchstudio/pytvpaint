@@ -229,7 +229,7 @@ def tv_ratio() -> float:
     """Get the current project pixel aspect ratio.
 
     Bug:
-        Doesn't work and always return an empty string
+        Doesn't work and always returns an empty string
     """
     return float(send_cmd("tv_GetRatio", error_values=[GrgErrorValue.EMPTY]))
 
