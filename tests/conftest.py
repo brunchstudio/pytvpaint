@@ -201,6 +201,8 @@ def wav_file(tmp_path_factory: pytest.TempPathFactory) -> Path:
 @pytest.fixture
 def create_some_projects(tmp_path: Path) -> FixtureYield[list[Project]]:
     """Create some projects in a test project and yields them"""
+    Project.close_all()
+
     projects: list[Project] = []
 
     for i in range(5):
