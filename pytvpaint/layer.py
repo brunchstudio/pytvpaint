@@ -26,9 +26,7 @@ if TYPE_CHECKING:
 
 
 @contextlib.contextmanager
-def restore_current_frame(
-    clip: Clip, frame: int
-) -> Generator[None, None, None]:
+def restore_current_frame(clip: Clip, frame: int) -> Generator[None, None, None]:
     """Context that temporarily changes the current frame to the one provided and restores it when done.
 
     Args:
@@ -86,13 +84,12 @@ class LayerInstance:
     @classmethod
     def new(
         cls,
-        layer,
+        layer: Layer,
         start: int | None,
         nb_frames: int = 1,
-        direction: george.InsertDirection | None = None
+        direction: george.InsertDirection | None = None,
     ) -> LayerInstance:
-        """
-        Crates a new instance
+        """Crates a new instance.
 
         Args:
             layer: parent layer instance
@@ -112,7 +109,6 @@ class LayerInstance:
             george.tv_layer_insert_image(count=nb_frames, direction=direction)
 
         return cls(layer, start)
-
 
     @property
     def next(self) -> LayerInstance | None:
@@ -681,7 +677,7 @@ class Layer(Removable):
         clip: Clip | None = None,
         color: LayerColor | None = None,
         image: Path | str | None = None,
-        stretch: bool = False
+        stretch: bool = False,
     ) -> Layer:
         """Create a new background layer with hold as pre- and post-behavior.
 
@@ -734,10 +730,7 @@ class Layer(Removable):
 
     @set_as_current
     def load_image(
-        self,
-        image_path: str | Path,
-        frame: int | None = None,
-        stretch: bool = False
+        self, image_path: str | Path, frame: int | None = None, stretch: bool = False
     ) -> None:
         """Load an image in the current layer at a given frame.
 

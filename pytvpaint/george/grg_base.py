@@ -348,24 +348,25 @@ class SaveFormat(Enum):
 
     @classmethod
     def is_image(cls, extension: str) -> bool:
+        """Returns True if the extension correspond to an image format."""
         extension = extension.replace(".", "").lower()
         image_formats = [
-            'bmp',
-            'cin',
-            'deep',
-            'dpx',
-            'ilbm',
-            'jpg',
-            'jpeg',
-            'pcx',
-            'png',
-            'psd',
-            'sgi',
-            'pic',
-            'ras',
-            'sun',
-            'tga',
-            'tiff',
+            "bmp",
+            "cin",
+            "deep",
+            "dpx",
+            "ilbm",
+            "jpg",
+            "jpeg",
+            "pcx",
+            "png",
+            "psd",
+            "sgi",
+            "pic",
+            "ras",
+            "sun",
+            "tga",
+            "tiff",
         ]
         return extension in image_formats
 

@@ -21,10 +21,13 @@ jobs:
         run: poetry install --no-interaction --with dev,test
 
       - name: Formatting check
+        if: always()
         run: poetry run black --check .
 
       - name: Linting
+        if: always()
         run: poetry run ruff .
 
       - name: Type checking
+        if: always()
         run: poetry run mypy .

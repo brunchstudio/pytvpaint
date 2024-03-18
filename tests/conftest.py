@@ -213,7 +213,8 @@ def create_some_projects(tmp_path: Path) -> FixtureYield[list[Project]]:
     yield projects
 
     for project in projects:
-        tv_project_close(project.id)
+        if not project.is_closed:
+            tv_project_close(project.id)
 
 
 @pytest.fixture

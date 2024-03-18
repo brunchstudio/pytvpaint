@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 import threading
-import contextlib
 from time import time
 from typing import Any, Union, cast
 
@@ -90,7 +90,7 @@ class JSONRPCClient:
             try:
                 self.ws_handle.ping()
                 continue
-            except (WebSocketException, ConnectionError):  # noqa: PERF203
+            except (WebSocketException, ConnectionError):
                 self.ws_handle.close()
 
             with contextlib.suppress(ConnectionRefusedError):

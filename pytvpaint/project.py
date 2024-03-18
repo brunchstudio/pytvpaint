@@ -514,7 +514,7 @@ class Project(Refreshable):
         Args:
             close_tvp: close the TVPaint instance as well
         """
-        for project in cls.open_projects():
+        for project in list(cls.open_projects()):
             project.close()
 
         if close_tvp:

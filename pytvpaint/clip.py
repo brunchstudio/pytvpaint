@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING
 from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
 
-from pytvpaint import log
-from pytvpaint import george
+from pytvpaint import george, log
 from pytvpaint.camera import Camera
 from pytvpaint.layer import Layer, LayerColor
 from pytvpaint.sound import ClipSound
@@ -414,14 +413,12 @@ class Clip(Removable):
     def _handle_output_range(
         self,
         output_path: Path | str | FileSequence,
-        start: int = None,
-        end: int = None,
+        start: int | None = None,
+        end: int | None = None,
         use_camera: bool = False,
-        force_range: bool = False
+        force_range: bool = False,
     ) -> tuple[FileSequence, int, int, bool, bool]:
-        """
-        Handle the different options for output paths and range, whether the user provided a range (start-end) or a
-        filesequence with a range or not, this functions ensures we always end up with a valid range to render
+        """Handle the different options for output paths and range, whether the user provided a range (start-end) or a filesequence with a range or not, this functions ensures we always end up with a valid range to render.
 
         Args:
             output_path: user provided output path
@@ -463,47 +460,61 @@ class Clip(Removable):
             end = end or file_sequence.end()
 
         # check characteristics of output path
-        fseq_has_range = (frame_set and len(frame_set) > 1)
-        fseq_is_single_image = (frame_set and len(frame_set) == 1)
-        fseq_no_range_padding = (not frame_set and file_sequence.padding())
-        range_is_seq = (start and end and start != end)
-        range_is_single_image = (start and end and start == end)
+        fseq_has_range = frame_set and len(frame_set) > 1
+        fseq_is_single_image = frame_set and len(frame_set) == 1
+        fseq_no_range_padding = not frame_set and file_sequence.padding()
+        range_is_seq = start and end and start != end
+        range_is_single_image = start and end and start == end
 
-        is_single_image = bool(is_image and (fseq_is_single_image or not frame_set) and range_is_single_image)
-        is_sequence = bool(is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq))
+        is_single_image = bool(
+            is_image
+            and (fseq_is_single_image or not frame_set)
+            and range_is_single_image
+        )
+        is_sequence = bool(
+            is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq)
+        )
 
         # if no range provided, use clip mark in/out, if none, use clip start/end
         start = start or self.mark_in or self.start
-        if is_single_image and not end:
-            end = start
-        else:
-            end = end or self.mark_out or self.end
+
+        end = (
+            start
+            if (is_single_image and not end)
+            else (end or self.mark_out or self.end)
+        )
 
         frame_set = FrameSet(f"{start}-{end}")
 
         if not file_sequence.padding() and is_image and len(frame_set) > 1:
-            file_sequence.setPadding('#')
+            file_sequence.setPadding("#")
 
         # we should have a range by now, set it in the sequence
         if (is_image and not is_single_image) or file_sequence.padding():
             file_sequence.setFrameSet(frame_set)
 
-        err_msg = ''
+        err_msg = ""
         clip_start = self.start
         clip_end = self.end
         if use_camera:
             if start < clip_start or end > clip_end:
-                err_msg = f"TVPaint will not render the full range requested ({start}-{end})"
+                err_msg = (
+                    f"TVPaint will not render the full range requested ({start}-{end})"
+                )
         else:
             if start < clip_start or end < clip_start:
-                err_msg = f"TVPaint will not render frames before clip start ({clip_start})"
+                err_msg = (
+                    f"TVPaint will not render frames before clip start ({clip_start})"
+                )
             elif start == clip_start and end > clip_end:
-                err_msg = f"TVPaint will not render the full range requested ({start}-{end})"
+                err_msg = (
+                    f"TVPaint will not render the full range requested ({start}-{end})"
+                )
             elif clip_start <= start < end and end > clip_end:
                 err_msg = f"TVPaint will render the full range requested ({start}-{end}) but frames will be empty"
 
         if not is_image and start == end:
-            err_msg = 'TVPaint will not render a movie that contains a single frame'
+            err_msg = "TVPaint will not render a movie that contains a single frame"
 
         if err_msg:
             err_msg += ", check the documentation for more details !"
@@ -550,7 +561,9 @@ class Clip(Removable):
            For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
            `Limitations` section of the documentation which explains this in more detail.
         """
-        file_sequence, start, end, is_sequence, is_image = self._handle_output_range(output_path, start, end, use_camera, force_range)
+        file_sequence, start, end, is_sequence, is_image = self._handle_output_range(
+            output_path, start, end, use_camera, force_range
+        )
 
         # get project start to get real values, note that using the camera changes the way we handle ranges
         project_start_frame = self.project.start_frame if not use_camera else 0
@@ -563,11 +576,13 @@ class Clip(Removable):
         save_format = george.SaveFormat.from_extension(
             file_sequence.extension().lower()
         )
+
         # render to output
         if is_image or file_sequence.padding():
             first_frame = Path(file_sequence.frame(file_sequence.start()))
         else:
-            first_frame = Path(output_path)
+            first_frame = Path(str(output_path))
+
         first_frame.parent.mkdir(exist_ok=True, parents=True)
 
         with render_context(alpha_mode, save_format, format_opts, layer_selection):
