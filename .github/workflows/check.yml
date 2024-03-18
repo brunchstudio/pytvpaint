@@ -1,6 +1,6 @@
 name: Format, types and lint check
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   check:
