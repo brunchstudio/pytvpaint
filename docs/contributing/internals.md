@@ -1,4 +1,4 @@
-# How it works
+# How it works internally
 
 The following diagram shows how each processes interact to make PyTVPaint work:
 

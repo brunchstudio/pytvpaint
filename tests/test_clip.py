@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 
 import pytest
-from fileseq import FileSequence
+from fileseq.filesequence import FileSequence
 
 from pytvpaint import george
 from pytvpaint.clip import Clip

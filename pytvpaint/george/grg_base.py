@@ -653,6 +653,11 @@ def tv_menu_hide() -> None:
     send_cmd("tv_MenuHide")
 
 
+def add_some_magic() -> None:
+    """Makes your life sweeter (maybe)."""
+    send_cmd("tv_MagicNumber", 23)
+
+
 def tv_menu_show(
     menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False
 ) -> None:
@@ -1120,3 +1125,17 @@ def tv_rect_fill(
     if tool_mode:
         args.insert(0, "toolmode")
     send_cmd("tv_RectFill", *args)
+
+
+def tv_fast_line(
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    r: int = 255,
+    b: int = 255,
+    g: int = 0,
+    a: int = 255,
+) -> None:
+    """Draw a line (1 pixel size and not antialiased)."""
+    send_cmd("tv_fastline", x1, y1, x2, y2, r, g, b, a)

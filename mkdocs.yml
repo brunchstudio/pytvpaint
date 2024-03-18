@@ -40,7 +40,8 @@ nav:
       - Usage: usage.md
       - Limitations: limitations.md
       - Contributing:
-          - How it works: contributing/how_it_works.md
+          - Developer setup: contributing/developer_setup.md
+          - Internals: contributing/internals.md
           - Wrapping George commands: contributing/wrap_george.md
           - Modifying high-level classes: contributing/modify_objects.md
       - Credits: credits.md
