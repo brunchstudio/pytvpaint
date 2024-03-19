@@ -69,7 +69,11 @@ Please make sure to [update tests](https://brunchstudio.github.io/pytvpaint/cont
 
 ## Disclaimer
 
-We are not affiliated with the TVPaint developers therefore we won't fix bugs in the software, PyTVPaint is a separate project created here at BRUNCH Studio to facilitate our developer experience.
+PyTVPaint is a project created at BRUNCH Studio to facilitate our developer experience with George. The API is targeted at experienced developers and is by no means a replacement for TVPaint or George but simply builds on it.
+
+We are not affiliated with the TVPaint development team and therefore can't fix any bugs in the software or the George API, we are very much subject to the same issues faced by other developers. Please direct your issues appropriately; any issues with PyTVPaint should be submitted as an issue in this repository or the C++ plugin's repository, any issues with TVPaint the software should be addressed to the tvp support team.
+
+For any questions on the limitations of our API, please head to [this page](https://brunchstudio.github.io/pytvpaint/limitations/) in the documentation.
 
 ## License
 
@@ -79,4 +83,4 @@ We are not affiliated with the TVPaint developers therefore we won't fix bugs in
 
 Made with ❤️ at
 
-[<img src='https://raw.githubusercontent.com/brunchstudio/pytvpaint/main/docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)
+[<img src='docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)
