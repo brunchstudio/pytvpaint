@@ -5,6 +5,7 @@
 [![](https://img.shields.io/pypi/v/pytvpaint)](https://pypi.org/project/pytvpaint/)
 [![Downloads](https://static.pepy.tech/badge/pytvpaint/month)](https://pepy.tech/project/pytvpaint)
 [![](https://img.shields.io/pypi/pyversions/pytvpaint)](https://pypi.org/project/pytvpaint/)
+[![](https://custom-icon-badges.demolab.com/badge/custom-11.5+-blue.svg?logo=butterfly_1f98b&label=TVPaint)](https://www.tvpaint.com/doc/tvp11/)
 
 PyTVPaint is a library that allows you to script for [TVPaint](https://www.tvpaint.com/) in Python instead of [George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction).
 
@@ -84,3 +85,9 @@ from pytvpaint import Layer
 for instance in Layer.current_layer().instances:
     print(instance.start, instance.name)
 ```
+
+## Disclaimer
+
+!!! note
+
+    We are not affiliated with the TVPaint developers therefore we won't fix bugs in the software, PyTVPaint is a separate project created here at BRUNCH Studio to facilitate our developer experience.

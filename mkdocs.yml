@@ -11,6 +11,7 @@ copyright: Made with ❤️ by BRUNCH Studio developers
 
 theme:
   name: material
+  custom_dir: docs/overrides
   logo: assets/pytvpaint_logo.png
   favicon: assets/pytvpaint_logo.png
   icon:

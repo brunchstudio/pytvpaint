@@ -5,6 +5,7 @@
 [![](https://img.shields.io/pypi/v/pytvpaint)](https://pypi.org/project/pytvpaint/)
 [![Downloads](https://static.pepy.tech/badge/pytvpaint/month)](https://pepy.tech/project/pytvpaint)
 [![](https://img.shields.io/pypi/pyversions/pytvpaint)](https://pypi.org/project/pytvpaint/)
+[![](https://custom-icon-badges.demolab.com/badge/custom-11.5+-blue.svg?logo=butterfly_1f98b&label=TVPaint)](https://www.tvpaint.com/doc/tvp11/)
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/brunchstudio/pytvpaint/main/docs/assets/pytvpaint_code_banner.png" width=700 />
@@ -18,9 +19,14 @@ You can check the [documentation](https://brunchstudio.github.io/pytvpaint/) for
 
 ## Installation
 
-First install the [TVPaint RPC plugin](https://brunchstudio.github.io/pytvpaint/installation/#tvpaint-plugin-installation).
+### Requirements
 
-Then install the package with Pip:
+- Windows (for now, see [this](https://brunchstudio.github.io/pytvpaint/limitations/#windows-only))
+- Python v3.9+
+- TVPaint v11.5+
+- TVPaint RPC plugin (install instructions [here](https://brunchstudio.github.io/pytvpaint/installation/#tvpaint-plugin-installation))
+
+Install the package with Pip:
 
 ```console
 ❯ pip install pytvpaint
@@ -59,7 +65,11 @@ project.close()
 Pull requests are welcome. For major changes, please [open an issue](https://github.com/brunchstudio/pytvpaint/issues/new/choose) first
 to discuss what you would like to change.
 
-Please make sure to update tests as appropriate.
+Please make sure to [update tests](https://brunchstudio.github.io/pytvpaint/contributing/developer_setup/#unit-tests) as appropriate.
+
+## Disclaimer
+
+We are not affiliated with the TVPaint developers therefore we won't fix bugs in the software, PyTVPaint is a separate project created here at BRUNCH Studio to facilitate our developer experience.
 
 ## License
 
@@ -67,4 +77,6 @@ Please make sure to update tests as appropriate.
 
 <hr>
 
-Made with ❤️ at [BRUNCH Studio](https://brunchstudio.tv/) 🥐🍳
+Made with ❤️ at
+
+[<img src='https://raw.githubusercontent.com/brunchstudio/pytvpaint/main/docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)
