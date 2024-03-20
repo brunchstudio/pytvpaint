@@ -9,14 +9,33 @@ concurrency:
 jobs:
   unit-tests:
     runs-on: self-hosted
+
     concurrency:
       group: uses-tvpaint
       cancel-in-progress: true
+
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        python-version: [python39, python310, python311, python]
+
+    env:
+      VENV_PATH: ${GITHUB_WORKSPACE}/env_${{ matrix.python-version }}
+
     steps:
       - uses: actions/checkout@v4
 
+      - name: Switching Python version
+        run: scoop reset ${{ matrix.python-version }}
+
+      - name: Setup Poetry in venv
+        run: |
+          python -m venv $VENV_PATH
+          $VENV_PATH/Scripts/pip.exe install poetry
+
       - name: Installing dependencies...
-        run: poetry install --no-interaction --with test
+        run: $VENV_PATH/Scripts/poetry install --no-interaction --with test
 
       - name: Pytest
-        run: poetry run pytest --maxfail 5 --cov=pytvpaint
+        run: $VENV_PATH/Scripts/poetry run pytest --maxfail 5 --cov=pytvpaint
