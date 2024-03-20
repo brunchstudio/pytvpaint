@@ -88,6 +88,10 @@ for instance in Layer.current_layer().instances:
 
 ## Disclaimer
 
-!!! note
+PyTVPaint is a project created at BRUNCH Studio to facilitate our developer experience with George. The API is targeted at experienced developers and is by no means a replacement for TVPaint or George but simply builds on it.
 
-    We are not affiliated with the TVPaint developers therefore we won't fix bugs in the software, PyTVPaint is a separate project created here at BRUNCH Studio to facilitate our developer experience.
+We are not affiliated with the TVPaint development team and therefore can't fix any bugs in the software or the George API.
+
+Please direct your issues appropriately; any issues with PyTVPaint should be submitted as [an issue in this repository](https://github.com/brunchstudio/pytvpaint/issues) or the [C++ plugin's repository](https://github.com/brunchstudio/tvpaint-rpc), any issues with TVPaint the software should be addressed to the [tvp support team](https://tvpaint.odoo.com/en_US/contactus).
+
+For any questions on the limitations of our API, please head to [this page](limitations.md).
