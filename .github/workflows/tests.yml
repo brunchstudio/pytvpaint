@@ -31,11 +31,11 @@ jobs:
 
       - name: Setup Poetry in venv
         run: |
-          python -m venv $VENV_PATH
-          $VENV_PATH/Scripts/pip.exe install poetry
+          python -m venv ${{ env.VENV_PATH }}
+          ${{ env.VENV_PATH }}/Scripts/pip.exe install poetry
 
       - name: Installing dependencies...
-        run: $VENV_PATH/Scripts/poetry install --no-interaction --with test
+        run: ${{ env.VENV_PATH }}/Scripts/poetry.exe install --no-interaction --with test
 
       - name: Pytest
-        run: $VENV_PATH/Scripts/poetry run pytest --maxfail 5 --cov=pytvpaint
+        run: ${{ env.VENV_PATH }}/Scripts/poetry.exe run pytest --maxfail 5 --cov=pytvpaint
