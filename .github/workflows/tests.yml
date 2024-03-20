@@ -18,23 +18,19 @@ jobs:
       fail-fast: true
       max-parallel: 1
       matrix:
-        python-version: [python39, python310, python311, python]
+        python-version: [python39, python310, python311, python312]
 
     env:
       VENV_PATH: ${{ github.workspace }}/env_${{ matrix.python-version }}
+      PYTHON_EXE: C:/Users/usermuster/scoop/apps/${{ matrix.python-version }}/current/python.exe
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Switching Python version
-        run: scoop reset ${{ matrix.python-version }}
-
       - name: Setup Poetry in venv
-        env:
-          PIP_EXE: ${{ env.VENV_PATH }}/Scripts/pip.exe
         run: |
-          python -m venv ${{ env.VENV_PATH }}
-          ${{ env.PIP_EXE }} install --quiet poetry
+          ${{ env.PYTHON_EXE }} -m venv ${{ env.VENV_PATH }}
+          ${{ env.VENV_PATH }}/Scripts/pip.exe install --quiet poetry
 
       - name: Installing dependencies with Poetry...
         env:
