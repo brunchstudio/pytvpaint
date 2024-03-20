@@ -22,6 +22,9 @@ jobs:
 
     env:
       VENV_PATH: ${{ github.workspace }}/env_${{ matrix.python-version }}
+      VENV_SCRIPTS: ${{ env.VENV_PATH }}/Scripts
+      PIP_EXE: ${{ env.VENV_SCRIPTS }}/pip.exe
+      POETRY_EXE: ${{ env.VENV_SCRIPTS }}/poetry.exe
 
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +35,13 @@ jobs:
       - name: Setup Poetry in venv
         run: |
           python -m venv ${{ env.VENV_PATH }}
-          ${{ env.VENV_PATH }}/Scripts/pip.exe install poetry
+          ${{ env.PIP_EXE }} install --quiet poetry
 
-      - name: Installing dependencies...
-        run: ${{ env.VENV_PATH }}/Scripts/poetry.exe install --no-interaction --with test
+      - name: Installing dependencies with Poetry...
+        run: |
+          rm -r ${{ github.workspace }}/.venv
+          ${{ env.POETRY_EXE }} config virtualenvs.in-project true
+          ${{ env.POETRY_EXE }} install --no-interaction --with test
 
-      - name: Pytest
+      - name: Pytest with coverage
         run: ${{ env.VENV_PATH }}/Scripts/poetry.exe run pytest --maxfail 5 --cov=pytvpaint
