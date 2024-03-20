@@ -85,4 +85,4 @@ For any questions on the limitations of our API, please head to [this page](http
 
 Made with ❤️ at
 
-[<img src='docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)
+[<img src='https://raw.githubusercontent.com/brunchstudio/pytvpaint/docs/docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)

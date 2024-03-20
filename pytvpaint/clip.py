@@ -410,7 +410,7 @@ class Clip(Removable):
 
         return new_layer
 
-    def _handle_output_range(
+    def _handle_output_range(  # noqa: C901
         self,
         output_path: Path | str | FileSequence,
         start: int | None = None,
@@ -431,12 +431,12 @@ class Clip(Removable):
             ValueError: if output range (start/end) are inferior to clip start frame
 
         Bug:
-           TVPaint will not render the requested/correct range in some cases. Having no control over this inconsistent
-           behaviour and to avoid issues we will raise a ValueError if an invalid range is detected. You can however
-           force an incorrect range using `force_range=True`, we will then log a warning when this happens (to help
-           with debugging) and the function will render with your range without checking the output at the end.
-           For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
-           `Limitations` section of the documentation which explains this in more detail.
+            TVPaint will not render the requested/correct range in some cases. Having no control over this inconsistent
+            behaviour and to avoid issues we will raise a ValueError if an invalid range is detected. You can however
+            force an incorrect range using `force_range=True`, we will then log a warning when this happens (to help
+            with debugging) and the function will render with your range without checking the output at the end.
+            For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
+            `Limitations` section of the documentation which explains this in more detail.
 
         Returns:
             file_sequence: output path as a FileSequence object
@@ -496,6 +496,7 @@ class Clip(Removable):
         err_msg = ""
         clip_start = self.start
         clip_end = self.end
+
         if use_camera:
             if start < clip_start or end > clip_end:
                 err_msg = (
@@ -606,10 +607,14 @@ class Clip(Removable):
             # raises error if sequence not found
             found_sequence = FileSequence.findSequenceOnDisk(str(file_sequence))
             frame_set = found_sequence.frameSet()
+            file_sequence_frame_set = file_sequence.frameSet()
+
+            if frame_set is None or file_sequence_frame_set is None:
+                raise Exception("Frameset should be defined")
 
             if not frame_set.issuperset(file_sequence.frameSet()):
                 # not all frames found
-                missing_frames = file_sequence.frameSet().difference(frame_set)
+                missing_frames = file_sequence_frame_set.difference(frame_set)
                 raise FileNotFoundError(
                     f"Not all frames found, missing frames ({missing_frames}) "
                     f"in sequence : {output_path}"
