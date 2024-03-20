@@ -21,7 +21,7 @@ jobs:
         python-version: [python39, python310, python311, python]
 
     env:
-      VENV_PATH: ${GITHUB_WORKSPACE}/env_${{ matrix.python-version }}
+      VENV_PATH: ${{ github.workspace }}/env_${{ matrix.python-version }}
 
     steps:
       - uses: actions/checkout@v4
