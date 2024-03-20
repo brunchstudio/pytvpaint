@@ -39,8 +39,10 @@ jobs:
       - name: Installing dependencies with Poetry...
         env:
           POETRY_EXE: ${{ env.VENV_PATH }}/Scripts/poetry.exe
+          POETRY_VENV: ${{ github.workspace }}/.venv
+        shell: pwsh
         run: |
-          rm -r ${{ github.workspace }}/.venv
+          if (test-path ${{ env.POETRY_VENV }}) { rm -r ${{ env.POETRY_VENV }} }
           ${{ env.POETRY_EXE }} config virtualenvs.in-project true
           ${{ env.POETRY_EXE }} install --no-interaction --with test
 
