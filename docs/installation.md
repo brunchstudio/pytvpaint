@@ -2,7 +2,7 @@
 
 ## TVPaint plugin installation
 
-Pytvpaint works by sending George commands to a custom C++ plugin running a WebSocket server in TVPaint.
+PyTVPaint works by sending George commands to a custom C++ plugin running a WebSocket server in TVPaint.
 
 You need to manually install it in your TVPaint installation folder.
 
@@ -19,7 +19,7 @@ You need to manually install it in your TVPaint installation folder.
 
     You may need Administrator rights to copy the DLL file.
 
-## Pytvpaint package
+## PyTVPaint package
 
 Simply install it with Pip:
 

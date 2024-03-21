@@ -239,6 +239,7 @@ class ClipSound(BaseSound["Clip"]):
         george.tv_sound_clip_remove(self.track_index)
         self.mark_removed()
 
+    @set_as_current
     def reload(self) -> None:
         """Reload the sound from file."""
         george.tv_sound_clip_reload(self._parent.id, self.track_index)

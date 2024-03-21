@@ -1,8 +1,8 @@
 """JSON-RPC client and data models."""
 
 from __future__ import annotations
-import contextlib
 
+import contextlib
 import json
 import sys
 import threading
@@ -74,7 +74,6 @@ class JSONRPCClient:
             version: The JSON-RPC version. Defaults to "2.0".
         """
         self.ws_handle = WebSocket()
-        self.ws_handle.settimeout(5)
         self.url = url
         self.rpc_id = 0
         self.timeout = timeout
@@ -88,21 +87,19 @@ class JSONRPCClient:
     def _auto_reconnect(self) -> None:
         """Automatic WebSocket reconnection in a thread by pinging the server."""
         while self.run_forever and not self.stop_ping.wait(1):
-            if self.is_connected:
-                continue
-
             try:
                 self.ws_handle.ping()
+                continue
             except (WebSocketException, ConnectionError):
                 self.ws_handle.close()
 
-                with contextlib.suppress(ConnectionRefusedError):
-                    self.connect()
-                    log.info(f"Reconnected automatically to endpoint: {self.url}")
-                    continue
+            with contextlib.suppress(ConnectionRefusedError):
+                self.connect()
+                log.info(f"Reconnected automatically to endpoint: {self.url}")
+                continue
 
             # There's a timeout after which we stop reconnecting
-            if self.timeout and time() - self._ping_start_time > self.timeout:
+            if self.timeout and (time() - self._ping_start_time) > self.timeout:
                 raise ConnectionRefusedError(
                     "Could not establish connection with a tvpaint instance before timeout !"
                 )
@@ -159,7 +156,9 @@ class JSONRPCClient:
             JSONRPCResponse: the JSON-RPC response payload
         """
         if not self.is_connected:
-            raise ConnectionError("Can't send rpc message")
+            raise ConnectionError(
+                f"Can't send rpc message because the client is not connected to {self.url}"
+            )
 
         payload: JSONRPCPayload = {
             "jsonrpc": self.jsonrpc_version,

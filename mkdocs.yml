@@ -1,4 +1,4 @@
-site_name: Pytvpaint
+site_name: PyTVPaint
 site_description: Python scripting for TVPaint
 strict: true
 site_url: https://brunchstudio.github.io/pytvpaint/
@@ -11,6 +11,7 @@ copyright: Made with ❤️ by BRUNCH Studio developers
 
 theme:
   name: material
+  custom_dir: docs/overrides
   logo: assets/pytvpaint_logo.png
   favicon: assets/pytvpaint_logo.png
   icon:
@@ -35,12 +36,13 @@ extra:
 
 nav:
   - Get Started:
-      - Welcome to Pytvpaint: index.md
+      - Welcome to PyTVPaint: index.md
       - Installation: installation.md
       - Usage: usage.md
       - Limitations: limitations.md
       - Contributing:
-          - How it works: contributing/how_it_works.md
+          - Developer setup: contributing/developer_setup.md
+          - Internals: contributing/internals.md
           - Wrapping George commands: contributing/wrap_george.md
           - Modifying high-level classes: contributing/modify_objects.md
       - Credits: credits.md

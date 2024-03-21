@@ -26,20 +26,21 @@ if TYPE_CHECKING:
 
 
 @contextlib.contextmanager
-def restore_current_frame(
-    clip: Clip, frame: int | None = None
-) -> Generator[None, None, None]:
-    """Context that changes the current frame temporarily and restores the previous value.
+def restore_current_frame(clip: Clip, frame: int) -> Generator[None, None, None]:
+    """Context that temporarily changes the current frame to the one provided and restores it when done.
 
     Args:
         clip: clip to change
         frame: frame to set. Defaults to None.
     """
     previous_frame = clip.current_frame
-    if frame:
+    if frame != previous_frame:
         clip.current_frame = frame
+
     yield
-    clip.current_frame = previous_frame
+
+    if clip.current_frame != previous_frame:
+        clip.current_frame = previous_frame
 
 
 @dataclass
@@ -80,6 +81,35 @@ class LayerInstance:
         with restore_current_frame(self.layer.clip, self.start):
             george.tv_layer_insert_image(duplicate=True)
 
+    @classmethod
+    def new(
+        cls,
+        layer: Layer,
+        start: int | None,
+        nb_frames: int = 1,
+        direction: george.InsertDirection | None = None,
+    ) -> LayerInstance:
+        """Crates a new instance.
+
+        Args:
+            layer: parent layer instance
+            start: start frame
+            nb_frames: number of frames in the new instance
+            direction: direction where new frames will be added/inserted
+
+        Returns:
+            LayerInstance: new layer instance
+        """
+        if not nb_frames:
+            raise ValueError("Instance number of frames must be at least 1")
+        start = start if start is not None else layer.clip.current_frame
+
+        layer.make_current()
+        with restore_current_frame(layer.clip, start):
+            george.tv_layer_insert_image(count=nb_frames, direction=direction)
+
+        return cls(layer, start)
+
     @property
     def next(self) -> LayerInstance | None:
         """Returns the next instance.
@@ -87,6 +117,7 @@ class LayerInstance:
         Returns:
             the next instance or None if at the end of the layer
         """
+        self.layer.make_current()
         with restore_current_frame(self.layer.clip, self.start):
             next_frame = george.tv_exposure_next()
 
@@ -99,6 +130,7 @@ class LayerInstance:
         Returns:
             the previous instance, None if there isn't
         """
+        self.layer.make_current()
         with restore_current_frame(self.layer.clip, self.start):
             prev_frame = george.tv_exposure_prev()
 
@@ -645,7 +677,7 @@ class Layer(Removable):
         clip: Clip | None = None,
         color: LayerColor | None = None,
         image: Path | str | None = None,
-        stretch: bool = False
+        stretch: bool = False,
     ) -> Layer:
         """Create a new background layer with hold as pre- and post-behavior.
 
@@ -664,7 +696,7 @@ class Layer(Removable):
         layer.post_behavior = george.LayerBehavior.HOLD
         layer.thumbnails_visible = True
 
-        image = Path(image or '')
+        image = Path(image or "")
         if image.is_file():
             layer.load_image(image, stretch=stretch)
 
@@ -709,16 +741,18 @@ class Layer(Removable):
 
         Raises:
             FileNotFoundError: if the file doesn't exist at provided path
-
         """
         image_path = Path(image_path)
         if not image_path.exists():
             raise FileNotFoundError(f"Image not found at : {image_path}")
 
-        if frame is not None:
-            self.clip.current_frame = frame
+        frame = frame or self.clip.current_frame
+        with restore_current_frame(self.clip, frame):
+            # if no instance at the specified frame, then create a new one
+            if not self.get_instance(frame):
+                LayerInstance.new(self, frame)
 
-        george.tv_load_image(image_path.as_posix(), stretch)
+            george.tv_load_image(image_path.as_posix(), stretch)
 
     @set_as_current
     def render_frame(
@@ -869,15 +903,22 @@ class Layer(Removable):
 
         # Exposure frames starts at 0
         instance_frame = self.start
-        self.clip.current_frame = self.start
 
-        while True:
-            instance = self.get_instance(instance_frame)
-            if instance is None:
-                break
-            yield instance
-            with restore_current_frame(self.clip, instance_frame):
-                instance_frame = george.tv_exposure_next() + project_start_frame
+        with restore_current_frame(self.clip, self.start):
+            while True:
+                instance = self.get_instance(instance_frame)
+                if instance is None:
+                    break
+                yield instance
+
+                self.clip.current_frame = instance_frame
+                new_instance_frame = george.tv_exposure_next() + project_start_frame
+
+                # In TVPaint 11.5 and before, tv_exposure_next returns the same frame if it's the last one
+                if new_instance_frame == instance_frame:
+                    break
+
+                instance_frame = new_instance_frame
 
     def get_instance(self, frame: int) -> LayerInstance | None:
         """Get the instance at that frame.

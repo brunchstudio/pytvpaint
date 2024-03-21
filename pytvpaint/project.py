@@ -494,13 +494,9 @@ class Project(Refreshable):
     def duplicate(self) -> Project:
         """Duplicate the project and return the new one."""
         george.tv_project_duplicate()
-
-        duplicated_name = f"{self.name}Copy"
-        for project in Project.open_projects():
-            if project.name == duplicated_name:
-                return project
-
-        raise Exception(f"Couldn't find project {duplicated_name}")
+        duplicated = Project.current_project()
+        self.make_current()
+        return duplicated
 
     def close(self) -> None:
         """Closes the project."""
@@ -508,11 +504,17 @@ class Project(Refreshable):
         george.tv_project_close(self._id)
 
     @classmethod
-    def close_all(cls) -> None:
-        """Closes all the projects."""
-        projects = list(cls.open_projects())
-        for project in projects:
+    def close_all(cls, close_tvp: bool = False) -> None:
+        """Closes all open projects.
+
+        Args:
+            close_tvp: close the TVPaint instance as well
+        """
+        for project in list(cls.open_projects()):
             project.close()
+
+        if close_tvp:
+            george.tv_quit()
 
     @classmethod
     def load(cls, project_path: Path | str, silent: bool = True) -> Project:

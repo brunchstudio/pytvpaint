@@ -346,6 +346,30 @@ class SaveFormat(Enum):
             )
         return cast(SaveFormat, getattr(cls, extension.upper()))
 
+    @classmethod
+    def is_image(cls, extension: str) -> bool:
+        """Returns True if the extension correspond to an image format."""
+        extension = extension.replace(".", "").lower()
+        image_formats = [
+            "bmp",
+            "cin",
+            "deep",
+            "dpx",
+            "ilbm",
+            "jpg",
+            "jpeg",
+            "pcx",
+            "png",
+            "psd",
+            "sgi",
+            "pic",
+            "ras",
+            "sun",
+            "tga",
+            "tiff",
+        ]
+        return extension in image_formats
+
 
 @dataclass(frozen=True)
 class RGBColor:
@@ -609,6 +633,11 @@ def tv_version() -> tuple[str, str, str]:
     return software_name, version, language
 
 
+def tv_quit() -> None:
+    """Closes the TVPaint instance."""
+    send_cmd("tv_Quit")
+
+
 def tv_host2back() -> None:
     """Minimize the TVPaint window."""
     send_cmd("tv_Host2Back")
@@ -622,6 +651,11 @@ def tv_host2front() -> None:
 def tv_menu_hide() -> None:
     """Switch to inlay view and hide all non-docking panels."""
     send_cmd("tv_MenuHide")
+
+
+def add_some_magic() -> None:
+    """Makes your life sweeter (maybe)."""
+    send_cmd("tv_MagicNumber", 23)
 
 
 def tv_menu_show(
@@ -1091,3 +1125,17 @@ def tv_rect_fill(
     if tool_mode:
         args.insert(0, "toolmode")
     send_cmd("tv_RectFill", *args)
+
+
+def tv_fast_line(
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    r: int = 255,
+    b: int = 255,
+    g: int = 0,
+    a: int = 255,
+) -> None:
+    """Draw a line (1 pixel size and not antialiased)."""
+    send_cmd("tv_fastline", x1, y1, x2, y2, r, g, b, a)

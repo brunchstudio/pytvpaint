@@ -4,6 +4,7 @@ import random
 from pathlib import Path
 
 import pytest
+from fileseq.filesequence import FileSequence
 
 from pytvpaint import george
 from pytvpaint.clip import Clip
@@ -247,38 +248,296 @@ def test_clip_load_media(test_clip_obj: Clip, ppm_sequence: list[Path]) -> None:
     assert layer.name == "images"
 
 
-def test_clip_render(
+@pytest.mark.parametrize(
+    "out, start, end, expected",
+    [
+        ("render.png", None, None, "render1-5#.png"),
+        ("render.png", 2, 2, "render.png"),
+        ("render.#.png", 2, 2, "render.0002.png"),
+        ("render.0010.png", None, None, "render.0010.png"),
+    ],
+)
+def test_clip_render_single_img(
     test_clip_obj: Clip,
     with_loaded_sequence: Layer,
     tmp_path: Path,
+    out: str,
+    start: int | None,
+    end: int | None,
+    expected: str,
 ) -> None:
-    test_clip_obj.render(tmp_path / "render.png", start=1, end=1)
+    test_clip_obj.render(tmp_path / out, start, end)
+
+    expected_path = tmp_path.joinpath(expected)
+    if "#" in expected_path.stem:
+        expected_seq = FileSequence(expected_path.as_posix())
+        found_seq = FileSequence.findSequenceOnDisk(
+            expected_path.as_posix(), strictPadding=True
+        )
+        assert expected_seq.frameSet() == found_seq.frameSet()
+    else:
+        assert expected_path.exists()
 
 
 @pytest.mark.parametrize(
-    "args",
+    "out,start,end,force_range,expected,error",
     [
-        ("render.#.png", None, None),
-        ("render.1-5#.png", None, None),
-        ("render.1-5#.png", 2, 7),
+        ("render.png", 2, 7, True, "render2-7#.png", None),
+        ("render.png", 2, 7, False, "", ValueError),
+        ("render.0010.png", 2, 7, True, "render.2-7#.png", None),
+        ("render2-7@.png", 2, 7, True, "render2-7@.png", None),
+        ("render.2-7@.png", 2, 7, True, "render.2-7@.png", None),
+        ("render.#.png", 1, 7, True, "render.1-5#.png", None),
+        ("render.#.png", 1, 7, False, "", ValueError),
+        ("render.#.png", 2, 7, True, "render.2-7#.png", None),
+        ("render.#.png", None, None, False, "render.1-5#.png", None),
+        ("render.1-5#.png", None, None, False, "render.1-5#.png", None),
+        ("render.2-4#.png", None, None, False, "render.2-4#.png", None),
+        ("render.1-5#.png", 2, 7, True, "render.2-7#.png", None),
+        ("render.1-5#.png", 2, None, False, "render.2-5#.png", None),
+        ("render.1-5#.png", 2, 4, False, "render.2-4#.png", None),
+        ("render.1-5#.png", 1, 7, False, "", ValueError),
+        ("render.1-5#.png", 1, 7, True, "render.1-5#.png", None),
+        ("render.#.png", -6, 7, True, "render.-10--6#.png", None),
+        ("render.#.png", -6, 7, False, "", ValueError),
+        ("render.1-5#.png", -6, 7, False, "", ValueError),
     ],
 )
 def test_clip_render_sequence(
     test_clip_obj: Clip,
     with_loaded_sequence: Layer,
     tmp_path: Path,
-    args: tuple[str, int | None, int | None],
+    out: str,
+    start: int | None,
+    end: int | None,
+    force_range: bool,
+    expected: str,
+    error: type[Exception] | None,
 ) -> None:
-    out, start, end = args
-    test_clip_obj.render(tmp_path / out, start, end)
+    if error:
+        with pytest.raises(error):
+            test_clip_obj.render(tmp_path / out, start, end, force_range=force_range)
+    else:
+        test_clip_obj.render(tmp_path / out, start, end, force_range=force_range)
+
+    if expected:
+        expected_path = tmp_path.joinpath(expected)
+        expected_seq = FileSequence(expected_path.as_posix())
+        found_seq = FileSequence.findSequenceOnDisk(
+            expected_path.as_posix(), strictPadding=True
+        )
+        assert expected_seq.frameSet() == found_seq.frameSet()
 
 
+@pytest.mark.parametrize(
+    "out,start,end,force_range,expected,error",
+    [
+        ("render.png", 2, 7, False, "", ValueError),
+        (
+            "render.png",
+            2,
+            7,
+            True,
+            "render2-5#.png",
+            None,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render.0010.png",
+            2,
+            7,
+            True,
+            "render.2-5#.png",
+            None,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render2-7@.png",
+            2,
+            7,
+            True,
+            "render2-5@.png",
+            None,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render.2-7@.png",
+            2,
+            7,
+            True,
+            "render.2-5@.png",
+            None,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render.#.png",
+            1,
+            5,
+            False,
+            "render.1-5#.png",
+            None,
+        ),  # will render range (1-5) incorrectly [x]
+        (
+            "render.#.png",
+            1,
+            7,
+            True,
+            "render.1-5#.png",
+            None,
+        ),  # will render range (1-5) incorrectly [x]
+        (
+            "render.#.png",
+            2,
+            7,
+            True,
+            "render.2-5#.png",
+            None,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render.#.png",
+            None,
+            None,
+            False,
+            "render.1-5#.png",
+            None,
+        ),  # will render range (1-5) correctly [v]
+        (
+            "render.1-5#.png",
+            None,
+            None,
+            False,
+            "render.1-5#.png",
+            None,
+        ),  # will render range (1-5) correctly [v]
+        (
+            "render.2-4#.png",
+            None,
+            None,
+            False,
+            "render.2-4#.png",
+            None,
+        ),  # will render range (2-4) correctly [v]
+        (
+            "render.1-5#.png",
+            2,
+            7,
+            False,
+            "",
+            ValueError,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render.1-5#.png",
+            2,
+            7,
+            True,
+            "render.2-5#.png",
+            None,
+        ),  # will render range (2-5) incorrectly [x]
+        (
+            "render.1-5#.png",
+            2,
+            None,
+            False,
+            "render.2-5#.png",
+            None,
+        ),  # will render range (2-5) correctly [v]
+        (
+            "render.1-5#.png",
+            2,
+            4,
+            False,
+            "render.2-4#.png",
+            None,
+        ),  # will render range (2-4) correctly [v]
+        (
+            "render.1-5#.png",
+            1,
+            7,
+            False,
+            "",
+            ValueError,
+        ),  # will render range (1-5) incorrectly [x]
+        (
+            "render.1-5#.png",
+            1,
+            7,
+            True,
+            "render.1-5#.png",
+            None,
+        ),  # will render range (1-5) incorrectly [x]
+        (
+            "render.#.png",
+            -6,
+            7,
+            True,
+            "render.-10--6#.png",
+            None,
+        ),  # will render range (-6 to -10) incorrectly [x]
+        ("render.#.png", -6, 7, False, "", ValueError),
+        ("render.1-5#.png", -6, 7, False, "", ValueError),
+    ],
+)
+def test_clip_render_sequence_camera(
+    test_clip_obj: Clip,
+    with_loaded_sequence: Layer,
+    tmp_path: Path,
+    out: str,
+    start: int | None,
+    end: int | None,
+    force_range: bool,
+    expected: str,
+    error: type[Exception] | None,
+) -> None:
+    if error:
+        with pytest.raises(error):
+            test_clip_obj.render(
+                tmp_path / out, start, end, use_camera=True, force_range=force_range
+            )
+    else:
+        test_clip_obj.render(
+            tmp_path / out, start, end, use_camera=True, force_range=force_range
+        )
+
+    if expected:
+        expected_path = tmp_path.joinpath(expected)
+        expected_seq = FileSequence(expected_path.as_posix())
+        found_seq = FileSequence.findSequenceOnDisk(
+            expected_path.as_posix(), strictPadding=True
+        )
+        assert expected_seq.frameSet() == found_seq.frameSet()
+
+
+@pytest.mark.parametrize("use_camera", [True, False])
+@pytest.mark.parametrize(
+    "out,start,end,expected,error",
+    [
+        ("render.001.mp4", None, None, "render.001.mp4", None),
+        ("render.001.mp4", 1, 5, "render.001.mp4", None),
+        ("render.mp4", None, None, "render.mp4", None),
+        ("render.1-5#.mp4", None, None, "render.0001.mp4", None),
+        ("render.#.mp4", 1, 5, "render.0001.mp4", None),
+        ("render.#.mp4", 2, 5, "render.0002.mp4", None),
+        ("render.#.mp4", 2, 7, "", ValueError),
+        ("render.#.mp4", 1, 7, "", ValueError),
+        ("render.mp4", 1, 1, "", ValueError),
+    ],
+)
 def test_clip_render_mp4(
     test_clip_obj: Clip,
     with_loaded_sequence: Layer,
     tmp_path: Path,
+    use_camera: bool,
+    out: str,
+    start: int | None,
+    end: int | None,
+    expected: str,
+    error: type[Exception] | None,
 ) -> None:
-    test_clip_obj.render(tmp_path / "render.001.mp4")
+
+    if error:
+        with pytest.raises(error):
+            test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
+    else:
+        test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
+
+    if expected:
+        assert tmp_path.joinpath(expected).exists()
 
 
 def test_export_tvp(

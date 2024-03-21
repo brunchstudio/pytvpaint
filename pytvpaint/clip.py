@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
 
-from pytvpaint import george
+from pytvpaint import george, log
 from pytvpaint.camera import Camera
 from pytvpaint.layer import Layer, LayerColor
 from pytvpaint.sound import ClipSound
@@ -410,6 +410,122 @@ class Clip(Removable):
 
         return new_layer
 
+    def _handle_output_range(  # noqa: C901
+        self,
+        output_path: Path | str | FileSequence,
+        start: int | None = None,
+        end: int | None = None,
+        use_camera: bool = False,
+        force_range: bool = False,
+    ) -> tuple[FileSequence, int, int, bool, bool]:
+        """Handle the different options for output paths and range, whether the user provided a range (start-end) or a filesequence with a range or not, this functions ensures we always end up with a valid range to render.
+
+        Args:
+            output_path: user provided output path
+            start: user provided start frame
+            end: user provided end frame
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
+            force_range: force the provided range even if it isn't incorrect or might output wrong frames
+
+        Raises:
+            ValueError: if output range (start/end) are inferior to clip start frame
+
+        Bug:
+            TVPaint will not render the requested/correct range in some cases. Having no control over this inconsistent
+            behaviour and to avoid issues we will raise a ValueError if an invalid range is detected. You can however
+            force an incorrect range using `force_range=True`, we will then log a warning when this happens (to help
+            with debugging) and the function will render with your range without checking the output at the end.
+            For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
+            `Limitations` section of the documentation which explains this in more detail.
+
+        Returns:
+            file_sequence: output path as a FileSequence object
+            start: computed start frame
+            end: computed end frame
+            is_sequence: whether the output is a sequence or not
+            is_image: whether the output is an image or not (a movie)
+        """
+        # we handle all outputs as a FileSequence, makes it a bit easier to handle ranges and padding
+        if not isinstance(output_path, FileSequence):
+            file_sequence = FileSequence(Path(output_path).as_posix())
+        else:
+            file_sequence = output_path
+
+        frame_set = file_sequence.frameSet()
+        is_image = george.SaveFormat.is_image(file_sequence.extension())
+
+        # if the provided sequence has a range, and we don't, use the sequence range
+        if frame_set and len(frame_set) >= 1 and is_image:
+            start = start or file_sequence.start()
+            end = end or file_sequence.end()
+
+        # check characteristics of output path
+        fseq_has_range = frame_set and len(frame_set) > 1
+        fseq_is_single_image = frame_set and len(frame_set) == 1
+        fseq_no_range_padding = not frame_set and file_sequence.padding()
+        range_is_seq = start and end and start != end
+        range_is_single_image = start and end and start == end
+
+        is_single_image = bool(
+            is_image
+            and (fseq_is_single_image or not frame_set)
+            and range_is_single_image
+        )
+        is_sequence = bool(
+            is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq)
+        )
+
+        # if no range provided, use clip mark in/out, if none, use clip start/end
+        start = start or self.mark_in or self.start
+
+        end = (
+            start
+            if (is_single_image and not end)
+            else (end or self.mark_out or self.end)
+        )
+
+        frame_set = FrameSet(f"{start}-{end}")
+
+        if not file_sequence.padding() and is_image and len(frame_set) > 1:
+            file_sequence.setPadding("#")
+
+        # we should have a range by now, set it in the sequence
+        if (is_image and not is_single_image) or file_sequence.padding():
+            file_sequence.setFrameSet(frame_set)
+
+        err_msg = ""
+        clip_start = self.start
+        clip_end = self.end
+
+        if use_camera:
+            if start < clip_start or end > clip_end:
+                err_msg = (
+                    f"TVPaint will not render the full range requested ({start}-{end})"
+                )
+        else:
+            if start < clip_start or end < clip_start:
+                err_msg = (
+                    f"TVPaint will not render frames before clip start ({clip_start})"
+                )
+            elif start == clip_start and end > clip_end:
+                err_msg = (
+                    f"TVPaint will not render the full range requested ({start}-{end})"
+                )
+            elif clip_start <= start < end and end > clip_end:
+                err_msg = f"TVPaint will render the full range requested ({start}-{end}) but frames will be empty"
+
+        if not is_image and start == end:
+            err_msg = "TVPaint will not render a movie that contains a single frame"
+
+        if err_msg:
+            err_msg += ", check the documentation for more details !"
+            if force_range:
+                log.warning(err_msg)
+            else:
+                raise ValueError(err_msg)
+
+        return file_sequence, start, end, is_sequence, is_image
+
     @set_as_current
     def render(
         self,
@@ -420,6 +536,7 @@ class Clip(Removable):
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         format_opts: list[str] | None = None,
+        force_range: bool = False,
     ) -> None:
         """Render the clip to a single frame or frame sequence.
 
@@ -431,39 +548,42 @@ class Clip(Removable):
             layer_selection: list of layers to render, if None render all of them. Defaults to None.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             format_opts: custom format options. Defaults to None.
+            force_range: force the provided range even if it isn't incorrect or might output wrong frames
 
         Raises:
+            ValueError: if output range (start/end) are inferior to clip start frame
             FileNotFoundError: if the render failed and no files were found on disk
+
+        Bug:
+           TVPaint will not render the requested/correct range in some cases. Having no control over this inconsistent
+           behaviour and to avoid issues we will raise a ValueError if an invalid range is detected. You can however
+           force an incorrect range using `force_range=True`, we will then log a warning when this happens (to help
+           with debugging) and the function will render with your range without checking the output at the end.
+           For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
+           `Limitations` section of the documentation which explains this in more detail.
         """
-        start = start or self.mark_in or self.start
-        end = end or self.mark_out or self.end
-
-        file_sequence = (
-            output_path
-            if isinstance(output_path, FileSequence)
-            else FileSequence(Path(output_path).as_posix())
+        file_sequence, start, end, is_sequence, is_image = self._handle_output_range(
+            output_path, start, end, use_camera, force_range
         )
 
-        frame_set = file_sequence.frameSet()
-        is_sequence = (frame_set and len(frame_set) > 1) or (
-            not frame_set and file_sequence.padding()
-        )
+        # get project start to get real values, note that using the camera changes the way we handle ranges
+        project_start_frame = self.project.start_frame if not use_camera else 0
+        # get clip real start to clamp start and end frames
+        clip_real_start = self.start - project_start_frame
 
-        frame_set = FrameSet(f"{start}-{end}")
-        file_sequence.setFrameRange(frame_set)
-
-        # get real frame numbers and clamp them with clip start frame
-        project_start_frame = self.project.start_frame
-        real_start = self.start - project_start_frame
-
-        start = max(real_start, (start - project_start_frame))
-        end = max(real_start, (end - project_start_frame))
+        start = max(clip_real_start, (start - project_start_frame))
+        end = max(clip_real_start, (end - project_start_frame))
 
         save_format = george.SaveFormat.from_extension(
             file_sequence.extension().lower()
         )
+
         # render to output
-        first_frame = Path(file_sequence.frame(file_sequence.start()))
+        if is_image or file_sequence.padding():
+            first_frame = Path(file_sequence.frame(file_sequence.start()))
+        else:
+            first_frame = Path(str(output_path))
+
         first_frame.parent.mkdir(exist_ok=True, parents=True)
 
         with render_context(alpha_mode, save_format, format_opts, layer_selection):
@@ -479,18 +599,22 @@ class Clip(Removable):
                 else:
                     george.tv_save_sequence(first_frame, mark_in=start, mark_out=end)
 
+        if force_range:
+            return  # user is forcing a possibly invalid range, let them handle output check
+
         # make sure the output exists otherwise raise an error
         if is_sequence:
+            # raises error if sequence not found
             found_sequence = FileSequence.findSequenceOnDisk(str(file_sequence))
             frame_set = found_sequence.frameSet()
+            file_sequence_frame_set = file_sequence.frameSet()
 
-            if not frame_set:
-                raise ValueError()
+            if frame_set is None or file_sequence_frame_set is None:
+                raise Exception("Frameset should be defined")
 
-            # raises error if sequence not found
             if not frame_set.issuperset(file_sequence.frameSet()):
                 # not all frames found
-                missing_frames = frame_set.difference(found_sequence.frameSet())
+                missing_frames = file_sequence_frame_set.difference(frame_set)
                 raise FileNotFoundError(
                     f"Not all frames found, missing frames ({missing_frames}) "
                     f"in sequence : {output_path}"
@@ -677,6 +801,8 @@ class Clip(Removable):
 
         with render_context(alpha_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_sprite(export_path, layout, space)
+
+        # TODO check whether output was successful and files exist or not for this function and the others
 
     @set_as_current
     def export_flix(

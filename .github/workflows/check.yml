@@ -18,13 +18,16 @@ jobs:
           version: 1.7.0
 
       - name: Installing dependencies...
-        run: poetry install --with dev,test
+        run: poetry install --no-interaction --with dev,test
 
       - name: Formatting check
+        if: always()
         run: poetry run black --check .
 
-      - name: Type checking
-        run: poetry run mypy .
-
       - name: Linting
+        if: always()
         run: poetry run ruff .
+
+      - name: Type checking
+        if: always()
+        run: poetry run mypy .

@@ -173,7 +173,7 @@ Notes:
 
 ## Command that get and set a value
 
-Some George commands are a getter and a setter at the same time. In Pytvpaint, we split the command in two separate functions with `_get` and `_set` suffix.
+Some George commands are a getter and a setter at the same time. In PyTVPaint, we split the command in two separate functions with `_get` and `_set` suffix.
 
 !!! Example
 
