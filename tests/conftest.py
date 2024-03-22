@@ -10,6 +10,8 @@ from typing import TypeVar
 import pytest
 
 from pytvpaint import george
+from pytvpaint.clip import Clip
+from pytvpaint.george.client import send_cmd
 from pytvpaint.george.grg_base import tv_pen_brush_set
 from pytvpaint.george.grg_clip import (
     TVPClip,
@@ -43,11 +45,9 @@ from pytvpaint.george.grg_scene import (
     tv_scene_enum_id,
     tv_scene_new,
 )
-from pytvpaint.george.client import send_cmd
+from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
-from pytvpaint.clip import Clip
-from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.sound import ClipSound, ProjectSound
 
 T = TypeVar("T")
@@ -155,16 +155,17 @@ def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
 
     instances: list[LayerInstance] = []
     for i in range(1, 6):
-        if i == 1:
-            li = test_layer.get_instance(i)
-        else:
-            li = test_layer.add_instance(i)
+        li = test_layer.get_instance(i) if i == 1 else test_layer.add_instance(i)
+
+        if li is None:
+            raise Exception("There should be an instance")
+
         test_clip_obj.current_frame = i
 
         # write the frame number in the middle of the image
         george.tv_set_a_pen_rgba(george.RGBColor(0, 0, 0), 255)  # set the pen color
         send_cmd("tv_TextTool2", "size", 200)  # set text size
-        george.tv_text_brush(i)  # set the brush text
+        george.tv_text_brush(str(i))  # set the brush text
         george.tv_set_active_shape(
             george.TVPShape.FREE_HAND_LINE, "size", 200
         )  # set the shape and it's size

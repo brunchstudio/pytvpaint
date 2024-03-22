@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from pytvpaint import george
+from pytvpaint import george, utils
 from pytvpaint.clip import Clip
 from pytvpaint.project import Project
-from pytvpaint import utils
 from pytvpaint.utils import (
     Removable,
     set_as_current,

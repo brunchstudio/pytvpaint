@@ -7,8 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pytvpaint import george
-from pytvpaint import utils
+from pytvpaint import george, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.utils import (
     Refreshable,
@@ -42,7 +41,10 @@ class LayerInstance:
         except GeorgeError:
             raise ValueError(f"There's no instance at frame {self.start}")
 
-    def __eq__(self, other: LayerInstance) -> bool:
+    def __eq__(self, other: object) -> bool:
+        """Checks if two instances are the same, their start frame is equal."""
+        if not isinstance(other, LayerInstance):
+            return NotImplemented
         return self.start == other.start
 
     @property
@@ -60,8 +62,7 @@ class LayerInstance:
 
     @property
     def length(self) -> int:
-        """
-        Get or set the instance's number of frames or length.
+        """Get or set the instance's number of frames or length.
 
         Raises:
             ValueError: If the length provided is inferior to 1
@@ -81,8 +82,7 @@ class LayerInstance:
 
     @property
     def end(self) -> int:
-        """
-        Get or set the instance's end frame.
+        """Get or set the instance's end frame.
 
         Raises:
             ValueError: If the end frame provided is inferior to the instance's start frame
@@ -100,7 +100,7 @@ class LayerInstance:
         self.length = new_length
 
     def split(self, at_frame: int) -> LayerInstance:
-        """Split the instance into two instances at the given frame
+        """Split the instance into two instances at the given frame.
 
         Args:
             at_frame: the frame where the split will occur
@@ -143,20 +143,19 @@ class LayerInstance:
             self.paste(at_frame=at_frame)
 
     def cut(self) -> None:
-        """Cut all the frames/images/exposures of the instance and store them in the image buffer"""
+        """Cut all the frames/images/exposures of the instance and store them in the image buffer."""
         self.layer.make_current()
         self.select()
         self.layer.cut_selection()
 
     def copy(self) -> None:
-        """Copy all the frames/images/exposures of the instance and store them in the image buffer"""
+        """Copy all the frames/images/exposures of the instance and store them in the image buffer."""
         self.layer.make_current()
         self.select()
         self.layer.copy_selection()
 
     def paste(self, at_frame: int | None) -> None:
-        """
-        Paste all the frames/images/exposures stored in the image buffer to the current instance at the given frame
+        """Paste all the frames/images/exposures stored in the image buffer to the current instance at the given frame.
 
         Args:
             at_frame: the frame where the stored frames will be pasted. Default is the current frame
@@ -167,7 +166,8 @@ class LayerInstance:
         with utils.restore_current_frame(self.layer.clip, at_frame):
             self.layer.paste_selection()
 
-    def select(self):
+    def select(self) -> None:
+        """Select the instance frame."""
         self.layer.select_frames(self.start, (self.length - 1))
 
     @property
@@ -1012,6 +1012,8 @@ class Layer(Removable):
                 continue
             return layer_instance
 
+        return None
+
     def add_instance(
         self,
         start: int | None = None,
@@ -1019,8 +1021,7 @@ class Layer(Removable):
         direction: george.InsertDirection | None = None,
         split: bool = False,
     ) -> LayerInstance:
-        """
-        Crates a new instance
+        """Crates a new instance.
 
         Args:
             start: start frame. Defaults to clip current frame if none provided
@@ -1037,7 +1038,8 @@ class Layer(Removable):
         """
         if nb_frames <= 0:
             raise ValueError("Instance number of frames must be at least 1")
-        if self.get_instance(start):
+
+        if start and self.get_instance(start):
             raise ValueError(
                 "An instance already exists at the designated frame range. "
                 "Edit or delete it before adding a new one."
@@ -1054,7 +1056,7 @@ class Layer(Removable):
                 if split:
                     george.tv_layer_insert_image(count=nb_frames, direction=direction)
                 else:
-                    layer_instance: LayerInstance = list(temp_layer.instances)[0]
+                    layer_instance = next(temp_layer.instances)
                     layer_instance.length = nb_frames
 
             temp_layer.select_all_frames()

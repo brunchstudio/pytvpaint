@@ -5,8 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
-from pytvpaint import george
-from pytvpaint import utils
+from pytvpaint import george, utils
 from pytvpaint.utils import (
     Refreshable,
     Removable,

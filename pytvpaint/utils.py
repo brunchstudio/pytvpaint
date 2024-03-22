@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import re
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Generator, Iterable, Iterator
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -13,19 +13,16 @@ from typing import (
     Callable,
     TypeVar,
     cast,
-    Generator,
 )
 
-from typing_extensions import ParamSpec, Protocol
 from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
+from typing_extensions import ParamSpec, Protocol
 
 from pytvpaint import george
 from pytvpaint.george.exceptions import GeorgeError
 
 if TYPE_CHECKING:
-    from pytvpaint.project import Project
-    from pytvpaint.clip import Clip
     from pytvpaint.layer import Layer
 
 
@@ -112,12 +109,24 @@ class Renderable(ABC):
     def __init__(self) -> None:
         super().__init__()
 
+    @property
+    @abstractmethod
+    def current_frame(self) -> int:
+        """Gives the current frame."""
+        pass
+
+    @current_frame.setter
+    @abstractmethod
+    def current_frame(self, frame: int) -> None:
+        """Set the current frame."""
+        pass
+
     def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
         """Removes the object in TVPaint."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
     def _validate_range(self, start: int, end: int) -> None:
-        """Raises an exception if given range is invalid"""
+        """Raises an exception if given range is invalid."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
     def _render(
@@ -147,7 +156,8 @@ class Renderable(ABC):
         if is_image or file_sequence.padding():
             first_frame = Path(file_sequence.frame(file_sequence.start()))
         else:
-            first_frame = Path(output_path)
+            first_frame = Path(str(output_path))
+
         first_frame.parent.mkdir(exist_ok=True, parents=True)
 
         save_format = george.SaveFormat.from_extension(
@@ -173,10 +183,14 @@ class Renderable(ABC):
             # raises error if sequence not found
             found_sequence = FileSequence.findSequenceOnDisk(str(file_sequence))
             frame_set = found_sequence.frameSet()
+            file_sequence_frame_set = file_sequence.frameSet()
 
-            if not frame_set.issuperset(file_sequence.frameSet()):
+            if file_sequence_frame_set is None or frame_set is None:
+                raise Exception("Should have frame set")
+
+            if not frame_set.issuperset(file_sequence_frame_set):
                 # not all frames found
-                missing_frames = file_sequence.frameSet().difference(frame_set)
+                missing_frames = file_sequence_frame_set.difference(frame_set)
                 raise FileNotFoundError(
                     f"Not all frames found, missing frames ({missing_frames}) "
                     f"in sequence : {output_path}"
@@ -349,9 +363,21 @@ def render_context(
             layer.is_visible = was_visible
 
 
+class HasCurrentFrame(Protocol):
+    """Class that has a current frame property."""
+
+    @property
+    def current_frame(self) -> int:
+        """The current frame, clip or project."""
+        ...
+
+    @current_frame.setter
+    def current_frame(self, frame: int) -> None: ...
+
+
 @contextlib.contextmanager
 def restore_current_frame(
-    tvp_element: Clip | Project, frame: int
+    tvp_element: HasCurrentFrame, frame: int
 ) -> Generator[None, None, None]:
     """Context that temporarily changes the current frame to the one provided and restores it when done.
 
@@ -421,12 +447,12 @@ def handle_output_range(
     output_path: Path | str | FileSequence,
     default_start: int,
     default_end: int,
-    start: int = None,
-    end: int = None,
+    start: int | None = None,
+    end: int | None = None,
 ) -> tuple[FileSequence, int, int, bool, bool]:
-    """
-    Handle the different options for output paths and range, whether the user provides a range (start-end) or a
-    filesequence with a range or not, this functions ensures we always end up with a valid range to render
+    """Handle the different options for output paths and range.
+
+    Whether the user provides a range (start-end) or a filesequence with a range or not, this functions ensures we always end up with a valid range to render
 
     Args:
         output_path: user provided output path

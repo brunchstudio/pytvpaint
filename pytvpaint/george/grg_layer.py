@@ -1142,7 +1142,7 @@ def tv_exposure_next() -> int:
 
 
 def tv_exposure_break(frame: int) -> None:
-    """Break a layer instance/exposure at the given frame
+    """Break a layer instance/exposure at the given frame.
 
     Args:
         frame: the split frame
@@ -1151,7 +1151,7 @@ def tv_exposure_break(frame: int) -> None:
 
 
 def tv_exposure_add(frame: int, count: int) -> None:
-    """Add new frames to an existing layer instance/exposure
+    """Add new frames to an existing layer instance/exposure.
 
     Args:
         frame: the split frame
@@ -1161,7 +1161,7 @@ def tv_exposure_add(frame: int, count: int) -> None:
 
 
 def tv_exposure_set(frame: int, count: int) -> None:
-    """Set the number frames of an existing layer instance/exposure
+    """Set the number frames of an existing layer instance/exposure.
 
     Args:
         frame: the split frame

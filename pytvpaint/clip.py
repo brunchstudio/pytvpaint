@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
 
-from pytvpaint import george
-from pytvpaint import utils
+from pytvpaint import george, utils
 from pytvpaint.camera import Camera
 from pytvpaint.layer import Layer, LayerColor
 from pytvpaint.sound import ClipSound

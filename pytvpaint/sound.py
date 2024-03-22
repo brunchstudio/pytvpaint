@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from typing_extensions import Self
 
-from pytvpaint import george
-from pytvpaint import utils
+from pytvpaint import george, utils
 from pytvpaint.utils import (
     CanMakeCurrent,
     Removable,

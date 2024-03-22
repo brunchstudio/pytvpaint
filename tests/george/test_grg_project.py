@@ -326,7 +326,11 @@ def test_tv_project_save_sequence(
 
     clip = tv_clip_info(tv_clip_current_id())
     save_ext, _ = tv_save_mode_get()
-    start_end = (start, end) or (clip.first_frame, clip.last_frame)
+    start_end = (
+        (start, end)
+        if (start is not None and end is not None)
+        else (clip.first_frame, clip.last_frame)
+    )
 
     tv_save_mode_set(SaveFormat.JPG)
 

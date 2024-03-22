@@ -8,11 +8,9 @@ from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
 
-from pytvpaint import log
-from pytvpaint import george
+from pytvpaint import george, log, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.sound import ProjectSound
-from pytvpaint import utils
 from pytvpaint.utils import (
     Refreshable,
     Renderable,
@@ -215,7 +213,7 @@ class Project(Refreshable, Renderable):
     @property
     @set_as_current
     def end_frame(self) -> int:
-        """The project's end frame, meaning the last frame of the last clip in the project's timeline"""
+        """The project's end frame, meaning the last frame of the last clip in the project's timeline."""
         start = self.start_frame
 
         duration = 0
@@ -459,8 +457,8 @@ class Project(Refreshable, Renderable):
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         format_opts: list[str] | None = None,
-    ):
-        """Render sequential clips as a single output"""
+    ) -> None:
+        """Render sequential clips as a single output."""
         clips = sorted(clips, key=lambda c: c.position)
         start = clips[0].timeline_start
         end = clips[-1].timeline_end

@@ -959,9 +959,8 @@ def tv_get_active_shape() -> TVPShape:
     return tv_cast_to_type(send_cmd("tv_GetActiveShape"), TVPShape)
 
 
-def tv_set_active_shape(shape: TVPShape, *shape_args) -> None:
-    """
-    Set the current shape and its tool parameters.
+def tv_set_active_shape(shape: TVPShape, *shape_args: Any) -> None:
+    """Set the current shape and its tool parameters.
 
     Args:
         shape: the shape to set
@@ -1038,10 +1037,7 @@ def tv_set_b_pen_hsl(color: HSLColor) -> HSLColor:
 
 
 def tv_pen(size: float) -> float:
-    """
-    Change current pen tool size. This function is most likely deprecated it is undocumented in the George reference but
-    still works.
-    """
+    """Change current pen tool size. This function is most likely deprecated it is undocumented in the George reference but still works."""
     res = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
     return cast(float, res["size"])
 
@@ -1092,8 +1088,7 @@ def tv_line(
     right_click: bool = False,
     dry: bool = False,
 ) -> None:
-    """
-    Draw a line (with the current brush)
+    """Draw a line (with the current brush).
 
     Args:
         xy1: start position as (x, y)
@@ -1111,8 +1106,7 @@ def tv_line(
 
 
 def tv_text(text: str, x: int, y: int, use_b_pen: bool = False) -> None:
-    """
-    Write text in a layer instance
+    """Write text in a layer instance.
 
     Args:
         text: text to write
@@ -1124,8 +1118,7 @@ def tv_text(text: str, x: int, y: int, use_b_pen: bool = False) -> None:
 
 
 def tv_text_brush(text: str) -> None:
-    """
-    Set the text for the text brush
+    """Set the text for the text brush.
 
     Args:
         text: text to write
