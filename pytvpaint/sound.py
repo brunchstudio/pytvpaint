@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from typing_extensions import Self
 
 from pytvpaint import george
+from pytvpaint import utils
 from pytvpaint.utils import (
     CanMakeCurrent,
     Removable,
-    position_generator,
     refreshed_property,
     set_as_current,
 )
@@ -67,7 +67,7 @@ class BaseSound(Removable, ABC, Generic[P]):
     @classmethod
     def iter_sounds_data(cls, parent_id: str | int) -> Iterator[george.TVPSound]:
         """Iterator over the sound's data."""
-        return position_generator(lambda track_index: cls._info(parent_id, track_index))
+        return utils.position_generator(lambda track_index: cls._info(parent_id, track_index))
 
     def make_current(self) -> None:
         """Make the parent object current (there's no way to make a sound current)."""

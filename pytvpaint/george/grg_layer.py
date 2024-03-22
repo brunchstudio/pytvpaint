@@ -1114,7 +1114,7 @@ def tv_instance_get_name(layer_id: int, frame: int) -> str:
         frame: the frame of the instance
 
     Raises:
-        NoObjectWithIdError: if given an invalid layer id
+        NoObjectWithIdError: if given an invalid layer id or an invalid instance frame
 
     Returns:
         the instance name
@@ -1139,6 +1139,35 @@ def tv_exposure_next() -> int:
         The next instances start frame
     """
     return int(send_cmd("tv_ExposureNext"))
+
+
+def tv_exposure_break(frame: int) -> None:
+    """Break a layer instance/exposure at the given frame
+
+    Args:
+        frame: the split frame
+    """
+    send_cmd("tv_ExposureBreak", frame)
+
+
+def tv_exposure_add(frame: int, count: int) -> None:
+    """Add new frames to an existing layer instance/exposure
+
+    Args:
+        frame: the split frame
+        count: the number of frames to add
+    """
+    send_cmd("tv_ExposureAdd", frame, count)
+
+
+def tv_exposure_set(frame: int, count: int) -> None:
+    """Set the number frames of an existing layer instance/exposure
+
+    Args:
+        frame: the split frame
+        count: the number of frames to add
+    """
+    send_cmd("tv_ExposureSet", frame, count)
 
 
 def tv_exposure_prev() -> int:

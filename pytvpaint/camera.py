@@ -6,10 +6,10 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 from pytvpaint import george
+from pytvpaint import utils
 from pytvpaint.utils import (
     Refreshable,
     Removable,
-    position_generator,
     refreshed_property,
     set_as_current,
 )
@@ -137,7 +137,7 @@ class Camera(Refreshable):
     @set_as_current
     def points(self) -> Iterator[CameraPoint]:
         """Iterator for the `CameraPoint` objects of the camera."""
-        points_data = position_generator(lambda pos: george.tv_camera_enum_points(pos))
+        points_data = utils.position_generator(lambda pos: george.tv_camera_enum_points(pos))
         for index, point_data in enumerate(points_data):
             yield CameraPoint(index, camera=self, data=point_data)
 

@@ -7,9 +7,9 @@ from collections.abc import Iterator
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.project import Project
+from pytvpaint import utils
 from pytvpaint.utils import (
     Removable,
-    position_generator,
     set_as_current,
 )
 
@@ -93,7 +93,7 @@ class Scene(Removable):
     @set_as_current
     def clip_ids(self) -> Iterator[int]:
         """Returns an iterator over the clip ids."""
-        return position_generator(lambda pos: george.tv_clip_enum_id(self.id, pos))
+        return utils.position_generator(lambda pos: george.tv_clip_enum_id(self.id, pos))
 
     @property
     def clips(self) -> Iterator[Clip]:

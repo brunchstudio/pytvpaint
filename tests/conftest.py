@@ -9,7 +9,7 @@ from typing import TypeVar
 
 import pytest
 
-from pytvpaint.clip import Clip
+from pytvpaint import george
 from pytvpaint.george.grg_base import tv_pen_brush_set
 from pytvpaint.george.grg_clip import (
     TVPClip,
@@ -43,9 +43,11 @@ from pytvpaint.george.grg_scene import (
     tv_scene_enum_id,
     tv_scene_new,
 )
-from pytvpaint.layer import Layer
+from pytvpaint.george.client import send_cmd
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
+from pytvpaint.clip import Clip
+from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.sound import ClipSound, ProjectSound
 
 T = TypeVar("T")
@@ -139,6 +141,38 @@ def test_scene_obj(test_project_obj: Project, test_scene: int) -> FixtureYield[S
     yield Scene(test_scene, test_project_obj)
 
 
+@pytest.fixture
+def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
+    """Create 5 frames with a text in the middle of the screen for each frame. Useful for debugging render tests."""
+    text_pos = (int(test_clip_obj.project.width / 2), int(test_clip_obj.project.height / 2))
+
+    test_clip_obj.current_frame = 1
+    test_layer = Layer.new_anim_layer('count_up', test_clip_obj)
+    test_layer.make_current()
+
+    instances: list[LayerInstance] = []
+    for i in range(1, 6):
+        if i == 1:
+            li = test_layer.get_instance(i)
+        else:
+            li = test_layer.add_instance(i)
+        test_clip_obj.current_frame = i
+
+        # write the frame number in the middle of the image
+        george.tv_set_a_pen_rgba(george.RGBColor(0, 0, 0), 255)  # set the pen color
+        send_cmd('tv_TextTool2', 'size', 200)  # set text size
+        george.tv_text_brush(i)  # set the brush text
+        george.tv_set_active_shape(george.TVPShape.FREE_HAND_LINE, 'size', 200)  # set the shape and it's size
+        # write a line with the text brush, having the start-end pos being the same will fake a single click
+        george.tv_line(text_pos, text_pos)
+        # update undo stack otherwise edits to last image are not saved (-_-)"
+        george.tv_update_undo()
+
+        instances.append(li)
+
+    return instances
+
+
 def ppm_generate(path: Path, width: int, height: int, levels: int = 255) -> None:
     """
     Generates an ASCII PPM image file with random gray level pixels
@@ -162,7 +196,7 @@ def ppm_sequence(tmp_path_factory: pytest.TempPathFactory) -> FixtureYield[list[
     images: list[Path] = []
 
     for i in range(5):
-        ppm = images_dir / f"image.{str(i + 1).zfill(3)}.ppm"
+        ppm = images_dir / f"image.{(i + 1):03d}.ppm"
         ppm_generate(ppm, 200, 200)
         images.append(ppm)
 
