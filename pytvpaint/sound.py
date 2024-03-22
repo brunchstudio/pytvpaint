@@ -67,7 +67,9 @@ class BaseSound(Removable, ABC, Generic[P]):
     @classmethod
     def iter_sounds_data(cls, parent_id: str | int) -> Iterator[george.TVPSound]:
         """Iterator over the sound's data."""
-        return utils.position_generator(lambda track_index: cls._info(parent_id, track_index))
+        return utils.position_generator(
+            lambda track_index: cls._info(parent_id, track_index)
+        )
 
     def make_current(self) -> None:
         """Make the parent object current (there's no way to make a sound current)."""

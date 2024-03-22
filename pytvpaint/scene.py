@@ -93,7 +93,9 @@ class Scene(Removable):
     @set_as_current
     def clip_ids(self) -> Iterator[int]:
         """Returns an iterator over the clip ids."""
-        return utils.position_generator(lambda pos: george.tv_clip_enum_id(self.id, pos))
+        return utils.position_generator(
+            lambda pos: george.tv_clip_enum_id(self.id, pos)
+        )
 
     @property
     def clips(self) -> Iterator[Clip]:

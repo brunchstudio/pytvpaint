@@ -144,10 +144,13 @@ def test_scene_obj(test_project_obj: Project, test_scene: int) -> FixtureYield[S
 @pytest.fixture
 def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
     """Create 5 frames with a text in the middle of the screen for each frame. Useful for debugging render tests."""
-    text_pos = (int(test_clip_obj.project.width / 2), int(test_clip_obj.project.height / 2))
+    text_pos = (
+        int(test_clip_obj.project.width / 2),
+        int(test_clip_obj.project.height / 2),
+    )
 
     test_clip_obj.current_frame = 1
-    test_layer = Layer.new_anim_layer('count_up', test_clip_obj)
+    test_layer = Layer.new_anim_layer("count_up", test_clip_obj)
     test_layer.make_current()
 
     instances: list[LayerInstance] = []
@@ -160,9 +163,11 @@ def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
 
         # write the frame number in the middle of the image
         george.tv_set_a_pen_rgba(george.RGBColor(0, 0, 0), 255)  # set the pen color
-        send_cmd('tv_TextTool2', 'size', 200)  # set text size
+        send_cmd("tv_TextTool2", "size", 200)  # set text size
         george.tv_text_brush(i)  # set the brush text
-        george.tv_set_active_shape(george.TVPShape.FREE_HAND_LINE, 'size', 200)  # set the shape and it's size
+        george.tv_set_active_shape(
+            george.TVPShape.FREE_HAND_LINE, "size", 200
+        )  # set the shape and it's size
         # write a line with the text brush, having the start-end pos being the same will fake a single click
         george.tv_line(text_pos, text_pos)
         # update undo stack otherwise edits to last image are not saved (-_-)"

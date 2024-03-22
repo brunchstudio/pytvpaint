@@ -137,7 +137,9 @@ class Camera(Refreshable):
     @set_as_current
     def points(self) -> Iterator[CameraPoint]:
         """Iterator for the `CameraPoint` objects of the camera."""
-        points_data = utils.position_generator(lambda pos: george.tv_camera_enum_points(pos))
+        points_data = utils.position_generator(
+            lambda pos: george.tv_camera_enum_points(pos)
+        )
         for index, point_data in enumerate(points_data):
             yield CameraPoint(index, camera=self, data=point_data)
 

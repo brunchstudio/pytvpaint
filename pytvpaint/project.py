@@ -236,7 +236,9 @@ class Project(Refreshable, Renderable):
     def current_frame(self, value: int) -> None:
         # when setting the current frame, if it is outside the current clip's range, TVP will switch to the clip but not
         # the required frame. So we need to set it twice, one to switch the clip, and once again to set the frame
-        set_twice = not (self.current_clip.timeline_start <= value <= self.current_clip.timeline_end)
+        set_twice = not (
+            self.current_clip.timeline_start <= value <= self.current_clip.timeline_end
+        )
 
         real_frame = value - self.start_frame
         george.tv_project_current_frame_set(real_frame)
@@ -387,11 +389,15 @@ class Project(Refreshable, Renderable):
         project_mark_in = self.mark_in
         project_mark_out = self.mark_out
 
-        proj_full_range = (min(project_mark_in or project_start_frame, project_start_frame),
-                           max(project_mark_out or project_end_frame, project_end_frame))
+        proj_full_range = (
+            min(project_mark_in or project_start_frame, project_start_frame),
+            max(project_mark_out or project_end_frame, project_end_frame),
+        )
         if start < proj_full_range[0] or end > proj_full_range[1]:
-            log.warning(f"Detected range ({start}-{end}) outside of project bounds ({proj_full_range}), "
-                        f"TVPaint tends to render all project frames if that's the case")
+            log.warning(
+                f"Detected range ({start}-{end}) outside of project bounds ({proj_full_range}), "
+                f"TVPaint tends to render all project frames if that's the case"
+            )
 
     def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
         project_start_frame = self.start_frame
@@ -500,9 +506,7 @@ class Project(Refreshable, Renderable):
 
         frame = value - self.start_frame
         george.tv_mark_in_set(
-            reference=george.MarkReference.PROJECT,
-            frame=frame,
-            action=action
+            reference=george.MarkReference.PROJECT, frame=frame, action=action
         )
 
     @property

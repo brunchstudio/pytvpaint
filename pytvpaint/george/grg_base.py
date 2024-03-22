@@ -1086,7 +1086,12 @@ def tv_pen_brush_set(
     return tv_pen_brush_get()
 
 
-def tv_line(xy1: tuple[int, int], xy2: tuple[int, int], right_click: bool = False, dry: bool = False) -> None:
+def tv_line(
+    xy1: tuple[int, int],
+    xy2: tuple[int, int],
+    right_click: bool = False,
+    dry: bool = False,
+) -> None:
     """
     Draw a line (with the current brush)
 
@@ -1102,7 +1107,7 @@ def tv_line(xy1: tuple[int, int], xy2: tuple[int, int], right_click: bool = Fals
         bool(right_click),
         bool(dry),
     ]
-    send_cmd('tv_Line', *args)
+    send_cmd("tv_Line", *args)
 
 
 def tv_text(text: str, x: int, y: int, use_b_pen: bool = False) -> None:
@@ -1115,7 +1120,7 @@ def tv_text(text: str, x: int, y: int, use_b_pen: bool = False) -> None:
         y: text y position
         use_b_pen: True will use b pen, False will use A pen
     """
-    send_cmd('tv_Text', x, y, int(use_b_pen), text)
+    send_cmd("tv_Text", x, y, int(use_b_pen), text)
 
 
 def tv_text_brush(text: str) -> None:
@@ -1125,7 +1130,7 @@ def tv_text_brush(text: str) -> None:
     Args:
         text: text to write
     """
-    send_cmd('tv_TextBrush', text)
+    send_cmd("tv_TextBrush", text)
 
 
 def tv_rect(

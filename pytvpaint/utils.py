@@ -12,7 +12,8 @@ from typing import (
     Any,
     Callable,
     TypeVar,
-    cast, Generator,
+    cast,
+    Generator,
 )
 
 from typing_extensions import ParamSpec, Protocol
@@ -131,20 +132,16 @@ class Renderable(ABC):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         format_opts: list[str] | None = None,
     ) -> None:
-        file_sequence, start, end, is_sequence, is_image = (
-            handle_output_range(
-                output_path,
-                default_start,
-                default_end,
-                start,
-                end
-            )
+        file_sequence, start, end, is_sequence, is_image = handle_output_range(
+            output_path, default_start, default_end, start, end
         )
         self._validate_range(start, end)
 
         start, end = self._get_real_range(start, end)
         if not is_image and start == end:
-            raise ValueError('TVPaint will not render a movie that contains a single frame')
+            raise ValueError(
+                "TVPaint will not render a movie that contains a single frame"
+            )
 
         # get first frame, tvp doesn't understand vfx padding `#`
         if is_image or file_sequence.padding():
@@ -166,7 +163,8 @@ class Renderable(ABC):
                 # not using tv_save_sequence since it doesn't handle camera and would require different range math
                 george.tv_project_save_sequence(
                     first_frame,
-                    start=start, end=end,
+                    start=start,
+                    end=end,
                     use_camera=use_camera,
                 )
 
@@ -459,14 +457,18 @@ def handle_output_range(
         end = end or file_sequence.end()
 
     # check characteristics of file sequence
-    fseq_has_range = (frame_set and len(frame_set) > 1)
-    fseq_is_single_image = (frame_set and len(frame_set) == 1)
-    fseq_no_range_padding = (not frame_set and file_sequence.padding())
-    range_is_seq = (start and end and start != end)
-    range_is_single_image = (start and end and start == end)
+    fseq_has_range = frame_set and len(frame_set) > 1
+    fseq_is_single_image = frame_set and len(frame_set) == 1
+    fseq_no_range_padding = not frame_set and file_sequence.padding()
+    range_is_seq = start and end and start != end
+    range_is_single_image = start and end and start == end
 
-    is_single_image = bool(is_image and (fseq_is_single_image or not frame_set) and range_is_single_image)
-    is_sequence = bool(is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq))
+    is_single_image = bool(
+        is_image and (fseq_is_single_image or not frame_set) and range_is_single_image
+    )
+    is_sequence = bool(
+        is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq)
+    )
 
     # if no range provided, use clip mark in/out, if none, use clip start/end
     if start is None:
@@ -480,11 +482,10 @@ def handle_output_range(
     frame_set = FrameSet(f"{start}-{end}")
 
     if not file_sequence.padding() and is_image and len(frame_set) > 1:
-        file_sequence.setPadding('#')
+        file_sequence.setPadding("#")
 
     # we should have a range by now, set it in the sequence
     if (is_image and not is_single_image) or file_sequence.padding():
         file_sequence.setFrameSet(frame_set)
 
     return file_sequence, start, end, is_sequence, is_image
-
