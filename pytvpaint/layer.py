@@ -178,17 +178,20 @@ class LayerInstance:
             the next instance or None if at the end of the layer
         """
         self.layer.make_current()
+
         with utils.restore_current_frame(self.layer.clip, self.start):
             next_frame = george.tv_exposure_next()
 
         next_frame += self.layer.project.start_frame
-        if next_frame >= self.layer.end:
+
+        if next_frame > self.layer.end:
             return None
 
         next_instance = LayerInstance(self.layer, next_frame)
 
         if next_instance == self:
             return None
+
         return next_instance
 
     @property
@@ -982,15 +985,17 @@ class Layer(Removable):
             each LayerInstance at that time
         """
         # Exposure frames starts at 0
-        next_instance = LayerInstance(self, self.start)
-        yield next_instance
+        current_instance = LayerInstance(self, self.start)
 
         while True:
-            instance = next_instance.next
-            if instance is None:
+            yield current_instance
+
+            nex_instance = current_instance.next
+            if nex_instance is None:
+                print("STOP", current_instance)
                 break
-            next_instance = instance
-            yield instance
+
+            current_instance = nex_instance
 
     def get_instance(self, frame: int, strict: bool = False) -> LayerInstance | None:
         """Get the instance at that frame.
