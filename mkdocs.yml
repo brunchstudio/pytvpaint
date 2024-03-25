@@ -38,7 +38,9 @@ nav:
   - Get Started:
       - Welcome to PyTVPaint: index.md
       - Installation: installation.md
-      - Usage: usage.md
+      - Usage:
+          - Basics: usage/usage.md
+          - Rendering: usage/rendering.md
       - Limitations: limitations.md
       - Contributing:
           - Developer setup: contributing/developer_setup.md

@@ -7,19 +7,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
-from fileseq.frameset import FrameSet
 
-from pytvpaint import george, log
+from pytvpaint import george, utils
 from pytvpaint.camera import Camera
 from pytvpaint.layer import Layer, LayerColor
 from pytvpaint.sound import ClipSound
 from pytvpaint.utils import (
     Removable,
-    get_tvp_element,
-    get_unique_name,
-    position_generator,
+    Renderable,
     refreshed_property,
-    render_context,
     set_as_current,
 )
 
@@ -28,7 +24,7 @@ if TYPE_CHECKING:
     from pytvpaint.scene import Scene
 
 
-class Clip(Removable):
+class Clip(Removable, Renderable):
     """A Clip is a container for layers and is part of a Scene."""
 
     def __init__(
@@ -87,7 +83,7 @@ class Clip(Removable):
         scene = scene or project.current_scene
         scene.make_current()
 
-        name = get_unique_name(project.clip_names, name)
+        name = utils.get_unique_name(project.clip_names, name)
         george.tv_clip_new(name)
 
         return Clip.current_clip()
@@ -159,18 +155,46 @@ class Clip(Removable):
         """Set the clip name."""
         if self.name == value:
             return
-        value = get_unique_name(self.project.clip_names, value)
+        value = utils.get_unique_name(self.project.clip_names, value)
         george.tv_clip_name_set(self.id, value)
 
     @refreshed_property
     def start(self) -> int:
-        """The start frame of the clip relative to the project start frame."""
+        """The start frame of the clip."""
         return self._data.first_frame + self.project.start_frame
 
     @refreshed_property
     def end(self) -> int:
-        """The end frame of the clip relative to the project start frame."""
+        """The end frame of the clip."""
         return self._data.last_frame + self.project.start_frame
+
+    @property
+    def duration(self) -> int:
+        """The duration of the clip in frames. Takes into account the mark in/out of the clip."""
+        return (self.mark_out or self.end) - (self.mark_in or self.start) + 1
+
+    @refreshed_property
+    def timeline_start(self) -> int:
+        """The start frame of the clip relative to the project's timeline."""
+        # get clip real start in project timeline
+        clip_real_start = 0
+        for clip in self.project.clips:
+            if clip == self:
+                break
+            clip_start = clip.mark_in or clip.start
+            clip_end = clip.mark_out or clip.end
+            clip_duration = (clip_end - clip_start) + 1
+            clip_real_start += clip_duration
+
+        return clip_real_start + self.project.start_frame
+
+    @refreshed_property
+    def timeline_end(self) -> int:
+        """The end frame of the clip relative to the project's timeline."""
+        clip_start = self.mark_in or self.start
+        clip_end = self.mark_out or self.end
+        clip_duration = clip_end - clip_start
+        return self.timeline_start + clip_duration
 
     @refreshed_property
     def frame_count(self) -> int:
@@ -269,7 +293,7 @@ class Clip(Removable):
     @refreshed_property
     def is_current(self) -> bool:
         """Returns True if the clip is the current one."""
-        return self._data.is_current
+        return Clip.current_clip_id() == self.id
 
     @staticmethod
     def current_clip_id() -> int:
@@ -304,7 +328,7 @@ class Clip(Removable):
         """
         george.tv_clip_duplicate(self.id)
         new_clip = self.project.current_clip
-        new_clip.name = get_unique_name(self.project.clip_names, new_clip.name)
+        new_clip.name = utils.get_unique_name(self.project.clip_names, new_clip.name)
         return new_clip
 
     def remove(self) -> None:
@@ -320,7 +344,7 @@ class Clip(Removable):
     @set_as_current
     def layer_ids(self) -> Iterator[int]:
         """Iterator over the layer ids."""
-        return position_generator(lambda pos: george.tv_layer_get_id(pos))
+        return utils.position_generator(lambda pos: george.tv_layer_get_id(pos))
 
     @property
     def layers(self) -> Iterator[Layer]:
@@ -351,7 +375,7 @@ class Clip(Removable):
         by_name: str | None = None,
     ) -> Layer | None:
         """Get a specific layer by id or name."""
-        return get_tvp_element(self.layers, by_id, by_name)
+        return utils.get_tvp_element(self.layers, by_id, by_name)
 
     @set_as_current
     def add_layer(self, layer_name: str) -> Layer:
@@ -410,121 +434,36 @@ class Clip(Removable):
 
         return new_layer
 
-    def _handle_output_range(  # noqa: C901
-        self,
-        output_path: Path | str | FileSequence,
-        start: int | None = None,
-        end: int | None = None,
-        use_camera: bool = False,
-        force_range: bool = False,
-    ) -> tuple[FileSequence, int, int, bool, bool]:
-        """Handle the different options for output paths and range, whether the user provided a range (start-end) or a filesequence with a range or not, this functions ensures we always end up with a valid range to render.
-
-        Args:
-            output_path: user provided output path
-            start: user provided start frame
-            end: user provided end frame
-            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
-            force_range: force the provided range even if it isn't incorrect or might output wrong frames
-
-        Raises:
-            ValueError: if output range (start/end) are inferior to clip start frame
-
-        Bug:
-            TVPaint will not render the requested/correct range in some cases. Having no control over this inconsistent
-            behaviour and to avoid issues we will raise a ValueError if an invalid range is detected. You can however
-            force an incorrect range using `force_range=True`, we will then log a warning when this happens (to help
-            with debugging) and the function will render with your range without checking the output at the end.
-            For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
-            `Limitations` section of the documentation which explains this in more detail.
-
-        Returns:
-            file_sequence: output path as a FileSequence object
-            start: computed start frame
-            end: computed end frame
-            is_sequence: whether the output is a sequence or not
-            is_image: whether the output is an image or not (a movie)
-        """
-        # we handle all outputs as a FileSequence, makes it a bit easier to handle ranges and padding
-        if not isinstance(output_path, FileSequence):
-            file_sequence = FileSequence(Path(output_path).as_posix())
-        else:
-            file_sequence = output_path
-
-        frame_set = file_sequence.frameSet()
-        is_image = george.SaveFormat.is_image(file_sequence.extension())
-
-        # if the provided sequence has a range, and we don't, use the sequence range
-        if frame_set and len(frame_set) >= 1 and is_image:
-            start = start or file_sequence.start()
-            end = end or file_sequence.end()
-
-        # check characteristics of output path
-        fseq_has_range = frame_set and len(frame_set) > 1
-        fseq_is_single_image = frame_set and len(frame_set) == 1
-        fseq_no_range_padding = not frame_set and file_sequence.padding()
-        range_is_seq = start and end and start != end
-        range_is_single_image = start and end and start == end
-
-        is_single_image = bool(
-            is_image
-            and (fseq_is_single_image or not frame_set)
-            and range_is_single_image
-        )
-        is_sequence = bool(
-            is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq)
-        )
-
-        # if no range provided, use clip mark in/out, if none, use clip start/end
-        start = start or self.mark_in or self.start
-
-        end = (
-            start
-            if (is_single_image and not end)
-            else (end or self.mark_out or self.end)
-        )
-
-        frame_set = FrameSet(f"{start}-{end}")
-
-        if not file_sequence.padding() and is_image and len(frame_set) > 1:
-            file_sequence.setPadding("#")
-
-        # we should have a range by now, set it in the sequence
-        if (is_image and not is_single_image) or file_sequence.padding():
-            file_sequence.setFrameSet(frame_set)
-
-        err_msg = ""
+    def _validate_range(self, start: int, end: int) -> None:
         clip_start = self.start
         clip_end = self.end
+        clip_mark_in = self.mark_in
+        clip_mark_out = self.mark_out
 
-        if use_camera:
-            if start < clip_start or end > clip_end:
-                err_msg = (
-                    f"TVPaint will not render the full range requested ({start}-{end})"
-                )
-        else:
-            if start < clip_start or end < clip_start:
-                err_msg = (
-                    f"TVPaint will not render frames before clip start ({clip_start})"
-                )
-            elif start == clip_start and end > clip_end:
-                err_msg = (
-                    f"TVPaint will not render the full range requested ({start}-{end})"
-                )
-            elif clip_start <= start < end and end > clip_end:
-                err_msg = f"TVPaint will render the full range requested ({start}-{end}) but frames will be empty"
+        clip_full_range = (
+            (clip_mark_in if clip_mark_in else clip_start),
+            (clip_mark_out if clip_mark_out else clip_end),
+        )
+        if start < clip_full_range[0] or end > clip_full_range[1]:
+            raise ValueError(
+                f"Render ({start}-{end}) not in clip range ({clip_full_range})"
+            )
 
-        if not is_image and start == end:
-            err_msg = "TVPaint will not render a movie that contains a single frame"
+    def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
+        # get project start to get real values
+        project_start_frame = self.project.start_frame
+        # get clip real start in project timeline
+        clip_real_start = self.timeline_start - project_start_frame
+        # get real mark_in since we'll also need to subtract it from the range
+        real_mark_in = (self.mark_in - project_start_frame) if self.mark_in else 0
 
-        if err_msg:
-            err_msg += ", check the documentation for more details !"
-            if force_range:
-                log.warning(err_msg)
-            else:
-                raise ValueError(err_msg)
+        start = (start - project_start_frame - real_mark_in) + clip_real_start
+        end = (end - project_start_frame - real_mark_in) + clip_real_start
 
-        return file_sequence, start, end, is_sequence, is_image
+        # clamp values to clip start
+        start = max(clip_real_start, start)
+        end = max(clip_real_start, end)
+        return start, end
 
     @set_as_current
     def render(
@@ -536,94 +475,42 @@ class Clip(Removable):
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         format_opts: list[str] | None = None,
-        force_range: bool = False,
     ) -> None:
-        """Render the clip to a single frame or frame sequence.
+        """Render the clip to a single frame or frame sequence or movie.
 
         Args:
             output_path: a single file or file sequence pattern
-            start: the start frame to render or the mark in or project start if None. Defaults to None.
-            end: the end frame to render or the mark out or project end if None. Defaults to None.
+            start: the start frame to render or the mark in or the clip's start if None. Defaults to None.
+            end: the end frame to render or the mark out or the clip's end if None. Defaults to None.
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             layer_selection: list of layers to render, if None render all of them. Defaults to None.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             format_opts: custom format options. Defaults to None.
-            force_range: force the provided range even if it isn't incorrect or might output wrong frames
 
         Raises:
-            ValueError: if output range (start/end) are inferior to clip start frame
-            FileNotFoundError: if the render failed and no files were found on disk
+            ValueError: if requested range (start-end) not in clip range/bounds
+            ValueError: if output is a movie, and it's duration is equal to 1 frame
+            FileNotFoundError: if the render failed and no files were found on disk or missing frames
 
-        Bug:
-           TVPaint will not render the requested/correct range in some cases. Having no control over this inconsistent
-           behaviour and to avoid issues we will raise a ValueError if an invalid range is detected. You can however
-           force an incorrect range using `force_range=True`, we will then log a warning when this happens (to help
-           with debugging) and the function will render with your range without checking the output at the end.
-           For more details on the different issues with frame ranges and the timeline in TVPaint, please check the
-           `Limitations` section of the documentation which explains this in more detail.
+        Note:
+            This functions uses the clip's range as a basis (start-end). This  is different from a project range, which
+            uses the project timeline. For more details on the differences in frame range and the timeline in TVPaint,
+            please check the `Limitations` section of the documentation.
         """
-        file_sequence, start, end, is_sequence, is_image = self._handle_output_range(
-            output_path, start, end, use_camera, force_range
+        default_start = self.mark_in or self.start
+        default_end = self.mark_out or self.end
+
+        self._render(
+            output_path,
+            default_start,
+            default_end,
+            start,
+            end,
+            use_camera,
+            layer_selection=layer_selection,
+            alpha_mode=alpha_mode,
+            format_opts=format_opts,
         )
-
-        # get project start to get real values, note that using the camera changes the way we handle ranges
-        project_start_frame = self.project.start_frame if not use_camera else 0
-        # get clip real start to clamp start and end frames
-        clip_real_start = self.start - project_start_frame
-
-        start = max(clip_real_start, (start - project_start_frame))
-        end = max(clip_real_start, (end - project_start_frame))
-
-        save_format = george.SaveFormat.from_extension(
-            file_sequence.extension().lower()
-        )
-
-        # render to output
-        if is_image or file_sequence.padding():
-            first_frame = Path(file_sequence.frame(file_sequence.start()))
-        else:
-            first_frame = Path(str(output_path))
-
-        first_frame.parent.mkdir(exist_ok=True, parents=True)
-
-        with render_context(alpha_mode, save_format, format_opts, layer_selection):
-            if use_camera:
-                george.tv_project_save_sequence(
-                    first_frame,
-                    start_end_frame=(start, end),
-                    use_camera=True,
-                )
-            else:
-                if start == end:
-                    george.tv_save_display(first_frame)
-                else:
-                    george.tv_save_sequence(first_frame, mark_in=start, mark_out=end)
-
-        if force_range:
-            return  # user is forcing a possibly invalid range, let them handle output check
-
-        # make sure the output exists otherwise raise an error
-        if is_sequence:
-            # raises error if sequence not found
-            found_sequence = FileSequence.findSequenceOnDisk(str(file_sequence))
-            frame_set = found_sequence.frameSet()
-            file_sequence_frame_set = file_sequence.frameSet()
-
-            if frame_set is None or file_sequence_frame_set is None:
-                raise Exception("Frameset should be defined")
-
-            if not frame_set.issuperset(file_sequence.frameSet()):
-                # not all frames found
-                missing_frames = file_sequence_frame_set.difference(frame_set)
-                raise FileNotFoundError(
-                    f"Not all frames found, missing frames ({missing_frames}) "
-                    f"in sequence : {output_path}"
-                )
-        else:
-            if not first_frame.exists():
-                raise FileNotFoundError(
-                    f"Could not find output at : {first_frame.as_posix()}"
-                )
 
     @set_as_current
     def export_tvp(self, export_path: Path | str) -> None:
@@ -677,7 +564,9 @@ class Clip(Removable):
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
 
-        with render_context(alpha_mode, save_format, format_opts, layer_selection):
+        with utils.render_context(
+            alpha_mode, save_format, format_opts, layer_selection
+        ):
             george.tv_clip_save_structure_json(
                 export_path,
                 save_format,
@@ -721,7 +610,7 @@ class Clip(Removable):
         export_path = Path(export_path)
         image = start if mode == george.PSDSaveMode.IMAGE else None
 
-        with render_context(
+        with utils.render_context(
             alpha_mode, george.SaveFormat.PSD, format_opts, layer_selection
         ):
             george.tv_clip_save_structure_psd(
@@ -732,10 +621,15 @@ class Clip(Removable):
                 mark_out=end,
             )
 
-        if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+        if mode == george.PSDSaveMode.MARKIN:
+            # raises error if sequence not found
+            check_path = export_path.with_suffix(f".#{export_path.suffix}").as_posix()
+            assert FileSequence.findSequenceOnDisk(check_path)
+        else:
+            if not export_path.exists():
+                raise FileNotFoundError(
+                    f"Could not find output at : {export_path.as_posix()}"
+                )
 
     @set_as_current
     def export_csv(
@@ -768,7 +662,9 @@ class Clip(Removable):
         if export_path.suffix != ".csv":
             raise ValueError("Export path must have .csv extension")
 
-        with render_context(alpha_mode, save_format, format_opts, layer_selection):
+        with utils.render_context(
+            alpha_mode, save_format, format_opts, layer_selection
+        ):
             george.tv_clip_save_structure_csv(export_path, all_images, exposure_label)
 
         if not export_path.exists():
@@ -799,10 +695,15 @@ class Clip(Removable):
         export_path = Path(export_path)
         save_format = george.SaveFormat.from_extension(export_path.suffix)
 
-        with render_context(alpha_mode, save_format, format_opts, layer_selection):
+        with utils.render_context(
+            alpha_mode, save_format, format_opts, layer_selection
+        ):
             george.tv_clip_save_structure_sprite(export_path, layout, space)
 
-        # TODO check whether output was successful and files exist or not for this function and the others
+        if not export_path.exists():
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
+            )
 
     @set_as_current
     def export_flix(
@@ -848,7 +749,7 @@ class Clip(Removable):
         self.project.save()
 
         # save alpha mode and save format values
-        with render_context(alpha_mode, None, format_opts, layer_selection):
+        with utils.render_context(alpha_mode, None, format_opts, layer_selection):
             george.tv_clip_save_structure_flix(
                 export_path,
                 start,
@@ -857,6 +758,11 @@ class Clip(Removable):
                 file_parameters,
                 send,
                 original_file,
+            )
+
+        if not export_path.exists():
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
             )
 
     @property
@@ -873,11 +779,9 @@ class Clip(Removable):
     def mark_in(self, value: int | None) -> None:
         """Set the mark int value of the clip or None to clear it."""
         action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
-        frame = (
-            ((self.mark_in or 0) - self.project.start_frame)
-            if value is None
-            else (value - self.project.start_frame)
-        )
+        value = value or self.mark_in or 0
+
+        frame = value - self.project.start_frame
         george.tv_mark_in_set(
             reference=george.MarkReference.CLIP, frame=frame, action=action
         )
@@ -895,11 +799,14 @@ class Clip(Removable):
     @set_as_current
     def mark_out(self, value: int | None) -> None:
         """Set the mark in of the clip or None to clear it."""
-        value = (value or 0) - self.project.start_frame
+        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
+        value = value or self.mark_out or 0
+
+        frame = value - self.project.start_frame
         george.tv_mark_out_set(
             reference=george.MarkReference.CLIP,
-            frame=value,
-            action=george.MarkAction.SET,
+            frame=frame,
+            action=action,
         )
 
     @property
@@ -947,7 +854,9 @@ class Clip(Removable):
     @property
     def bookmarks(self) -> Iterator[int]:
         """Iterator over the clip bookmarks."""
-        bookmarks_iter = position_generator(lambda pos: george.tv_bookmarks_enum(pos))
+        bookmarks_iter = utils.position_generator(
+            lambda pos: george.tv_bookmarks_enum(pos)
+        )
         project_start_frame = self.project.start_frame
         return (frame + project_start_frame for frame in bookmarks_iter)
 
@@ -978,7 +887,7 @@ class Clip(Removable):
     @property
     def sounds(self) -> Iterator[ClipSound]:
         """Iterates through the clip's soundtracks."""
-        sounds_data = position_generator(
+        sounds_data = utils.position_generator(
             lambda pos: george.tv_sound_clip_info(self.id, pos)
         )
 

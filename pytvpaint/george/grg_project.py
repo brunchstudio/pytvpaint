@@ -242,7 +242,8 @@ def tv_get_field() -> FieldOrder:
 def tv_project_save_sequence(
     export_path: Path | str,
     use_camera: bool | None = None,
-    start_end_frame: tuple[int, int] | None = None,
+    start: int | None = None,
+    end: int | None = None,
 ) -> None:
     """Save the current project."""
     export_path = Path(export_path).resolve()
@@ -250,8 +251,8 @@ def tv_project_save_sequence(
 
     if use_camera:
         args.append("camera")
-    if start_end_frame:
-        args.extend(start_end_frame)
+    if start and end:
+        args.extend((start, end))
 
     send_cmd(
         "tv_ProjectSaveSequence",

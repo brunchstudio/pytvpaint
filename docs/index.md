@@ -7,11 +7,11 @@
 [![](https://img.shields.io/pypi/pyversions/pytvpaint)](https://pypi.org/project/pytvpaint/)
 [![](https://custom-icon-badges.demolab.com/badge/custom-11.5+-blue.svg?logo=butterfly_1f98b&label=TVPaint)](https://www.tvpaint.com/doc/tvp11/)
 
-PyTVPaint is a library that allows you to script for [TVPaint](https://www.tvpaint.com/) in Python instead of [George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction).
+PyTVPaint lets you script for [TVPaint](https://www.tvpaint.com/) in Python instead of 
+[George](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-advanced-functions-george-introduction). It offers a 
+high level object-oriented API as well as low-level George commands in a fully type-hinted library.
 
-Python is the go-to language when it comes to scripting, PyTVPaint offers a high level object-oriented API as well as low-level George commands in a fully type-hinted library.
-
-PyTVPaint communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
+PyTVPaint communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an open TVPaint instance.
 
 ![](./assets/pytvpaint_code_banner.png)
 
@@ -24,15 +24,15 @@ PyTVPaint communicates through WebSocket to a [custom C++ plugin](https://github
 
 - **Coding in George is not optimal** - it produces hard to maintain code, has bugs and poor support in IDEs (except syntax highlighting in IDEs, for example [VSCode](https://marketplace.visualstudio.com/items?itemName=johhnry.vscode-george)).
 
-- **Fully documented** - all modules are fully documented and the george docstring is up-to-date, clearer and fixes some of the mistakes in TVPaints George documentation.
+- **Fully documented** - all modules are fully documented and the george docstring is up-to-date, clearer and fixes many of the errors in the official George documentation.
 
-- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) with 2000+ unit tests and has a test coverage of more than 90%.
+- **Fully type-hinted and tested API** - the library uses [MyPy](https://mypy.readthedocs.io) to strictly check the Python code, [Ruff](https://docs.astral.sh/ruff/) to lint and detect errors and [Pytest](https://docs.pytest.org) and is almost fully unit tested.
 
 - **Seamless coding experience** - no need to manually connect or disconnect to the WebSocket server, you can start coding directly and PyTVPaint will do everything for you! Just code in your favourite language (Python) and it will work!
 
 - **Fully extensible** - a George function wasn't implemented? You can either submit an issue on the repository or [code it yourself](./contributing/wrap_george.md)! We provide tools to directly speak in George with TVPaint and parse the resulting values.
 
-- **Used in production** - PyTVPaint comes from a frustration of coding in the George programming language which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support our pipeline.
+- **Used in production** - PyTVPaint was born from the frustration of coding in George which made our codebase really hard to maintain here at [BRUNCH Studio](https://brunchstudio.tv/). It's now used in production to support our pipeline.
 
 ## PyTVPaint examples
 
@@ -77,7 +77,7 @@ for clip in project.clips:
     clip.render(out_clip)
 ```
 
-Iterates through the layer instances:
+Iterate through the layer instances:
 
 ```python
 from pytvpaint import Layer
@@ -88,7 +88,7 @@ for instance in Layer.current_layer().instances:
 
 ## Disclaimer
 
-PyTVPaint is a project created at BRUNCH Studio to facilitate our developer experience with George. The API is targeted at experienced developers and is by no means a replacement for TVPaint or George but simply builds on it.
+PyTVPaint is a project created at BRUNCH Studio to facilitate our development experience with George. The API is targeted at experienced developers and is by no means a replacement for TVPaint or George but simply builds on it.
 
 We are not affiliated with the TVPaint development team and therefore can't fix any bugs in the software or the George API.
 

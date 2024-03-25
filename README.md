@@ -69,7 +69,7 @@ Please make sure to [update tests](https://brunchstudio.github.io/pytvpaint/cont
 
 ## Disclaimer
 
-PyTVPaint is a project created at BRUNCH Studio to facilitate our developer experience with George. The API is targeted at experienced developers and is by no means a replacement for TVPaint or George but simply builds on it.
+PyTVPaint is a project created at BRUNCH Studio to facilitate our development experience with George. The API is targeted at experienced developers and is by no means a replacement for TVPaint or George but simply builds on it.
 
 We are not affiliated with the TVPaint development team and therefore can't fix any bugs in the software or the George API.
 
@@ -83,6 +83,6 @@ For any questions on the limitations of our API, please head to [this page](http
 
 <hr>
 
-Made with ❤️  at
+Made with ❤️ at
 
-[<img src='https://raw.githubusercontent.com/brunchstudio/pytvpaint/docs/docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)
+[<img src='https://github.com/brunchstudio/pytvpaint/raw/render-issues/docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)

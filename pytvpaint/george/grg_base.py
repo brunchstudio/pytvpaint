@@ -959,9 +959,14 @@ def tv_get_active_shape() -> TVPShape:
     return tv_cast_to_type(send_cmd("tv_GetActiveShape"), TVPShape)
 
 
-def tv_set_active_shape(shape: TVPShape) -> None:
-    """Set the current shape and its tool parameters."""
-    send_cmd("tv_SetActiveShape", shape.value)
+def tv_set_active_shape(shape: TVPShape, *shape_args: Any) -> None:
+    """Set the current shape and its tool parameters.
+
+    Args:
+        shape: the shape to set
+        *shape_args: the shape specific parameters
+    """
+    send_cmd("tv_SetActiveShape", shape.value, *shape_args)
 
 
 @overload
@@ -1032,7 +1037,7 @@ def tv_set_b_pen_hsl(color: HSLColor) -> HSLColor:
 
 
 def tv_pen(size: float) -> float:
-    """Change current pen tool size."""
+    """Change current pen tool size. This function is most likely deprecated it is undocumented in the George reference but still works."""
     res = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
     return cast(float, res["size"])
 
@@ -1075,6 +1080,50 @@ def tv_pen_brush_set(
     # Since TVPaint is returning only the values that were modified
     # this is almost impossible to parse so we call get
     return tv_pen_brush_get()
+
+
+def tv_line(
+    xy1: tuple[int, int],
+    xy2: tuple[int, int],
+    right_click: bool = False,
+    dry: bool = False,
+) -> None:
+    """Draw a line (with the current brush).
+
+    Args:
+        xy1: start position as (x, y)
+        xy2: end position as (x, y)
+        right_click: True to emulate right click, False to emulate left click. Default is False
+        dry: True for dry mode
+    """
+    args = [
+        *xy1,
+        *xy2,
+        bool(right_click),
+        bool(dry),
+    ]
+    send_cmd("tv_Line", *args)
+
+
+def tv_text(text: str, x: int, y: int, use_b_pen: bool = False) -> None:
+    """Write text in a layer instance.
+
+    Args:
+        text: text to write
+        x: text x position
+        y: text y position
+        use_b_pen: True will use b pen, False will use A pen
+    """
+    send_cmd("tv_Text", x, y, int(use_b_pen), text)
+
+
+def tv_text_brush(text: str) -> None:
+    """Set the text for the text brush.
+
+    Args:
+        text: text to write
+    """
+    send_cmd("tv_TextBrush", text)
 
 
 def tv_rect(

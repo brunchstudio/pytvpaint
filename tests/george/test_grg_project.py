@@ -307,13 +307,14 @@ def test_tv_get_field(test_project: TVPProject) -> None:
 
 
 @pytest.mark.parametrize("use_camera", [None, False, True])
-@pytest.mark.parametrize("start_end_frame", [None, (0, 5), (0, 0), (0, 1), (2, 5)])
+@pytest.mark.parametrize("start, end", [(None, None), (0, 5), (0, 0), (0, 1), (2, 5)])
 def test_tv_project_save_sequence(
     test_project: TVPProject,
     tmp_path: Path,
     ppm_sequence: list[Path],
     use_camera: bool | None,
-    start_end_frame: tuple[int, int] | None,
+    start: int | None,
+    end: int | None,
 ) -> None:
     tv_load_sequence(ppm_sequence[0])
 
@@ -321,18 +322,22 @@ def test_tv_project_save_sequence(
         tv_camera_insert_point(0, 50, 50, 0, 1)
 
     out_sequence = tmp_path / "out"
-    tv_project_save_sequence(out_sequence, use_camera, start_end_frame)
+    tv_project_save_sequence(out_sequence, use_camera, start, end)
 
     clip = tv_clip_info(tv_clip_current_id())
     save_ext, _ = tv_save_mode_get()
-    start_end = start_end_frame or (clip.first_frame, clip.last_frame)
+    start_end = (
+        (start, end)
+        if (start is not None and end is not None)
+        else (clip.first_frame, clip.last_frame)
+    )
 
     tv_save_mode_set(SaveFormat.JPG)
 
     for i in range(start_end[1] - start_end[0]):
-        image_name = out_sequence.name + str(i).zfill(5)
+        image_name = f"{out_sequence.name}{i:05d}"
         image_ext = "." + ("jpg" if save_ext == SaveFormat.JPG else save_ext.value)
-        image_path = out_sequence.with_name(image_name).with_suffix(image_ext)
+        image_path = out_sequence.with_name(f"{image_name}{image_ext}")
         assert image_path.exists()
 
 

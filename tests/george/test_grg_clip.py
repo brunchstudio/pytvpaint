@@ -471,7 +471,7 @@ def get_instance_frames() -> Iterator[tuple[int, str]]:
 def apply_folder_pattern(initial_pattern: str | None, layer: TVPLayer) -> str:
     # This is the default folder pattern
     if initial_pattern is None:
-        return f"[{str(layer.position).zfill(3)}] {layer.name}"
+        return f"[{layer.position:03d}] {layer.name}"
 
     patterns = {
         r"%li": str(layer.position),
@@ -494,7 +494,7 @@ def apply_file_pattern(
 ) -> str:
     # This is the default file pattern
     if initial_pattern is None:
-        return f"[{str(image_index).zfill(3)}] {layer.name}"
+        return f"[{image_index:03d}] {layer.name}"
 
     # When the instance name is empty it takes the image index
     if image_name == "":
@@ -546,9 +546,9 @@ def test_tv_save_sequence(
     )
 
     for i in range(end - start):
-        image_name = out_sequence.name + str(i).zfill(5)
+        image_name = f"{out_sequence.name}{i:05d}"
         image_ext = "." + ("jpg" if save_ext == SaveFormat.JPG else save_ext.value)
-        image_path = out_sequence.with_name(image_name).with_suffix(image_ext)
+        image_path = out_sequence.with_name(f"{image_name}{image_ext}")
         assert image_path.exists()
 
 
@@ -664,9 +664,7 @@ def test_tv_clip_save_structure_psd(
     if mode == PSDSaveMode.MARKIN:
         # It's a sequence of numbered PSD files
         for i, _ in enumerate(get_instance_frames()):
-            out_psd_frame = out_psd.with_name(
-                out_psd.stem + str(i).zfill(5) + out_psd.suffix
-            )
+            out_psd_frame = out_psd.with_stem(f"{out_psd.stem}{i:05d}")
             assert out_psd_frame.exists()
     else:
         # It's a single PSD file
@@ -704,14 +702,14 @@ def test_tv_clip_save_structure_csv(
     assert out_layers_folder.exists()
 
     for i, layer in enumerate(current_clip_layers()):
-        layer_index = str(i + 1).zfill(3)
+        layer_index = f"{(i + 1):03d}"
         layer_folder_name = f"[{layer_index}] {layer.name}"
         layer_folder = out_layers_folder / layer_folder_name
         assert layer_folder.exists()
 
         tv_layer_set(layer.id)
-        for i, _ in enumerate(get_instance_frames()):
-            image_name = f"[{layer_index}][{str(i + 1).zfill(5)}] {layer.name}.png"
+        for j, _ in enumerate(get_instance_frames()):
+            image_name = f"[{layer_index}][{(j + 1):05d}] {layer.name}.png"
             assert (layer_folder / image_name).exists()
 
 

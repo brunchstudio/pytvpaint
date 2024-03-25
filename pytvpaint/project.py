@@ -8,23 +8,22 @@ from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
 
-from pytvpaint import george
+from pytvpaint import george, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.sound import ProjectSound
 from pytvpaint.utils import (
     Refreshable,
-    position_generator,
+    Renderable,
     refreshed_property,
     set_as_current,
 )
 
 if TYPE_CHECKING:
     from pytvpaint.clip import Clip
-    from pytvpaint.layer import Layer
     from pytvpaint.scene import Scene
 
 
-class Project(Refreshable):
+class Project(Refreshable, Renderable):
     """A TVPaint project is the highest object that contains everything in the data hierarchy.
 
     It looks like this: Project -> Scene -> Clip -> Layer -> LayerInstance
@@ -41,7 +40,7 @@ class Project(Refreshable):
         return f"Project({self.name})<id:{self.id}>"
 
     def __eq__(self, other: object) -> bool:
-        """Two project's are equal if their id are the same."""
+        """Two projects are equal if their id are the same."""
         if not isinstance(other, Project):
             return NotImplemented
         return self.id == other.id
@@ -213,16 +212,30 @@ class Project(Refreshable):
 
     @property
     @set_as_current
+    def end_frame(self) -> int:
+        """The project's end frame, meaning the last frame of the last clip in the project's timeline."""
+        clips_duration = sum(clip.duration for clip in self.clips)
+        return self.start_frame + clips_duration - 1
+
+    @property
+    @set_as_current
     def current_frame(self) -> int:
         """Get the current frame relative to the timeline."""
-        mark_in = self.current_clip.mark_in or self.start_frame
-        return george.tv_project_current_frame_get() + mark_in
+        return george.tv_project_current_frame_get() + self.start_frame
 
     @current_frame.setter
     @set_as_current
     def current_frame(self, value: int) -> None:
-        start = self.current_clip.mark_in or self.start_frame
-        george.tv_project_current_frame_set(value - start)
+        # when setting the current frame, if it is outside the current clip's range, TVP will switch to the clip but not
+        # the required frame. So we need to set it twice, one to switch the clip, and once again to set the frame
+        set_twice = not (
+            self.current_clip.timeline_start <= value <= self.current_clip.timeline_end
+        )
+
+        real_frame = value - self.start_frame
+        george.tv_project_current_frame_set(real_frame)
+        if set_twice:
+            george.tv_project_current_frame_set(real_frame)
 
     @property
     def header_info(self) -> str:
@@ -266,7 +279,7 @@ class Project(Refreshable):
     @staticmethod
     def current_scene_ids() -> Iterator[int]:
         """Yields the current project's scene ids."""
-        return position_generator(lambda pos: george.tv_scene_enum_id(pos))
+        return utils.position_generator(lambda pos: george.tv_scene_enum_id(pos))
 
     @property
     def current_scene(self) -> Scene:
@@ -304,12 +317,12 @@ class Project(Refreshable):
         return Scene.new(project=self)
 
     @property
+    @set_as_current
     def current_clip(self) -> Clip:
         """Returns the project's current clip."""
-        for clip in self.clips:
-            if clip.is_current:
-                return clip
-        raise ValueError(f"Could not find current clip in Project {Project}")
+        from pytvpaint.clip import Clip
+
+        return Clip.current_clip()
 
     @property
     def clips(self) -> Iterator[Clip]:
@@ -322,7 +335,7 @@ class Project(Refreshable):
     def clip_names(self) -> Iterator[str]:
         """Optimized way to get the clip names. Useful for `get_unique_name`."""
         for scene_id in self.current_scene_ids():
-            clip_ids = position_generator(
+            clip_ids = utils.position_generator(
                 lambda pos: george.tv_clip_enum_id(scene_id, pos)
             )
             for clip_id in clip_ids:
@@ -351,7 +364,7 @@ class Project(Refreshable):
     @property
     def sounds(self) -> Iterator[ProjectSound]:
         """Iterator over the project sounds."""
-        sounds_data_iter = position_generator(
+        sounds_data_iter = utils.position_generator(
             lambda pos: george.tv_sound_project_info(self.id, pos)
         )
 
@@ -362,29 +375,87 @@ class Project(Refreshable):
         """Add a new sound clip to the project."""
         return ProjectSound.new(sound_path, parent=self)
 
+    def _validate_range(self, start: int, end: int) -> None:
+        project_start_frame = self.start_frame
+        project_end_frame = self.start_frame
+        project_mark_in = self.mark_in
+        project_mark_out = self.mark_out
+
+        proj_full_range = (
+            min(project_mark_in or project_start_frame, project_start_frame),
+            max(project_mark_out or project_end_frame, project_end_frame),
+        )
+        if start < proj_full_range[0] or end > proj_full_range[1]:
+            raise ValueError(
+                f"Range ({start}-{end}) outside of project bounds ({proj_full_range})"
+            )
+
+    def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
+        project_start_frame = self.start_frame
+        start -= project_start_frame
+        end -= project_start_frame
+
+        return start, end
+
     @set_as_current
     def render(
         self,
-        export_path: Path | str | FileSequence,
-        clip: Clip | None = None,
+        output_path: Path | str | FileSequence,
         start: int | None = None,
         end: int | None = None,
         use_camera: bool = False,
-        layers: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         format_opts: list[str] | None = None,
     ) -> None:
-        """Render the given clip or the current one if no clip provided. See the `Clip.render` method for details."""
-        clip = clip or self.current_clip
-        clip.render(
-            export_path,
+        """Render the project to a single frame or frame sequence or movie.
+
+        Args:
+            output_path: a single file or file sequence pattern
+            start: the start frame to render or the mark in or the project's start frame if None. Defaults to None.
+            end: the end frame to render or the mark out or the project's end frame if None. Defaults to None.
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
+            alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            format_opts: custom format options. Defaults to None.
+
+        Raises:
+            ValueError: if requested range (start-end) not in project range/bounds
+            ValueError: if output is a movie, and it's duration is equal to 1 frame
+            FileNotFoundError: if the render failed and no files were found on disk or missing frames
+
+        Note:
+            This functions uses the project's timeline as a basis for the range (start-end). This timeline includes all
+            the project's clips and is different from a clip range. For more details on the differences in frame range
+            and the timeline in TVPaint, please check the `Limitations` section of the documentation.
+        """
+        default_start = self.mark_in or self.start_frame
+        default_end = self.mark_out or self.end_frame
+
+        self._render(
+            output_path,
+            default_start,
+            default_end,
             start,
             end,
             use_camera,
-            layers,
-            alpha_mode,
-            format_opts,
+            layer_selection=None,
+            alpha_mode=alpha_mode,
+            format_opts=format_opts,
         )
+
+    @set_as_current
+    def render_clips(
+        self,
+        clips: list[Clip],
+        output_path: Path | str | FileSequence,
+        use_camera: bool = False,
+        alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        format_opts: list[str] | None = None,
+    ) -> None:
+        """Render sequential clips as a single output."""
+        clips = sorted(clips, key=lambda c: c.position)
+        start = clips[0].timeline_start
+        end = clips[-1].timeline_end
+        self.render(output_path, start, end, use_camera, alpha_mode, format_opts)
 
     @staticmethod
     def current_project_id() -> str:
@@ -399,7 +470,7 @@ class Project(Refreshable):
     @staticmethod
     def open_projects_ids() -> Iterator[str]:
         """Yields the ids of the currently open projects."""
-        return position_generator(lambda pos: george.tv_project_enum_id(pos))
+        return utils.position_generator(lambda pos: george.tv_project_enum_id(pos))
 
     @classmethod
     def open_projects(cls) -> Iterator[Project]:
@@ -414,22 +485,17 @@ class Project(Refreshable):
         frame, mark_action = george.tv_mark_in_get(
             reference=george.MarkReference.PROJECT
         )
-
         if mark_action == george.MarkAction.CLEAR:
             return None
-
         return frame + self.start_frame
 
     @mark_in.setter
     @set_as_current
     def mark_in(self, value: int | None) -> None:
-        if value:
-            action = george.MarkAction.SET
-            frame = value - self.start_frame
-        else:
-            action = george.MarkAction.CLEAR
-            frame = (self.mark_in or 0) - self.start_frame
+        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
+        value = value or self.mark_in or 0
 
+        frame = value - self.start_frame
         george.tv_mark_in_set(
             reference=george.MarkReference.PROJECT, frame=frame, action=action
         )
@@ -448,10 +514,14 @@ class Project(Refreshable):
     @mark_out.setter
     @set_as_current
     def mark_out(self, value: int | None) -> None:
+        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
+        value = value or self.mark_out or 0
+
+        frame = value - self.start_frame
         george.tv_mark_out_set(
-            reference=george.MarkReference.PROJECT,
-            frame=value,
-            action=george.MarkAction.SET,
+            reference=george.MarkReference.CLIP,
+            frame=frame,
+            action=action,
         )
 
     @classmethod

@@ -4,7 +4,7 @@
 
 PyTVPaint works by sending George commands to a custom C++ plugin running a WebSocket server in TVPaint.
 
-You need to manually install it in your TVPaint installation folder.
+You need to manually place it in your TVPaint installation folder.
 
 ### Windows
 

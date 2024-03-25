@@ -274,7 +274,7 @@ def test_layer_remove(test_clip_obj: Clip) -> None:
 
 
 def test_layer_load_image(test_layer_obj: Layer, ppm_sequence: list[Path]) -> None:
-    test_layer_obj.load_image(image_path=ppm_sequence[0], frame=5)
+    test_layer_obj.load_image(image_path=ppm_sequence[0])
 
 
 def test_layer_render_frame(with_loaded_sequence: Layer, tmp_path: Path) -> None:
@@ -342,12 +342,18 @@ def test_layer_instances(
 ) -> None:
     start_frame = test_project_obj.start_frame
     end_frame = start_frame + with_images
+
+    print(end_frame)
+
     instances = [
         LayerInstance(test_anim_layer_obj, frame)
         for frame in range(start_frame, end_frame)
     ]
 
-    assert list(test_anim_layer_obj.instances) == instances
+    real_instances = list(test_anim_layer_obj.instances)
+
+    assert len(real_instances) == with_images
+    assert real_instances == instances
 
 
 def test_layer_rename_instances(test_anim_layer_obj: Layer, with_images: int) -> None:

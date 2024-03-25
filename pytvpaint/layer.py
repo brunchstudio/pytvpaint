@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-import contextlib
-from collections.abc import Generator, Iterator
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
+from uuid import uuid4
 
-from pytvpaint import george
+from pytvpaint import george, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.utils import (
     Refreshable,
     Removable,
-    get_unique_name,
     refreshed_property,
-    render_context,
     set_as_current,
 )
 
@@ -23,24 +21,6 @@ if TYPE_CHECKING:
     from pytvpaint.clip import Clip
     from pytvpaint.project import Project
     from pytvpaint.scene import Scene
-
-
-@contextlib.contextmanager
-def restore_current_frame(clip: Clip, frame: int) -> Generator[None, None, None]:
-    """Context that temporarily changes the current frame to the one provided and restores it when done.
-
-    Args:
-        clip: clip to change
-        frame: frame to set. Defaults to None.
-    """
-    previous_frame = clip.current_frame
-    if frame != previous_frame:
-        clip.current_frame = frame
-
-    yield
-
-    if clip.current_frame != previous_frame:
-        clip.current_frame = previous_frame
 
 
 @dataclass
@@ -62,6 +42,12 @@ class LayerInstance:
         except GeorgeError:
             raise ValueError(f"There's no instance at frame {self.start}")
 
+    def __eq__(self, other: object) -> bool:
+        """Checks if two instances are the same, meaning their start frames are equal."""
+        if not isinstance(other, LayerInstance):
+            return NotImplemented
+        return self.start == other.start
+
     @property
     def name(self) -> str:
         """Get or set the instance name."""
@@ -75,40 +61,115 @@ class LayerInstance:
         real_frame = self.start - self.layer.project.start_frame
         george.tv_instance_set_name(self.layer.id, real_frame, value)
 
-    def duplicate(self) -> None:
-        """Duplicate the instance and insert it next to it."""
-        self.layer.make_current()
-        with restore_current_frame(self.layer.clip, self.start):
-            george.tv_layer_insert_image(duplicate=True)
+    @property
+    def length(self) -> int:
+        """Get or set the instance's number of frames or length.
 
-    @classmethod
-    def new(
-        cls,
-        layer: Layer,
-        start: int | None,
-        nb_frames: int = 1,
-        direction: george.InsertDirection | None = None,
-    ) -> LayerInstance:
-        """Crates a new instance.
+        Raises:
+            ValueError: If the length provided is inferior to 1
+        """
+        self.layer.make_current()
+        next_instance = self.next
+        end = (next_instance.start - 1) if next_instance else self.layer.end
+        return (end - self.start) + 1
+
+    @length.setter
+    def length(self, value: int) -> None:
+        if value < 1:
+            raise ValueError("Instance Length must be at least equal to 1")
+        self.layer.make_current()
+        real_start = self.start - self.layer.project.start_frame
+        george.tv_exposure_set(real_start, value)
+
+    @property
+    def end(self) -> int:
+        """Get or set the instance's end frame.
+
+        Raises:
+            ValueError: If the end frame provided is inferior to the instance's start frame
+        """
+        return self.start + (self.length - 1)
+
+    @end.setter
+    def end(self, value: int) -> None:
+        if value < self.start:
+            raise ValueError(
+                f"End must be equal to or superior to instance start ({self.start})"
+            )
+
+        new_length = (value - self.start) + 1
+        self.length = new_length
+
+    def split(self, at_frame: int) -> LayerInstance:
+        """Split the instance into two instances at the given frame.
 
         Args:
-            layer: parent layer instance
-            start: start frame
-            nb_frames: number of frames in the new instance
-            direction: direction where new frames will be added/inserted
+            at_frame: the frame where the split will occur
+
+        Raises:
+            ValueError: If `at_frame` is superior to the instance's end frame
 
         Returns:
-            LayerInstance: new layer instance
+            LayerInstance: the new layer instance
         """
-        if not nb_frames:
-            raise ValueError("Instance number of frames must be at least 1")
-        start = start if start is not None else layer.clip.current_frame
+        if at_frame > self.end:
+            raise ValueError(
+                f"`at_frame` must be in range of the instance's start-end ({self.start}-{self.end})"
+            )
 
-        layer.make_current()
-        with restore_current_frame(layer.clip, start):
-            george.tv_layer_insert_image(count=nb_frames, direction=direction)
+        self.layer.make_current()
+        real_frame = at_frame - self.layer.project.start_frame
+        george.tv_exposure_break(real_frame)
 
-        return cls(layer, start)
+        return LayerInstance(self.layer, at_frame)
+
+    def duplicate(
+        self, direction: george.InsertDirection = george.InsertDirection.AFTER
+    ) -> None:
+        """Duplicate the instance and insert it in the given direction."""
+        self.layer.make_current()
+
+        # tvp won't insert images if the insert frame is the same as the instance start, let's move it
+        move_frame = self.layer.clip.current_frame
+        if move_frame == self.start and self.layer.start != self.start:
+            move_frame = self.layer.start
+        else:
+            move_frame = self.layer.end + 1
+
+        with utils.restore_current_frame(self.layer.clip, move_frame):
+            self.copy()
+            at_frame = (
+                self.end if direction == george.InsertDirection.AFTER else self.start
+            )
+            self.paste(at_frame=at_frame)
+
+    def cut(self) -> None:
+        """Cut all the frames/images/exposures of the instance and store them in the image buffer."""
+        self.layer.make_current()
+        self.select()
+        self.layer.cut_selection()
+
+    def copy(self) -> None:
+        """Copy all the frames/images/exposures of the instance and store them in the image buffer."""
+        self.layer.make_current()
+        self.select()
+        self.layer.copy_selection()
+
+    def paste(self, at_frame: int | None) -> None:
+        """Paste all the frames/images/exposures stored in the image buffer to the current instance at the given frame.
+
+        Args:
+            at_frame: the frame where the stored frames will be pasted. Default is the current frame
+        """
+        at_frame = at_frame if at_frame is not None else self.layer.clip.current_frame
+
+        self.layer.make_current()
+        with utils.restore_current_frame(self.layer.clip, at_frame):
+            self.layer.paste_selection()
+
+    def select(self) -> None:
+        """Select all frames in this instance."""
+        self.layer.select_frames(self.start, (self.length - 1))
 
     @property
     def next(self) -> LayerInstance | None:
@@ -118,10 +179,18 @@ class LayerInstance:
             the next instance or None if at the end of the layer
         """
         self.layer.make_current()
-        with restore_current_frame(self.layer.clip, self.start):
+        with utils.restore_current_frame(self.layer.clip, self.start):
             next_frame = george.tv_exposure_next()
 
-        return self.layer.get_instance(next_frame)
+        next_frame += self.layer.project.start_frame
+        if next_frame > self.layer.end:
+            return None
+
+        next_instance = LayerInstance(self.layer, next_frame)
+
+        if next_instance == self:
+            return None
+        return next_instance
 
     @property
     def previous(self) -> LayerInstance | None:
@@ -131,10 +200,17 @@ class LayerInstance:
             the previous instance, None if there isn't
         """
         self.layer.make_current()
-        with restore_current_frame(self.layer.clip, self.start):
+        with utils.restore_current_frame(self.layer.clip, self.start):
             prev_frame = george.tv_exposure_prev()
 
-        return self.layer.get_instance(prev_frame)
+        prev_frame += self.layer.project.start_frame
+        prev_frame = max(self.layer.start, prev_frame)
+
+        prev_instance = LayerInstance(self.layer, prev_frame)
+
+        if prev_instance == self:
+            return None
+        return prev_instance
 
 
 class LayerColor(Refreshable):
@@ -188,7 +264,7 @@ class LayerColor(Refreshable):
     def name(self, value: str) -> None:
         """Set the name of the color."""
         clip_layer_color_names = (color.name for color in self.clip.layer_colors)
-        value = get_unique_name(clip_layer_color_names, value)
+        value = utils.get_unique_name(clip_layer_color_names, value)
         george.tv_layer_color_set_color(self.clip.id, self.index, self.color, value)
 
     @refreshed_property
@@ -333,7 +409,7 @@ class Layer(Removable):
         """
         if value == self.name:
             return
-        value = get_unique_name(self.clip.layer_names, value)
+        value = utils.get_unique_name(self.clip.layer_names, value)
         george.tv_layer_rename(self.id, value)
 
     @refreshed_property
@@ -633,7 +709,7 @@ class Layer(Removable):
         clip = clip or Clip.current_clip()
         clip.make_current()
 
-        name = get_unique_name(clip.layer_names, name)
+        name = utils.get_unique_name(clip.layer_names, name)
         layer_id = george.tv_layer_create(name)
 
         layer = Layer(layer_id=layer_id, clip=clip)
@@ -713,7 +789,7 @@ class Layer(Removable):
         Returns:
             Layer: the duplicated layer
         """
-        name = get_unique_name(self.clip.layer_names, name)
+        name = utils.get_unique_name(self.clip.layer_names, name)
         layer_id = george.tv_layer_duplicate(name)
 
         return Layer(layer_id=layer_id, clip=self.clip)
@@ -747,10 +823,10 @@ class Layer(Removable):
             raise FileNotFoundError(f"Image not found at : {image_path}")
 
         frame = frame or self.clip.current_frame
-        with restore_current_frame(self.clip, frame):
+        with utils.restore_current_frame(self.clip, frame):
             # if no instance at the specified frame, then create a new one
             if not self.get_instance(frame):
-                LayerInstance.new(self, frame)
+                self.add_instance(frame)
 
             george.tv_load_image(image_path.as_posix(), stretch)
 
@@ -783,7 +859,7 @@ class Layer(Removable):
         frame = frame or self.clip.current_frame
         self.clip.current_frame = frame
 
-        with render_context(
+        with utils.render_context(
             alpha_mode,
             save_format,
             format_opts,
@@ -857,14 +933,27 @@ class Layer(Removable):
             self.remove_mark(frame)
 
     @set_as_current
-    def select_frames(self, start: int, frame_count: int) -> None:
+    def select_frames(self, start: int, end: int) -> None:
         """Select the frames from a start and count.
 
         Args:
-            start: the start frame
-            frame_count: how many frames to select
+            start: the selection start frame
+            end: the selected end frame
         """
+        frame_count = (end - start) + 1
         george.tv_layer_select(start - self.clip.start, frame_count)
+
+    @set_as_current
+    def select_all_frames(self) -> None:
+        """Select all frames in the layer."""
+        frame, frame_count = george.tv_layer_select_info(full=True)
+        george.tv_layer_select(frame, frame_count)
+
+    @set_as_current
+    def clear_selection(self) -> None:
+        """Clear frame selection in the layer."""
+        # selecting frames after the layer's end frame will result in a empty selection, thereby clearing the selection
+        george.tv_layer_select(self.end + 1, 0)
 
     @property
     def selected_frames(self) -> list[int]:
@@ -873,7 +962,7 @@ class Layer(Removable):
         Returns:
             Array of selected frame numbers
         """
-        start, count = george.tv_layer_select_info(full=True)
+        start, count = george.tv_layer_select_info(full=False)
         return [start + self.clip.start + offset for offset in range(count)]
 
     @set_as_current
@@ -894,47 +983,115 @@ class Layer(Removable):
     @refreshed_property
     @set_as_current
     def instances(self) -> Iterator[LayerInstance]:
-        """Iterator over the layer instances.
+        """Iterates over the layer instances.
 
         Yields:
-            each LayerInstance at that time
+            each LayerInstance present in the layer
         """
-        project_start_frame = self.project.start_frame
+        # instances start at layer start
+        current_instance = LayerInstance(self, self.start)
 
-        # Exposure frames starts at 0
-        instance_frame = self.start
+        while True:
+            yield current_instance
 
-        with restore_current_frame(self.clip, self.start):
-            while True:
-                instance = self.get_instance(instance_frame)
-                if instance is None:
-                    break
-                yield instance
+            nex_instance = current_instance.next
+            if nex_instance is None:
+                break
 
-                self.clip.current_frame = instance_frame
-                new_instance_frame = george.tv_exposure_next() + project_start_frame
+            current_instance = nex_instance
 
-                # In TVPaint 11.5 and before, tv_exposure_next returns the same frame if it's the last one
-                if new_instance_frame == instance_frame:
-                    break
-
-                instance_frame = new_instance_frame
-
-    def get_instance(self, frame: int) -> LayerInstance | None:
+    def get_instance(self, frame: int, strict: bool = False) -> LayerInstance | None:
         """Get the instance at that frame.
 
         Args:
             frame: the instance frame
+            strict: True will only return Instance if the given frame is the start of the instance. Default is False
 
         Returns:
             the instance if found else None
         """
-        try:
-            instance_frame = frame - self.project.start_frame
-            george.tv_instance_get_name(self.id, instance_frame)
-            return LayerInstance(self, frame)
-        except GeorgeError:
-            return None
+        for layer_instance in self.instances:
+            if strict:
+                if layer_instance.start != frame:
+                    continue
+                return layer_instance
+
+            if not (layer_instance.start <= frame <= layer_instance.end):
+                continue
+            return layer_instance
+
+        return None
+
+    def get_instances(self, from_frame: int, to_frame: int) -> Iterator[LayerInstance]:
+        """Iterates over the layer instances and returns the one in the range (from_frame-to_frame).
+
+        Yields:
+            each LayerInstance in the range (from_frame-to_frame)
+        """
+        for layer_instance in self.instances:
+            if layer_instance.end < from_frame:
+                continue
+            if from_frame <= layer_instance.start <= to_frame:
+                yield layer_instance
+            if layer_instance.start > to_frame:
+                break
+
+    def add_instance(
+        self,
+        start: int | None = None,
+        nb_frames: int = 1,
+        direction: george.InsertDirection | None = None,
+        split: bool = False,
+    ) -> LayerInstance:
+        """Crates a new instance.
+
+        Args:
+            start: start frame. Defaults to clip current frame if none provided
+            nb_frames: number of frames in the new instance. Default is 1, this is the total number of frames created.
+            direction: direction where new frames will be added/inserted
+            split: True to make each added frame a new image
+
+        Raises:
+            ValueError: if the number of frames `nb_frames` is inferior or equal to 0
+            ValueError: if an instance already exists at the given range (start + nb_frames)
+
+        Returns:
+            LayerInstance: new layer instance
+        """
+        if not self.is_anim_layer:
+            raise ValueError("The layer needs to be an animation layer")
+
+        if nb_frames <= 0:
+            raise ValueError("Instance number of frames must be at least 1")
+
+        if start and self.get_instance(start):
+            raise ValueError(
+                "An instance already exists at the designated frame range. "
+                "Edit or delete it before adding a new one."
+            )
+
+        start = start if start is not None else self.clip.current_frame
+        self.clip.make_current()
+
+        temp_layer = Layer.new_anim_layer(str(uuid4()))
+        temp_layer.make_current()
+
+        with utils.restore_current_frame(self.clip, 1):
+            if nb_frames > 1:
+                if split:
+                    george.tv_layer_insert_image(count=nb_frames, direction=direction)
+                else:
+                    layer_instance = next(temp_layer.instances)
+                    layer_instance.length = nb_frames
+
+            temp_layer.select_all_frames()
+            temp_layer.copy_selection()
+            self.clip.current_frame = start
+            self.make_current()
+            self.paste_selection()
+            temp_layer.remove()
+
+        return LayerInstance(self, start)
 
     def rename_instances(
         self,
