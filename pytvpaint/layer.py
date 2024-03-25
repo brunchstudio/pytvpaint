@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from dataclasses import dataclass
+from uuid import uuid4
 from pathlib import Path
+from dataclasses import dataclass
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 from pytvpaint import george, utils
@@ -41,10 +42,8 @@ class LayerInstance:
         except GeorgeError:
             raise ValueError(f"There's no instance at frame {self.start}")
 
-    def __eq__(self, other: object) -> bool:
-        """Checks if two instances are the same, their start frame is equal."""
-        if not isinstance(other, LayerInstance):
-            return NotImplemented
+    def __eq__(self, other: LayerInstance) -> bool:
+        """Checks if two instances are the same, meaning their start frames are equal."""
         return self.start == other.start
 
     @property
@@ -166,8 +165,8 @@ class LayerInstance:
         with utils.restore_current_frame(self.layer.clip, at_frame):
             self.layer.paste_selection()
 
-    def select(self) -> None:
-        """Select the instance frame."""
+    def select(self):
+        """Select all frames in this instance."""
         self.layer.select_frames(self.start, (self.length - 1))
 
     @property
@@ -178,12 +177,10 @@ class LayerInstance:
             the next instance or None if at the end of the layer
         """
         self.layer.make_current()
-
         with utils.restore_current_frame(self.layer.clip, self.start):
             next_frame = george.tv_exposure_next()
 
         next_frame += self.layer.project.start_frame
-
         if next_frame > self.layer.end:
             return None
 
@@ -191,7 +188,6 @@ class LayerInstance:
 
         if next_instance == self:
             return None
-
         return next_instance
 
     @property
@@ -935,21 +931,27 @@ class Layer(Removable):
             self.remove_mark(frame)
 
     @set_as_current
-    def select_frames(self, start: int, frame_count: int) -> None:
+    def select_frames(self, start: int, end: int) -> None:
         """Select the frames from a start and count.
 
         Args:
-            start: the start frame
-            frame_count: how many frames to select
+            start: the selection start frame
+            end: the selected end frame
         """
+        frame_count = (end - start) + 1
         george.tv_layer_select(start - self.clip.start, frame_count)
 
     @set_as_current
     def select_all_frames(self) -> None:
-        """Select the frames from a start and count."""
-        start = self.start
-        frame_count = (self.end - start) + 1
-        self.select_frames(start, frame_count)
+        """Select all frames in the layer."""
+        frame, frame_count = george.tv_layer_select_info(full=True)
+        george.tv_layer_select(frame, frame_count)
+
+    @set_as_current
+    def clear_selection(self):
+        """Clear frame selection in the layer"""
+        # selecting frames after the layer's end frame will result in a empty selection, thereby clearing the selection
+        george.tv_layer_select(self.end + 1, 0)
 
     @property
     def selected_frames(self) -> list[int]:
@@ -958,7 +960,7 @@ class Layer(Removable):
         Returns:
             Array of selected frame numbers
         """
-        start, count = george.tv_layer_select_info(full=True)
+        start, count = george.tv_layer_select_info(full=False)
         return [start + self.clip.start + offset for offset in range(count)]
 
     @set_as_current
@@ -979,12 +981,12 @@ class Layer(Removable):
     @refreshed_property
     @set_as_current
     def instances(self) -> Iterator[LayerInstance]:
-        """Iterator over the layer instances.
+        """Iterates over the layer instances.
 
         Yields:
-            each LayerInstance at that time
+            each LayerInstance present in the layer
         """
-        # Exposure frames starts at 0
+        # instances start at layer start
         current_instance = LayerInstance(self, self.start)
 
         while True:
@@ -992,7 +994,6 @@ class Layer(Removable):
 
             nex_instance = current_instance.next
             if nex_instance is None:
-                print("STOP", current_instance)
                 break
 
             current_instance = nex_instance
@@ -1019,6 +1020,20 @@ class Layer(Removable):
 
         return None
 
+    def get_instances(self, from_frame: int, to_frame: int) -> Iterator[LayerInstance]:
+        """Iterates over the layer instances and returns the one in the range (from_frame-to_frame)
+
+        Yields:
+            each LayerInstance in the range (from_frame-to_frame)
+        """
+        for layer_instance in self.instances:
+            if layer_instance.end < from_frame:
+                continue
+            if from_frame <= layer_instance.start <= to_frame:
+                yield layer_instance
+            if layer_instance.start > to_frame:
+                break
+
     def add_instance(
         self,
         start: int | None = None,
@@ -1032,10 +1047,10 @@ class Layer(Removable):
             start: start frame. Defaults to clip current frame if none provided
             nb_frames: number of frames in the new instance. Default is 1, this is the total number of frames created.
             direction: direction where new frames will be added/inserted
-            split: True to make each added frame a new instance, False will create a single instance with nb_frames
+            split: True to make each added frame a new image
 
         Raises:
-            ValueError: if the number of frames `nb_frames` is equal to or inferior 0
+            ValueError: if the number of frames `nb_frames` is inferior or equal to 0
             ValueError: if an instance already exists at the given range (start + nb_frames)
 
         Returns:
@@ -1053,7 +1068,7 @@ class Layer(Removable):
         start = start if start is not None else self.clip.current_frame
         self.clip.make_current()
 
-        temp_layer = Layer.new_anim_layer("temp")
+        temp_layer = Layer.new_anim_layer(str(uuid4()))
         temp_layer.make_current()
 
         with utils.restore_current_frame(self.clip, 1):
@@ -1069,8 +1084,7 @@ class Layer(Removable):
             self.clip.current_frame = start
             self.make_current()
             self.paste_selection()
-
-        temp_layer.remove()
+            temp_layer.remove()
 
         return LayerInstance(self, start)
 

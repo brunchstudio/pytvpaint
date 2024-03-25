@@ -285,12 +285,28 @@ def tv_layer_selection_set(layer_id: int, new_state: bool) -> None:
 
 
 def tv_layer_select(start_frame: int, frame_count: int) -> int:
-    """Select frames in the current layer."""
+    """Select frames in the current layer.
+
+    Args:
+        start_frame: selection start
+        frame_count: number of frames to select
+
+    Returns:
+        int: number of frames selected
+
+    Note:
+        If the start position is before the beginning of the layer, the selection will only start at the beginning of
+        the layer, but its length will be measured from the start position.
+        This means that if you ask for a selection of 15 frames starting from position 0 in a layer that actually
+        starts at position 5, only the first 10 frames in the layer will be selected.
+        If the selection goes beyond the end of the layer, it will only include the frames between the start and end of
+        the layer. No frames will be selected if the start position is beyond the end of the layer
+    """
     return int(send_cmd("tv_LayerSelect", start_frame, frame_count, error_values=[-1]))
 
 
 def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
-    """Select all frame in the current layer.
+    """Get Selected frames in a layer.
 
     Args:
         full:  Always get the selection range, even on a non anim/ctg layer
@@ -298,6 +314,12 @@ def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
     Returns:
         frame: the start frame of the selection
         count: the number of frames in the selection
+
+    Bug:
+        The official documentation states that this functions selects the layer frames, it does not, it simply
+        returns the frames selected. This will also return all frames in the layer even if they are not selected if the
+        argument `full` is set to True. We advise using `tv_layer_select` to select your frames and only using this
+        function to get the selected frames.
     """
     args = ["full"] if full else []
     res = send_cmd("tv_layerSelectInfo", *args)
@@ -1208,3 +1230,8 @@ def tv_load_image(img_path: Path | str, stretch: bool | None = None) -> None:
         args.append("stretch")
 
     send_cmd("tv_LoadImage", *args)
+
+
+def tv_clear(fill_b_pen: bool = False) -> None:
+    """Clear (or fill with BPen) the current image (selection) of the current layer"""
+    send_cmd("tv_Clear", int(fill_b_pen))

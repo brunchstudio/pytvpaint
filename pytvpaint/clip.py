@@ -485,14 +485,13 @@ class Clip(Removable, Renderable):
         Raises:
             ValueError: if requested range (start-end) not in clip range/bounds
             ValueError: if output is a movie, and it's duration is equal to 1 frame
-            FileNotFoundError: if the render failed and no files were found on disk
+            FileNotFoundError: if the render failed and no files were found on disk or missing frames
 
         Note:
             This functions uses the clip's range as a basis (start-end). This  is different from a project range, which
             uses the project timeline. For more details on the differences in frame range and the timeline in TVPaint,
             please check the `Limitations` section of the documentation.
         """
-        # TODO Add comment in docs explaining the different behaviours with ranges when rendering
         default_start = self.mark_in or self.start
         default_end = self.mark_out or self.end
 
@@ -696,7 +695,10 @@ class Clip(Removable, Renderable):
         ):
             george.tv_clip_save_structure_sprite(export_path, layout, space)
 
-        # TODO check whether output was successful and files exist or not for this function and the others
+        if not export_path.exists():
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
+            )
 
     @set_as_current
     def export_flix(
@@ -751,6 +753,11 @@ class Clip(Removable, Renderable):
                 file_parameters,
                 send,
                 original_file,
+            )
+
+        if not export_path.exists():
+            raise FileNotFoundError(
+                f"Could not find output at : {export_path.as_posix()}"
             )
 
     @property

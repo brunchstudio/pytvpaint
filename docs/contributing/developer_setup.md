@@ -1,10 +1,10 @@
 # Developer setup
 
-This guide will explain how to setup your environment in order to contribute to PyTVPaint.
+This guide will explain how to set up your environment in order to contribute to PyTVPaint.
 
 ## Requirements
 
-- [Python](https://www.python.org/) 3.9 or greater is the supported version for PyTVPaint.
+- [Python](https://www.python.org/) 3.9 or greater are the supported versions for PyTVPaint.
 
 - We use [Poetry](https://python-poetry.org/) which is the packaging and dependency management tool. It handles your dev virtualenv with your working dependencies.
 
@@ -49,7 +49,7 @@ We use [Black](https://black.readthedocs.io/en/stable/) to ensure that the code 
 
 ### Linting
 
-We use [Ruff](https://docs.astral.sh/ruff/) which is a super powerful and fast Python linter. It combines a lot of rules from other projects like Flake8, pyupgrade, pydocstyle, isort, etc...
+We also use [Ruff](https://docs.astral.sh/ruff/) as a linter. It combines a lot of rules from other projects like Flake8, pyupgrade, pydocstyle, isort, etc...
 
 ```shell
 (venv) ❯ ruff .
@@ -60,7 +60,7 @@ We use [Ruff](https://docs.astral.sh/ruff/) which is a super powerful and fast P
 
 ### Type checking
 
-Mypy is the go-to static type checker for Python. It ensures that variables and functions are used correctly and can catch refactor errors when modify some code.
+Mypy is the go-to static type checker for Python. It ensures that variables and functions are used correctly and can catch refactor errors when editing the codebase.
 
 ```shell
 (venv) ❯ mypy .
@@ -68,13 +68,13 @@ Mypy is the go-to static type checker for Python. It ensures that variables and 
 
 !!! info
 
-    We currently exclude [Fileseq](https://github.com/justinfx/fileseq) and [websocket-client](https://github.com/websocket-client/websocket-client) untyped calls in [`pyproject.toml`](https://github.com/brunchstudio/pytvpaint/blob/main/pyproject.toml) with [`untyped_calls_exclude`](https://mypy.readthedocs.io/en/stable/config_file.html#untyped-definitions-and-calls)
+    We currently exclude untyped calls for [Fileseq](https://github.com/justinfx/fileseq) and [websocket-client](https://github.com/websocket-client/websocket-client)  in [`pyproject.toml`](https://github.com/brunchstudio/pytvpaint/blob/main/pyproject.toml) with [`untyped_calls_exclude`](https://mypy.readthedocs.io/en/stable/config_file.html#untyped-definitions-and-calls)
 
 ### Documentation
 
 The documentation is built using [MkDocs](https://www.mkdocs.org/) which is a static site generator that uses Markdown as the source format.
 
-On top of that we use [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) which provide the beautiful Material look and other nice features.
+On top of that we use [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) which provides the Material look as well as some other nice features.
 
 You can either run the development server or build the entire documentation:
 
@@ -109,7 +109,7 @@ def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> 
 
 For the unit tests, we use [Pytest](https://docs.pytest.org/). Fixtures are located in the `conftest.py` file.
 
-To run the tests you'll need an opened TVPaint instance with the [tvpaint-rpc plugin](https://github.com/brunchstudio/tvpaint-rpc) installed.
+To run the tests you'll need an open TVPaint instance with the [tvpaint-rpc plugin](https://github.com/brunchstudio/tvpaint-rpc) installed.
 
 To run them, use the following commands:
 
@@ -125,21 +125,4 @@ To run them, use the following commands:
 
 # See the coverage statistics with pytest-cov
 (venv) ❯ pytest --cov=pytvpaint
-```
-
-### Publishing to PyPi
-
-There's two ways to publish the package to PyPi.
-
-The best way is to use the PyPi [API token](https://pypi.org/help/#apitoken):
-
-```shell
-❯ poetry config pypi-token.pypi <my-token>
-❯ poetry publish --build
-```
-
-In CI, we use the token from secrets directly:
-
-```shell
-❯ poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 ```

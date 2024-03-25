@@ -392,9 +392,8 @@ class Project(Refreshable, Renderable):
             max(project_mark_out or project_end_frame, project_end_frame),
         )
         if start < proj_full_range[0] or end > proj_full_range[1]:
-            log.warning(
-                f"Detected range ({start}-{end}) outside of project bounds ({proj_full_range}), "
-                f"TVPaint tends to render all project frames if that's the case"
+            raise ValueError(
+                f"Range ({start}-{end}) outside of project bounds ({proj_full_range})"
             )
 
     def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
@@ -425,9 +424,9 @@ class Project(Refreshable, Renderable):
             format_opts: custom format options. Defaults to None.
 
         Raises:
-            ValueError: if requested range (start-end) not in clip range/bounds
+            ValueError: if requested range (start-end) not in project range/bounds
             ValueError: if output is a movie, and it's duration is equal to 1 frame
-            FileNotFoundError: if the render failed and no files were found on disk
+            FileNotFoundError: if the render failed and no files were found on disk or missing frames
 
         Note:
             This functions uses the project's timeline as a basis for the range (start-end). This timeline includes all

@@ -10,8 +10,6 @@ from typing import TypeVar
 import pytest
 
 from pytvpaint import george
-from pytvpaint.clip import Clip
-from pytvpaint.george.client import send_cmd
 from pytvpaint.george.grg_base import tv_pen_brush_set
 from pytvpaint.george.grg_clip import (
     TVPClip,
@@ -45,9 +43,11 @@ from pytvpaint.george.grg_scene import (
     tv_scene_enum_id,
     tv_scene_new,
 )
-from pytvpaint.layer import Layer, LayerInstance
+from pytvpaint.george.client import send_cmd
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
+from pytvpaint.clip import Clip
+from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.sound import ClipSound, ProjectSound
 
 T = TypeVar("T")
@@ -142,7 +142,7 @@ def test_scene_obj(test_project_obj: Project, test_scene: int) -> FixtureYield[S
 
 
 @pytest.fixture
-def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
+def count_up_generate(test_clip_obj: Clip) -> None:
     """Create 5 frames with a text in the middle of the screen for each frame. Useful for debugging render tests."""
     text_pos = (
         int(test_clip_obj.project.width / 2),
@@ -153,13 +153,9 @@ def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
     test_layer = Layer.new_anim_layer("count_up", test_clip_obj)
     test_layer.make_current()
 
-    instances: list[LayerInstance] = []
     for i in range(1, 6):
-        li = test_layer.get_instance(i) if i == 1 else test_layer.add_instance(i)
-
-        if li is None:
-            raise Exception("There should be an instance")
-
+        if i != 1:
+            test_layer.add_instance(i)
         test_clip_obj.current_frame = i
 
         # write the frame number in the middle of the image
@@ -173,10 +169,6 @@ def count_up_generate(test_clip_obj: Clip) -> list[LayerInstance]:
         george.tv_line(text_pos, text_pos)
         # update undo stack otherwise edits to last image are not saved (-_-)"
         george.tv_update_undo()
-
-        instances.append(li)
-
-    return instances
 
 
 def ppm_generate(path: Path, width: int, height: int, levels: int = 255) -> None:

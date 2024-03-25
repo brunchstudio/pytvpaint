@@ -12,6 +12,7 @@ from pytvpaint.george import RGBColor
 from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
+
 from tests.conftest import FixtureYield
 from tests.george.test_grg_clip import TEST_TEXTS
 
@@ -283,12 +284,18 @@ def test_clip_render_single_img(
 @pytest.mark.parametrize(
     "out, start, end, expected, error",
     [
+        ("render.0010.png", 2, 5, "render.2-5#.png", None),
         ("render.#.png", 1, 5, "render.1-5#.png", None),
+        ("render.png", 2, 7, "", ValueError),
         ("render.#.png", None, None, "render.1-5#.png", None),
         ("render.1-5#.png", None, None, "render.1-5#.png", None),
         ("render.2-4#.png", None, None, "render.2-4#.png", None),
+        ("render.1-5#.png", 2, 5, "render.2-5#.png", None),
         ("render.1-5#.png", 2, None, "render.2-5#.png", None),
         ("render.1-5#.png", 2, 4, "render.2-4#.png", None),
+        ("render.1-5#.png", 1, 7, "", ValueError),
+        ("render.#.png", -6, 7, "", ValueError),
+        ("render.1-5#.png", -6, 7, "", ValueError),
     ],
 )
 def test_clip_render_sequence(
@@ -327,6 +334,8 @@ def test_clip_render_sequence(
         ("render.1-5#.mp4", None, None, "render.0001.mp4", None),
         ("render.#.mp4", 1, 5, "render.0001.mp4", None),
         ("render.#.mp4", 2, 5, "render.0002.mp4", None),
+        ("render.mp4", 2, 7, "", ValueError),
+        ("render.mp4", 1, 7, "", ValueError),
         ("render.mp4", 1, 1, "", ValueError),
     ],
 )
