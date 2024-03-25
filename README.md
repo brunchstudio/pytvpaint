@@ -83,6 +83,4 @@ For any questions on the limitations of our API, please head to [this page](http
 
 <hr>
 
-Made with ❤️ at
-
-[<img src='https://github.com/brunchstudio/pytvpaint/raw/render-issues/docs/assets/logo_brunch_black.svg' width='110'>](https://brunchstudio.tv/)
+Made with ❤️ at BRUNCH Studio
