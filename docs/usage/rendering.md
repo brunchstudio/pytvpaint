@@ -17,7 +17,7 @@ clip.render("./out.#.png", start=10, end=22)
 
 !!! warning
 
-    for more details on how we handle frame ranges in the projects and clips, please check the sections below, which go 
+    For more details on how we handle frame ranges in the projects and clips, please check the sections below, which go
     into detail about how TVPaint handles ranges and how we changed taht to fit our needs
 
 ## Sequence parsing with Fileseq
@@ -38,7 +38,7 @@ clip.render("./out.10-22#.png")
 clip.render("./out.#.png", start=10, end=22)
 ```
 
------
+---
 
 ## Understanding TVPaint's frame ranges and timelines
 
