@@ -386,6 +386,7 @@ def restore_current_frame(
         frame: frame to set. Defaults to None.
     """
     previous_frame = tvp_element.current_frame
+
     if frame != previous_frame:
         tvp_element.current_frame = frame
 

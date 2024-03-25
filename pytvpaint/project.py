@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
 
-from pytvpaint import george, log, utils
+from pytvpaint import george, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.sound import ProjectSound
 from pytvpaint.utils import (
@@ -214,14 +214,8 @@ class Project(Refreshable, Renderable):
     @set_as_current
     def end_frame(self) -> int:
         """The project's end frame, meaning the last frame of the last clip in the project's timeline."""
-        start = self.start_frame
-
-        duration = 0
-        for clip in self.clips:
-            clip_duration = (clip.end - clip.start) + 1
-            duration += clip_duration
-
-        return start + duration
+        clips_duration = sum(clip.duration for clip in self.clips)
+        return self.start_frame + clips_duration - 1
 
     @property
     @set_as_current
@@ -323,12 +317,12 @@ class Project(Refreshable, Renderable):
         return Scene.new(project=self)
 
     @property
+    @set_as_current
     def current_clip(self) -> Clip:
         """Returns the project's current clip."""
-        for clip in self.clips:
-            if clip.is_current:
-                return clip
-        raise ValueError(f"Could not find current clip in Project {Project}")
+        from pytvpaint.clip import Clip
+
+        return Clip.current_clip()
 
     @property
     def clips(self) -> Iterator[Clip]:

@@ -23,6 +23,7 @@ from pytvpaint.george.grg_base import (
     tv_alpha_save_mode_get,
     tv_alpha_save_mode_set,
     tv_get_active_shape,
+    tv_line,
     tv_list_request,
     tv_mark_in_get,
     tv_mark_in_set,
@@ -44,6 +45,8 @@ from pytvpaint.george.grg_base import (
     tv_set_a_pen_hsl,
     tv_set_a_pen_rgba,
     tv_set_active_shape,
+    tv_text,
+    tv_text_brush,
     tv_undo,
     tv_version,
 )
@@ -278,3 +281,34 @@ def test_tv_rect_fill(
     width = test_project.width
     height = test_project.height
     tv_rect_fill(0, 0, width, height, 0, width, erase_mode, tool_mode)
+
+
+@pytest.mark.parametrize("xy1, xy2", [[(0, 0), (0, 0)], [(0, 0), (100, 100)]])
+@pytest.mark.parametrize("right_click", [True, False])
+@pytest.mark.parametrize("dry", [True, False])
+def test_tv_line(
+    test_project: TVPProject,
+    xy1: tuple[int, int],
+    xy2: tuple[int, int],
+    right_click: bool,
+    dry: bool,
+) -> None:
+    tv_line(xy1, xy2, right_click, dry)
+
+
+@pytest.mark.parametrize("text", ["", "Hello", "sp a c e s", "$$"])
+@pytest.mark.parametrize("x, y", [(0, 0), (-5, 0), (100, 100)])
+@pytest.mark.parametrize("use_b_pen", [True, False])
+def test_tv_text(
+    test_project: TVPProject,
+    text: str,
+    x: int,
+    y: int,
+    use_b_pen: bool,
+) -> None:
+    tv_text(text, x, y, use_b_pen)
+
+
+@pytest.mark.parametrize("text", ["", "Hello", "sp a c e s", "$$"])
+def test_tv_text_brush(text: str) -> None:
+    tv_text_brush(text)

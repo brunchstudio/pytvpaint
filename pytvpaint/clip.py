@@ -168,6 +168,11 @@ class Clip(Removable, Renderable):
         """The end frame of the clip."""
         return self._data.last_frame + self.project.start_frame
 
+    @property
+    def duration(self) -> int:
+        """The duration of the clip in frames. Takes into account the mark in/out of the clip."""
+        return (self.mark_out or self.end) - (self.mark_in or self.start) + 1
+
     @refreshed_property
     def timeline_start(self) -> int:
         """The start frame of the clip relative to the project's timeline."""
@@ -288,7 +293,7 @@ class Clip(Removable, Renderable):
     @refreshed_property
     def is_current(self) -> bool:
         """Returns True if the clip is the current one."""
-        return self._data.is_current
+        return Clip.current_clip_id() == self.id
 
     @staticmethod
     def current_clip_id() -> int:

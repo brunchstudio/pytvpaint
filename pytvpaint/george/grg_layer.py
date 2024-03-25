@@ -1233,5 +1233,5 @@ def tv_load_image(img_path: Path | str, stretch: bool | None = None) -> None:
 
 
 def tv_clear(fill_b_pen: bool = False) -> None:
-    """Clear (or fill with BPen) the current image (selection) of the current layer"""
+    """Clear (or fill with BPen) the current image (selection) of the current layer."""
     send_cmd("tv_Clear", int(fill_b_pen))

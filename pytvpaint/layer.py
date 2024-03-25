@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from uuid import uuid4
-from pathlib import Path
-from dataclasses import dataclass
 from collections.abc import Iterator
+from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
+from uuid import uuid4
 
 from pytvpaint import george, utils
 from pytvpaint.george.exceptions import GeorgeError
@@ -42,8 +42,10 @@ class LayerInstance:
         except GeorgeError:
             raise ValueError(f"There's no instance at frame {self.start}")
 
-    def __eq__(self, other: LayerInstance) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Checks if two instances are the same, meaning their start frames are equal."""
+        if not isinstance(other, LayerInstance):
+            return NotImplemented
         return self.start == other.start
 
     @property
@@ -165,7 +167,7 @@ class LayerInstance:
         with utils.restore_current_frame(self.layer.clip, at_frame):
             self.layer.paste_selection()
 
-    def select(self):
+    def select(self) -> None:
         """Select all frames in this instance."""
         self.layer.select_frames(self.start, (self.length - 1))
 
@@ -948,8 +950,8 @@ class Layer(Removable):
         george.tv_layer_select(frame, frame_count)
 
     @set_as_current
-    def clear_selection(self):
-        """Clear frame selection in the layer"""
+    def clear_selection(self) -> None:
+        """Clear frame selection in the layer."""
         # selecting frames after the layer's end frame will result in a empty selection, thereby clearing the selection
         george.tv_layer_select(self.end + 1, 0)
 
@@ -1021,7 +1023,7 @@ class Layer(Removable):
         return None
 
     def get_instances(self, from_frame: int, to_frame: int) -> Iterator[LayerInstance]:
-        """Iterates over the layer instances and returns the one in the range (from_frame-to_frame)
+        """Iterates over the layer instances and returns the one in the range (from_frame-to_frame).
 
         Yields:
             each LayerInstance in the range (from_frame-to_frame)
@@ -1056,6 +1058,9 @@ class Layer(Removable):
         Returns:
             LayerInstance: new layer instance
         """
+        if not self.is_anim_layer:
+            raise ValueError("The layer needs to be an animation layer")
+
         if nb_frames <= 0:
             raise ValueError("Instance number of frames must be at least 1")
 

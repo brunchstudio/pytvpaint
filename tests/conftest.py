@@ -10,6 +10,8 @@ from typing import TypeVar
 import pytest
 
 from pytvpaint import george
+from pytvpaint.clip import Clip
+from pytvpaint.george.client import send_cmd
 from pytvpaint.george.grg_base import tv_pen_brush_set
 from pytvpaint.george.grg_clip import (
     TVPClip,
@@ -43,11 +45,9 @@ from pytvpaint.george.grg_scene import (
     tv_scene_enum_id,
     tv_scene_new,
 )
-from pytvpaint.george.client import send_cmd
+from pytvpaint.layer import Layer
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
-from pytvpaint.clip import Clip
-from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.sound import ClipSound, ProjectSound
 
 T = TypeVar("T")

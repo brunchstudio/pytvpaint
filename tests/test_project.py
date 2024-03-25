@@ -145,6 +145,34 @@ def test_project_start_frame(test_project_obj: Project, start_frame: int) -> Non
     assert test_project_obj.start_frame == start_frame
 
 
+def test_project_end_frame_clip_simple(test_project_obj: Project) -> None:
+    test_project_obj.start_frame = 1
+
+    clip = test_project_obj.current_clip
+    layer = clip.add_layer("anim")
+    layer.convert_to_anim_layer()
+
+    layer.add_instance(10)
+
+    assert test_project_obj.end_frame == 10
+
+
+def test_project_end_frame_clip_mark_out(test_project_obj: Project) -> None:
+    test_project_obj.start_frame = 3
+
+    clip = test_project_obj.current_clip
+    clip.mark_in = 4
+    clip.mark_out = 8
+
+    layer = clip.add_layer("anim")
+    layer.convert_to_anim_layer()
+
+    # The instance exceeds the mark out so it's not taken into account in clip duration
+    layer.add_instance(10)
+
+    assert test_project_obj.end_frame == 7
+
+
 @pytest.mark.parametrize("mark_in", [1, 2, 10, 100])
 @pytest.mark.parametrize("current_frame", [0, 1, 5, 50])
 @pytest.mark.parametrize("start_frame", [2, 5, 20])

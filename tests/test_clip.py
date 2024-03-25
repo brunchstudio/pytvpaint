@@ -12,7 +12,6 @@ from pytvpaint.george import RGBColor
 from pytvpaint.layer import Layer, LayerInstance
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
-
 from tests.conftest import FixtureYield
 from tests.george.test_grg_clip import TEST_TEXTS
 
@@ -79,6 +78,27 @@ def test_clip_end(test_project_obj: Project, test_clip_obj: Clip) -> None:
     george.tv_layer_paste()
 
     assert test_clip_obj.end == end_frame
+
+
+@pytest.mark.parametrize(
+    "mark_in, mark_out, end, expected",
+    [(None, None, 4, 4), (2, None, 4, 3), (None, 7, 4, 7), (2, 6, 19, 5)],
+)
+def test_clip_duration(
+    test_clip_obj: Clip,
+    mark_in: int | None,
+    mark_out: int | None,
+    end: int,
+    expected: int,
+) -> None:
+    test_clip_obj.mark_in = mark_in
+    test_clip_obj.mark_out = mark_out
+
+    layer = test_clip_obj.add_layer("anim")
+    layer.convert_to_anim_layer()
+    layer.add_instance(end)
+
+    assert test_clip_obj.duration == expected
 
 
 def test_clip_frame_count(test_clip_obj: Clip) -> None:
