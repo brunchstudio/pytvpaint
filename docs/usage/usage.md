@@ -150,24 +150,6 @@ project.close()
 print(layer.name)
 ```
 
-## Sequence parsing with Fileseq
-
-When providing an output path to our functions, we use the handy Python library [Fileseq](https://github.com/justinfx/fileseq)
-for parsing and handling the expected frame ranges, which means you can use frame range expressions when rendering a clip or a project.
-
-For example, you can use:
-
-```python
-from pytvpaint.clip import Clip
-
-clip = Clip.current_clip()
-clip.render("./out.10-22#.png")
-# This will render a sequence of (10-22) like so out.0010.png, out.0011.png, ..., out.0022.png
-
-# This is the same as doing
-clip.render("./out.#.png", start=10, end=22)
-```
-
 ## Utilities
 
 ### Undoable

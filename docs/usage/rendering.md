@@ -1,4 +1,46 @@
-## Frame ranges and timeline
+## Rendering in PyTVPaint
+
+PyTVPaint can render a clip or a Project using the `render` functions, here is a basic example of how to use it
+
+```python
+from pytvpaint.project import Project
+from pytvpaint.clip import Clip
+
+# to render a project
+project = Project.current_project()
+project.render("./out.#.png", start=0, end=67)
+
+# to render a clip
+clip = Clip.current_clip()
+clip.render("./out.#.png", start=10, end=22)
+```
+
+!!! warning
+
+    for more details on how we handle frame ranges in the projects and clips, please check the sections below, which go 
+    into detail about how TVPaint handles ranges and how we changed taht to fit our needs
+
+## Sequence parsing with Fileseq
+
+When providing an output path to our functions, we use the handy Python library [Fileseq](https://github.com/justinfx/fileseq)
+for parsing and handling the expected frame ranges, which means you can use frame range expressions when rendering a clip or a project.
+
+For example, you can use:
+
+```python
+from pytvpaint.clip import Clip
+
+clip = Clip.current_clip()
+clip.render("./out.10-22#.png")
+# This will render a sequence of (10-22) like so out.0010.png, out.0011.png, ..., out.0022.png
+
+# This is the same as doing
+clip.render("./out.#.png", start=10, end=22)
+```
+
+-----
+
+## Understanding TVPaint's frame ranges and timelines
 
 Handling frame ranges in TVPaint can be difficult, depending on the object (Project, Clip, Layer) and on the mark in/out,
 range values tend to change and are seemingly handled differently between the UI and the code.
