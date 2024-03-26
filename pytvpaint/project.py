@@ -69,7 +69,7 @@ class Project(Refreshable, Renderable):
         """The project's position in the project tabs.
 
         Note:
-            the indices are go from right to left in the UI
+            the indices go from right to left in the UI
         """
         for pos, project_id in enumerate(self.open_projects_ids()):
             if project_id == self.id:
