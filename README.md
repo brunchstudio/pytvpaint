@@ -83,4 +83,4 @@ For any questions on the limitations of our API, please head to [this page](http
 
 <hr>
 
-Made with ❤️ at BRUNCH Studio
+Made with ❤️ at [BRUNCH Studio](https://brunchstudio.tv/)
