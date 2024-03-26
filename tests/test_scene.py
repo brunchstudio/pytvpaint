@@ -85,4 +85,4 @@ def test_scene_remove(test_scene_obj: Scene) -> None:
     test_scene_obj.remove()
 
     with pytest.raises(ValueError, match="has been removed"):
-        print(test_scene_obj.id)
+        test_scene_obj.id
