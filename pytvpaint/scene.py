@@ -131,8 +131,8 @@ class Scene(Removable):
         """Remove the scene and all the clips inside.
 
         Warning:
-            All the `Clip` instances won't be valid after removing the scene.
-            There's no protection mechanism to prevent from accessing clip data that doesn't exist anymore.
+            All `Clip` instances will be invalid after removing the scene.
+            There's no protection mechanism to prevent accessing clip data that doesn't exist anymore.
         """
         george.tv_scene_close(self._id)
         self.mark_removed()
