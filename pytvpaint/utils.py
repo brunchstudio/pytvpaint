@@ -139,6 +139,7 @@ class Renderable(ABC):
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         file_sequence, start, end, is_sequence, is_image = handle_output_range(
@@ -165,7 +166,9 @@ class Renderable(ABC):
         )
 
         # render to output
-        with render_context(alpha_mode, save_format, format_opts, layer_selection):
+        with render_context(
+            alpha_mode, background_mode, save_format, format_opts, layer_selection
+        ):
             if start == end:
                 with restore_current_frame(self, file_sequence.start()):
                     george.tv_save_display(first_frame)
@@ -308,7 +311,8 @@ def set_as_current(func: Callable[Params, ReturnType]) -> Callable[Params, Retur
 
 @contextlib.contextmanager
 def render_context(
-    alpha_mode: george.AlphaSaveMode,
+    alpha_mode: george.AlphaSaveMode | None = None,
+    background_mode: george.BackgroundMode | None = None,
     save_format: george.SaveFormat | None = None,
     format_opts: list[str] | None = None,
     layer_selection: list[Layer] | None = None,
@@ -324,6 +328,7 @@ def render_context(
     Args:
         alpha_mode: the render alpha save mode
         save_format: the render format to use. Defaults to None.
+        background_mode: the render background mode
         format_opts: the custom format options as strings. Defaults to None.
         layer_selection: the layers to render. Defaults to None.
     """
@@ -332,12 +337,15 @@ def render_context(
     # Save the current state
     pre_alpha_save_mode = george.tv_alpha_save_mode_get()
     pre_save_format, pre_save_args = george.tv_save_mode_get()
+    pre_background_mode, colors = george.tv_background_get()
 
     # Set the save mode values
+    if alpha_mode:
+        george.tv_alpha_save_mode_set(alpha_mode)
+    if background_mode:
+        george.tv_background_set(background_mode)
     if save_format:
         george.tv_save_mode_set(save_format, *(format_opts or []))
-
-    george.tv_alpha_save_mode_set(alpha_mode)
 
     layers_visibility = []
     if layer_selection:
@@ -352,10 +360,13 @@ def render_context(
     yield
 
     # Restore the previous values
-    if save_format:
+    if alpha_mode:
         george.tv_alpha_save_mode_set(pre_alpha_save_mode)
-
-    george.tv_save_mode_set(pre_save_format, *pre_save_args)
+    if save_format:
+        george.tv_save_mode_set(pre_save_format, *pre_save_args)
+    if background_mode:
+        colors = [colors] if colors else []
+        george.tv_background_set(pre_background_mode, *colors)
 
     # Restore the layer visibility
     if layers_visibility:

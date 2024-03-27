@@ -303,7 +303,7 @@ Mark = tuple[int, LayerColor]
 @pytest.fixture
 def with_images(test_layer: TVPLayer) -> FixtureYield[int]:
     images = 5
-    george.tv_layer_insert_image(count=images)
+    george.tv_layer_insert_image(count=images, direction=george.InsertDirection.AFTER)
     yield images + 1
 
 
@@ -328,8 +328,10 @@ def test_layer_clear_marks(test_anim_layer_obj: Layer, add_marks: list[Mark]) ->
 
 
 def test_layer_select_frames(test_layer_obj: Layer, with_images: int) -> None:
+    test_layer_obj.convert_to_anim_layer()
     clip_start = test_layer_obj.clip.start
-    test_layer_obj.select_frames(1, with_images)
+
+    test_layer_obj.select_frames(clip_start, with_images)
     assert test_layer_obj.selected_frames == list(
         range(clip_start, with_images + clip_start)
     )

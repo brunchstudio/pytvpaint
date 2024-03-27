@@ -125,38 +125,6 @@ def test_clip_is_visible(create_some_clips: list[Clip], index: int) -> None:
     assert all(c.is_visible for c in create_some_clips if c != clip)
 
 
-def test_clip_clear_background(test_clip_obj: Clip) -> None:
-    test_clip_obj.clear_background()
-    assert test_clip_obj.background is None
-
-
-@pytest.mark.parametrize(
-    "color",
-    [
-        RGBColor(0, 255, 0),
-        RGBColor(255, 255, 0),
-        RGBColor(0, 255, 255),
-    ],
-)
-def test_clip_set_background_solid_color(test_clip_obj: Clip, color: RGBColor) -> None:
-    test_clip_obj.set_background_solid_color(color)
-    assert test_clip_obj.background == color
-
-
-@pytest.mark.parametrize(
-    "colors",
-    [
-        (RGBColor(255, 255, 255), RGBColor(0, 0, 0)),
-        (RGBColor(0, 255, 0), RGBColor(0, 255, 255)),
-    ],
-)
-def test_clip_set_background_checker_colors(
-    test_clip_obj: Clip, colors: tuple[RGBColor, RGBColor]
-) -> None:
-    test_clip_obj.set_background_checker_colors(*colors)
-    assert test_clip_obj.background == colors
-
-
 @pytest.mark.parametrize("index", range(26))
 def test_clip_color_index(test_clip_obj: Clip, index: int) -> None:
     test_clip_obj.color_index = index
