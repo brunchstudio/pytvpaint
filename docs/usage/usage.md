@@ -214,6 +214,7 @@ from pytvpaint.utils import render_context
 
 with render_context(
     alpha_mode,
+    background_mode,
     save_format,
     format_opts,
     layer_selection=[my_layer],

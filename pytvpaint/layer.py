@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from pytvpaint import george, utils
+from pytvpaint import george, log, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.utils import (
     Refreshable,
@@ -836,6 +836,7 @@ class Layer(Removable):
         export_path: Path | str,
         frame: int | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> Path:
         """Render a frame from the layer.
@@ -861,6 +862,7 @@ class Layer(Removable):
 
         with utils.render_context(
             alpha_mode,
+            background_mode,
             save_format,
             format_opts,
             layer_selection=[self],
@@ -940,6 +942,10 @@ class Layer(Removable):
             start: the selection start frame
             end: the selected end frame
         """
+        if not self.is_anim_layer:
+            log.warning(
+                "Selection may display weird behaviour when applied to a non animation layer"
+            )
         frame_count = (end - start) + 1
         george.tv_layer_select(start - self.clip.start, frame_count)
 
@@ -963,7 +969,7 @@ class Layer(Removable):
             Array of selected frame numbers
         """
         start, count = george.tv_layer_select_info(full=False)
-        return [start + self.clip.start + offset for offset in range(count)]
+        return [(start + self.clip.start + offset) for offset in range(count)]
 
     @set_as_current
     def cut_selection(self) -> None:

@@ -186,6 +186,51 @@ def test_project_current_frame(
     assert test_project_obj.current_frame == current_frame
 
 
+def test_project_clear_background(test_project_obj: Project) -> None:
+    test_project_obj.clear_background()
+
+    mode, colors = george.tv_background_get()
+    assert mode == george.BackgroundMode.NONE
+    assert colors is None
+
+
+@pytest.mark.parametrize(
+    "color",
+    [
+        george.RGBColor(0, 255, 0),
+        george.RGBColor(255, 255, 0),
+        george.RGBColor(0, 255, 255),
+    ],
+)
+def test_project_set_background_solid_color(
+    test_project_obj: Project, color: george.RGBColor
+) -> None:
+    test_project_obj.background_mode = george.BackgroundMode.COLOR
+    test_project_obj.background_colors = color
+
+    mode, colors = george.tv_background_get()
+    assert test_project_obj.background_mode == mode
+    assert test_project_obj.background_colors == colors
+
+
+@pytest.mark.parametrize(
+    "colors",
+    [
+        (george.RGBColor(255, 255, 255), george.RGBColor(0, 0, 0)),
+        (george.RGBColor(0, 255, 0), george.RGBColor(0, 255, 255)),
+    ],
+)
+def test_project_set_background_checker_colors(
+    test_project_obj: Project, colors: tuple[george.RGBColor, george.RGBColor]
+) -> None:
+    test_project_obj.background_mode = george.BackgroundMode.CHECK
+    test_project_obj.background_colors = colors
+
+    mode, colors = george.tv_background_get()
+    assert test_project_obj.background_mode == mode
+    assert test_project_obj.background_colors == colors
+
+
 @pytest.mark.parametrize("header", ["", "Hello", "THis is a project header"])
 def test_project_header_info(test_project_obj: Project, header: str) -> None:
     test_project_obj.header_info = header

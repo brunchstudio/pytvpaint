@@ -238,6 +238,48 @@ class Project(Refreshable, Renderable):
             george.tv_project_current_frame_set(real_frame)
 
     @property
+    @set_as_current
+    def background_mode(self) -> george.BackgroundMode:
+        """Get/Set the background mode."""
+        return george.tv_background_get()[0]
+
+    @background_mode.setter
+    @set_as_current
+    def background_mode(self, mode: george.BackgroundMode) -> None:
+        george.tv_background_set(mode)
+
+    @property
+    @set_as_current
+    def background_colors(
+        self,
+    ) -> tuple[george.RGBColor, george.RGBColor] | george.RGBColor | None:
+        """Get/Set the background color(s).
+
+        Returns:
+            a tuple of two colors if checker, a single color if solid or None if empty
+        """
+        return george.tv_background_get()[1]
+
+    @background_colors.setter
+    @set_as_current
+    def background_colors(
+        self,
+        colors: george.RGBColor | tuple[george.RGBColor, george.RGBColor],
+    ) -> None:
+        if isinstance(colors, george.RGBColor):
+            colors = (colors, )
+        george.tv_background_set(self.background_mode, *colors)
+
+    @set_as_current
+    def clear_background(self) -> None:
+        """Clear the background color and set it to None."""
+        self.background_mode = george.BackgroundMode.NONE
+        self.background_colors = (
+            george.RGBColor(255, 255, 255),
+            george.RGBColor(0, 0, 0),
+        )
+
+    @property
     def header_info(self) -> str:
         """The project's header info."""
         return george.tv_project_header_info_get(self.id)
@@ -405,6 +447,7 @@ class Project(Refreshable, Renderable):
         end: int | None = None,
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Render the project to a single frame or frame sequence or movie.
@@ -415,6 +458,7 @@ class Project(Refreshable, Renderable):
             end: the end frame to render or the mark out or the project's end frame if None. Defaults to None.
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the background mode for rendering. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
 
         Raises:
@@ -439,6 +483,7 @@ class Project(Refreshable, Renderable):
             use_camera,
             layer_selection=None,
             alpha_mode=alpha_mode,
+            background_mode=background_mode,
             format_opts=format_opts,
         )
 
@@ -449,13 +494,14 @@ class Project(Refreshable, Renderable):
         output_path: Path | str | FileSequence,
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Render sequential clips as a single output."""
         clips = sorted(clips, key=lambda c: c.position)
         start = clips[0].timeline_start
         end = clips[-1].timeline_end
-        self.render(output_path, start, end, use_camera, alpha_mode, format_opts)
+        self.render(output_path, start, end, use_camera, alpha_mode, background_mode, format_opts)
 
     @staticmethod
     def current_project_id() -> str:

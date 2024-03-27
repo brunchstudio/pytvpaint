@@ -222,35 +222,6 @@ class Clip(Removable, Renderable):
         george.tv_clip_hidden_set(self.id, not value)
 
     @property
-    @set_as_current
-    def background(
-        self,
-    ) -> tuple[george.RGBColor, george.RGBColor] | george.RGBColor | None:
-        """Get the background color(s).
-
-        Returns:
-            a tuple of two colors if checker, a single color if solid or None if empty
-        """
-        return george.tv_background_get()
-
-    @set_as_current
-    def clear_background(self) -> None:
-        """Clear the background color and set it to None."""
-        george.tv_background_set(george.BackgroundMode.NONE)
-
-    @set_as_current
-    def set_background_solid_color(self, color: george.RGBColor) -> None:
-        """Set the solid background color."""
-        george.tv_background_set(george.BackgroundMode.COLOR, color)
-
-    @set_as_current
-    def set_background_checker_colors(
-        self, c1: george.RGBColor, c2: george.RGBColor
-    ) -> None:
-        """Set the checker background colors."""
-        george.tv_background_set(george.BackgroundMode.CHECK, c1, c2)
-
-    @property
     def color_index(self) -> int:
         """Get the clip color index."""
         return george.tv_clip_color_get(self.id)
@@ -474,6 +445,7 @@ class Clip(Removable, Renderable):
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Render the clip to a single frame or frame sequence or movie.
@@ -485,6 +457,7 @@ class Clip(Removable, Renderable):
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             layer_selection: list of layers to render, if None render all of them. Defaults to None.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the background mode for rendering. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
 
         Raises:
@@ -509,6 +482,7 @@ class Clip(Removable, Renderable):
             use_camera,
             layer_selection=layer_selection,
             alpha_mode=alpha_mode,
+            background_mode=background_mode,
             format_opts=format_opts,
         )
 
@@ -541,6 +515,7 @@ class Clip(Removable, Renderable):
         file_pattern: str = r"[%3ii] %ln",
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
         all_images: bool = False,
         ignore_duplicates: bool = False,
@@ -554,6 +529,7 @@ class Clip(Removable, Renderable):
             file_pattern: the file name pattern (%li: layer index, %ln: layer name, %ii: image index, %in: image name, %fi: file index (added in 11.0.8)). Defaults to None.
             layer_selection: list of layers to render or all if None. Defaults to None.
             alpha_mode: the export alpha mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
             all_images: export all images (not only the instances). Defaults to False.
             ignore_duplicates: Ignore duplicates images. Defaults to None.
@@ -565,7 +541,7 @@ class Clip(Removable, Renderable):
         export_path.parent.mkdir(exist_ok=True, parents=True)
 
         with utils.render_context(
-            alpha_mode, save_format, format_opts, layer_selection
+            alpha_mode, background_mode, save_format, format_opts, layer_selection
         ):
             george.tv_clip_save_structure_json(
                 export_path,
@@ -591,6 +567,7 @@ class Clip(Removable, Renderable):
         end: int | None = None,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip as a PSD.
@@ -602,6 +579,7 @@ class Clip(Removable, Renderable):
             end: the end frame. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
         """
         start = start or self.mark_in or self.start
@@ -611,7 +589,11 @@ class Clip(Removable, Renderable):
         image = start if mode == george.PSDSaveMode.IMAGE else None
 
         with utils.render_context(
-            alpha_mode, george.SaveFormat.PSD, format_opts, layer_selection
+            alpha_mode,
+            background_mode,
+            george.SaveFormat.PSD,
+            format_opts,
+            layer_selection,
         ):
             george.tv_clip_save_structure_psd(
                 export_path,
@@ -640,6 +622,7 @@ class Clip(Removable, Renderable):
         exposure_label: str = "",
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip as a CSV.
@@ -651,6 +634,7 @@ class Clip(Removable, Renderable):
             exposure_label: give a label when the image is an exposure. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
 
         Raises:
@@ -663,7 +647,7 @@ class Clip(Removable, Renderable):
             raise ValueError("Export path must have .csv extension")
 
         with utils.render_context(
-            alpha_mode, save_format, format_opts, layer_selection
+            alpha_mode, background_mode, save_format, format_opts, layer_selection
         ):
             george.tv_clip_save_structure_csv(export_path, all_images, exposure_label)
 
@@ -680,6 +664,7 @@ class Clip(Removable, Renderable):
         space: int = 0,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip as sprites in one image.
@@ -690,13 +675,14 @@ class Clip(Removable, Renderable):
             space: the space between each sprite in the image. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
         """
         export_path = Path(export_path)
         save_format = george.SaveFormat.from_extension(export_path.suffix)
 
         with utils.render_context(
-            alpha_mode, save_format, format_opts, layer_selection
+            alpha_mode, background_mode, save_format, format_opts, layer_selection
         ):
             george.tv_clip_save_structure_sprite(export_path, layout, space)
 
@@ -716,6 +702,7 @@ class Clip(Removable, Renderable):
         send: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip for Flix.
@@ -729,6 +716,7 @@ class Clip(Removable, Renderable):
             send: open a browser with the prefilled url. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
             format_opts: custom format options. Defaults to None.
 
         Raises:
@@ -749,7 +737,9 @@ class Clip(Removable, Renderable):
         self.project.save()
 
         # save alpha mode and save format values
-        with utils.render_context(alpha_mode, None, format_opts, layer_selection):
+        with utils.render_context(
+            alpha_mode, background_mode, None, format_opts, layer_selection
+        ):
             george.tv_clip_save_structure_flix(
                 export_path,
                 start,

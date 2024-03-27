@@ -67,34 +67,31 @@ from pytvpaint.george.grg_project import (
 )
 from tests.conftest import FixtureYield
 
-
-def test_tv_background_get() -> None:
-    tv_background_get()
-
-
 COLORS = [RGBColor(255, 0, 0), RGBColor(0, 255, 0), RGBColor(0, 0, 255)]
 
 
 @pytest.mark.parametrize(
-    "test",
+    "mode, colors",
     [
         *[(BackgroundMode.COLOR, [c]) for c in COLORS],
         *[(BackgroundMode.CHECK, [*cs]) for cs in itertools.combinations(COLORS, 2)],
-        (BackgroundMode.NONE, []),
+        (BackgroundMode.NONE, (None,)),
     ],
 )
-def test_tv_background_set(test: tuple[BackgroundMode, list[RGBColor]]) -> None:
-    mode, args = test
-    tv_background_set(mode, *args)
+def test_tv_background(mode: BackgroundMode, colors: list[RGBColor | None]) -> None:
+    tv_background_set(mode, *colors)
 
-    current_color = tv_background_get()
+    current_mode, current_colors = tv_background_get()
 
-    if mode == BackgroundMode.NONE:
-        assert current_color is None
-    elif isinstance(current_color, tuple):
-        assert list(current_color) == args
-    else:
-        assert current_color == args[0]
+    assert mode == current_mode
+    assert (
+        colors == tuple(current_colors)
+        if isinstance(current_colors, list)
+        else (current_colors,)
+    )
+
+    # reset color
+    tv_background_set(BackgroundMode.COLOR, RGBColor(255, 255, 255))
 
 
 @pytest.mark.parametrize("width", [500, 1920])

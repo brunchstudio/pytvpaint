@@ -52,34 +52,39 @@ class BackgroundMode(Enum):
     NONE = "none"
 
 
-def tv_background_get() -> tuple[RGBColor, RGBColor] | RGBColor | None:
-    """Get the background mode of the project."""
+def tv_background_get() -> (
+    tuple[BackgroundMode, tuple[RGBColor, RGBColor] | RGBColor | None]
+):
+    """Get the background mode of the project, and the color(s) if in `color` or `check` mode.
+
+    Returns:
+        mode: the background mode
+        colors: the background colors if any
+
+    """
     res = send_cmd("tv_Background")
 
     mode, *values = res.split(" ")
 
     if mode == BackgroundMode.NONE.value:
-        return None
+        return BackgroundMode.NONE, None
 
     if mode == BackgroundMode.CHECK.value:
         c1 = map(int, values[:3])
         c2 = map(int, values[3:])
-        return (RGBColor(*c1), RGBColor(*c2))
+        return BackgroundMode.CHECK, (RGBColor(*c1), RGBColor(*c2))
 
-    return RGBColor(*map(int, values))
+    return BackgroundMode.COLOR, RGBColor(*map(int, values))
 
 
 def tv_background_set(
     mode: BackgroundMode, c1: RGBColor | None = None, c2: RGBColor | None = None
 ) -> None:
     """Set the background mode of the project."""
-    if mode == BackgroundMode.NONE:
-        args = []
-    elif mode == BackgroundMode.CHECK:
-        assert c1 and c2
+    args = []
+    if mode == BackgroundMode.CHECK and c1 and c2:
         args = [c1.r, c1.g, c1.b, c2.r, c2.g, c2.b]
-    else:
-        assert c1
+    elif mode == BackgroundMode.COLOR and c1:
         args = [c1.r, c1.g, c1.b]
     send_cmd("tv_Background", mode.value, *args)
 
