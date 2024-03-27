@@ -11,6 +11,7 @@ from typing import Any, Callable, TypeVar, cast, overload
 
 from typing_extensions import Literal, TypeAlias
 
+from pytvpaint import log
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.client.parse import (
     FieldTypes,
@@ -653,9 +654,14 @@ def tv_menu_hide() -> None:
     send_cmd("tv_MenuHide")
 
 
-def add_some_magic() -> None:
-    """Makes your life sweeter (maybe)."""
-    send_cmd("tv_MagicNumber", 23)
+def add_some_magic(i_am_a_badass: bool = False, magic_number: int | None = None) -> None:
+    """Don't use ! Will change your life forever..."""
+    if not i_am_a_badass:
+        log.warning('Sorry, you\'re not enough of a badass for this function...')
+
+    magic_number = magic_number or 14
+    send_cmd("tv_MagicNumber", magic_number)
+    log.info('Totally worth it, right ? ^^')
 
 
 def tv_menu_show(
