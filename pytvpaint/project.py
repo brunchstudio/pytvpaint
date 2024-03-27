@@ -267,7 +267,7 @@ class Project(Refreshable, Renderable):
         colors: george.RGBColor | tuple[george.RGBColor, george.RGBColor],
     ) -> None:
         if isinstance(colors, george.RGBColor):
-            colors = (colors, )
+            colors = (colors,)
         george.tv_background_set(self.background_mode, *colors)
 
     @set_as_current
@@ -501,7 +501,15 @@ class Project(Refreshable, Renderable):
         clips = sorted(clips, key=lambda c: c.position)
         start = clips[0].timeline_start
         end = clips[-1].timeline_end
-        self.render(output_path, start, end, use_camera, alpha_mode, background_mode, format_opts)
+        self.render(
+            output_path,
+            start,
+            end,
+            use_camera,
+            alpha_mode,
+            background_mode,
+            format_opts,
+        )
 
     @staticmethod
     def current_project_id() -> str:

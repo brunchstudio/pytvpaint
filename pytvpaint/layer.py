@@ -845,6 +845,7 @@ class Layer(Removable):
             export_path: the frame export path (the extension determine the output format)
             frame: the frame to render or the current frame if None. Defaults to None.
             alpha_mode: the render alpha mode
+            background_mode: the render background mode
             format_opts: custom output format options to pass when rendering
 
         Raises:
