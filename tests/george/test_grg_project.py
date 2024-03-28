@@ -73,22 +73,20 @@ COLORS = [RGBColor(255, 0, 0), RGBColor(0, 255, 0), RGBColor(0, 0, 255)]
 @pytest.mark.parametrize(
     "mode, colors",
     [
-        *[(BackgroundMode.COLOR, [c]) for c in COLORS],
-        *[(BackgroundMode.CHECK, [*cs]) for cs in itertools.combinations(COLORS, 2)],
-        (BackgroundMode.NONE, (None,)),
+        *[(BackgroundMode.COLOR, c) for c in COLORS],
+        *[(BackgroundMode.CHECK, cs) for cs in itertools.combinations(COLORS, 2)],
+        (BackgroundMode.NONE, None),
     ],
 )
-def test_tv_background(mode: BackgroundMode, colors: list[RGBColor | None]) -> None:
-    tv_background_set(mode, *colors)
+def test_tv_background(
+    mode: BackgroundMode, colors: tuple[RGBColor, RGBColor] | RGBColor | None
+) -> None:
+    tv_background_set(mode, colors)
 
     current_mode, current_colors = tv_background_get()
 
     assert mode == current_mode
-    assert (
-        colors == tuple(current_colors)
-        if isinstance(current_colors, list)
-        else (current_colors,)
-    )
+    assert current_colors == colors
 
     # reset color
     tv_background_set(BackgroundMode.COLOR, RGBColor(255, 255, 255))

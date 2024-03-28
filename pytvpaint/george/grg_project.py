@@ -78,14 +78,18 @@ def tv_background_get() -> (
 
 
 def tv_background_set(
-    mode: BackgroundMode, c1: RGBColor | None = None, c2: RGBColor | None = None
+    mode: BackgroundMode,
+    color: tuple[RGBColor, RGBColor] | RGBColor | None = None,
 ) -> None:
     """Set the background mode of the project."""
     args = []
-    if mode == BackgroundMode.CHECK and c1 and c2:
+
+    if mode == BackgroundMode.CHECK and isinstance(color, tuple):
+        c1, c2 = color
         args = [c1.r, c1.g, c1.b, c2.r, c2.g, c2.b]
-    elif mode == BackgroundMode.COLOR and c1:
-        args = [c1.r, c1.g, c1.b]
+    elif mode == BackgroundMode.COLOR and isinstance(color, RGBColor):
+        args = [color.r, color.g, color.b]
+
     send_cmd("tv_Background", mode.value, *args)
 
 
