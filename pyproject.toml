@@ -72,6 +72,9 @@ extend-select = [
     "D",
 ]
 
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D"]
 
