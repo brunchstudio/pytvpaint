@@ -226,9 +226,9 @@ def test_project_set_background_checker_colors(
     test_project_obj.background_mode = george.BackgroundMode.CHECK
     test_project_obj.background_colors = colors
 
-    mode, colors = george.tv_background_get()
+    mode, actual_colors = george.tv_background_get()
     assert test_project_obj.background_mode == mode
-    assert test_project_obj.background_colors == colors
+    assert test_project_obj.background_colors == actual_colors
 
 
 @pytest.mark.parametrize("header", ["", "Hello", "THis is a project header"])

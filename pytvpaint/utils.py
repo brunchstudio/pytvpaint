@@ -85,7 +85,7 @@ class Removable(Refreshable):
         """Checks if the object is removed by trying to refresh its data.
 
         Returns:
-            bool: wether if it was removed or not
+            bool: whether if it was removed or not
         """
         self._is_removed = False
         with contextlib.suppress(Exception):
@@ -337,7 +337,7 @@ def render_context(
     # Save the current state
     pre_alpha_save_mode = george.tv_alpha_save_mode_get()
     pre_save_format, pre_save_args = george.tv_save_mode_get()
-    pre_background_mode, colors = george.tv_background_get()
+    pre_background_mode, pre_background_colors = george.tv_background_get()
 
     # Set the save mode values
     if alpha_mode:
@@ -365,8 +365,7 @@ def render_context(
     if save_format:
         george.tv_save_mode_set(pre_save_format, *pre_save_args)
     if background_mode:
-        colors = [colors] if colors else []
-        george.tv_background_set(pre_background_mode, *colors)
+        george.tv_background_set(pre_background_mode, pre_background_colors)
 
     # Restore the layer visibility
     if layers_visibility:
