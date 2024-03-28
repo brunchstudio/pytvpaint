@@ -11,10 +11,10 @@ time to do so yet. If you want to contribute on this, please open an issue or a 
 
 ## TVPaint 11.5+
 
-TVPaint 11.5 is minimum supported version simply because we does currently have an older version of TVPaint. The TVPaint 
+TVPaint 11.5 is minimum supported version simply because we currently do not have an older version of TVPaint. The TVPaint 
 SDK is what really limits the compatibility, but we suspect PyTVPaint is also compatible with TVPaint 11 since the SDK 
-hasn't changed in a while. If you have a version of TVPaint prior to 11.5 and want to test to the API, please let us 
-know it works and we will update the minimum requirements for teh plugin and API. 
+hasn't changed in a while. If you have a version of TVPaint prior to 11.5 and want to test the API, please let us 
+know if it works and we will update the minimum requirements for the plugin and API. 
 
 ## Control characters in George results
 

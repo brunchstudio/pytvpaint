@@ -85,7 +85,7 @@ class Removable(Refreshable):
         """Checks if the object is removed by trying to refresh its data.
 
         Returns:
-            bool: wether if it was removed or not
+            bool: whether if it was removed or not
         """
         self._is_removed = False
         with contextlib.suppress(Exception):
