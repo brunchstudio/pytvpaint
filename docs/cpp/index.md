@@ -4,7 +4,7 @@ To communicate with TVPaint, we developed a TVPaint plugin using C++ and their S
 
 It's a [JSON-RPC](https://www.jsonrpc.org/) over [WebSocket](https://en.wikipedia.org/wiki/WebSocket) server that offers an endpoint to send George commands.
 
-By default it listens on port `3000` but you can set the `TVP_WS_PORT` environment variable to set another port at startup.
+By default it listens on port `3000` but you can set the `PYTVPAINT_WS_HOST` environment variable to set another port at startup.
 
 Here is an example of JSON messages and responses:
 
