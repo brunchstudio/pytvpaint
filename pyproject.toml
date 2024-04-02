@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytvpaint"
-version = "1.0.0b4"
+version = "1.0.0b5"
 description = "Python scripting for TVPaint"
 authors = [
     "Brunch Studio Developers <dev@brunchstudio.tv>",
