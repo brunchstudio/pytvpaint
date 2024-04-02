@@ -266,8 +266,7 @@ class Project(Refreshable, Renderable):
         self,
         colors: tuple[george.RGBColor, george.RGBColor] | george.RGBColor,
     ) -> None:
-        colors_args = colors if isinstance(colors, tuple) else [colors]
-        george.tv_background_set(self.background_mode, *colors_args)
+        george.tv_background_set(self.background_mode, colors)
 
     @set_as_current
     def clear_background(self) -> None:

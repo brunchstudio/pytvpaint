@@ -81,7 +81,12 @@ def tv_background_set(
     mode: BackgroundMode,
     color: tuple[RGBColor, RGBColor] | RGBColor | None = None,
 ) -> None:
-    """Set the background mode of the project."""
+    """Set the background mode of the project.
+
+    Args:
+        mode: color mode (None, checker or one color)
+        color: None for None mode, RBGColor for one color, and tuple of RGBColors for checker
+    """
     args = []
 
     if mode == BackgroundMode.CHECK and isinstance(color, tuple):
