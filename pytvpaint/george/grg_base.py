@@ -967,14 +967,14 @@ def tv_get_active_shape() -> TVPShape:
     return tv_cast_to_type(send_cmd("tv_GetActiveShape"), TVPShape)
 
 
-def tv_set_active_shape(shape: TVPShape, *shape_args: Any) -> None:
+def tv_set_active_shape(shape: TVPShape, **shape_kwargs: Any) -> None:
     """Set the current shape and its tool parameters.
 
     Args:
         shape: the shape to set
-        *shape_args: the shape specific parameters
+        **shape_kwargs: the shape specific parameters as keyword arguments
     """
-    send_cmd("tv_SetActiveShape", shape.value, *shape_args)
+    send_cmd("tv_SetActiveShape", shape.value, *args_dict_to_list(shape_kwargs))
 
 
 @overload

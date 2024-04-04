@@ -163,7 +163,7 @@ def count_up_generate(test_clip_obj: Clip) -> None:
         send_cmd("tv_TextTool2", "size", 200)  # set text size
         george.tv_text_brush(str(i))  # set the brush text
         george.tv_set_active_shape(
-            george.TVPShape.FREE_HAND_LINE, "size", 200
+            george.TVPShape.FREE_HAND_LINE, size=200
         )  # set the shape and it's size
         # write a line with the text brush, having the start-end pos being the same will fake a single click
         george.tv_line(text_pos, text_pos)
