@@ -139,7 +139,7 @@ class Renderable(ABC):
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         file_sequence, start, end, is_sequence, is_image = handle_output_range(
@@ -147,6 +147,7 @@ class Renderable(ABC):
         )
         self._validate_range(start, end)
 
+        origin_start = int(start)
         start, end = self._get_real_range(start, end)
         if not is_image and start == end:
             raise ValueError(
@@ -158,7 +159,6 @@ class Renderable(ABC):
             first_frame = Path(file_sequence.frame(file_sequence.start()))
         else:
             first_frame = Path(str(output_path))
-
         first_frame.parent.mkdir(exist_ok=True, parents=True)
 
         save_format = george.SaveFormat.from_extension(
@@ -170,7 +170,7 @@ class Renderable(ABC):
             alpha_mode, background_mode, save_format, format_opts, layer_selection
         ):
             if start == end:
-                with restore_current_frame(self, file_sequence.start()):
+                with restore_current_frame(self, origin_start):
                     george.tv_save_display(first_frame)
             else:
                 # not using tv_save_sequence since it doesn't handle camera and would require different range math
@@ -463,7 +463,8 @@ def handle_output_range(
 ) -> tuple[FileSequence, int, int, bool, bool]:
     """Handle the different options for output paths and range.
 
-    Whether the user provides a range (start-end) or a filesequence with a range or not, this functions ensures we always end up with a valid range to render
+    Whether the user provides a range (start-end) or a filesequence with a range or not, this functions ensures we
+    always end up with a valid range to render
 
     Args:
         output_path: user provided output path
@@ -497,8 +498,8 @@ def handle_output_range(
     fseq_has_range = frame_set and len(frame_set) > 1
     fseq_is_single_image = frame_set and len(frame_set) == 1
     fseq_no_range_padding = not frame_set and file_sequence.padding()
-    range_is_seq = start and end and start != end
-    range_is_single_image = start and end and start == end
+    range_is_seq = start is not None and end is not None and start != end
+    range_is_single_image = start is not None and end is not None and start == end
 
     is_single_image = bool(
         is_image and (fseq_is_single_image or not frame_set) and range_is_single_image

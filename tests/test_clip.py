@@ -9,7 +9,7 @@ from fileseq.filesequence import FileSequence
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.george import RGBColor
-from pytvpaint.layer import Layer, LayerInstance
+from pytvpaint.layer import Layer, LayerColor, LayerInstance
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 from tests.conftest import FixtureYield
@@ -451,8 +451,14 @@ def random_color() -> RGBColor:
 def test_clip_set_layer_color(
     test_clip_obj: Clip, index: int, random_color: RGBColor
 ) -> None:
-    test_clip_obj.set_layer_color(index, random_color, "test")
+    expected = LayerColor(index, test_clip_obj)
+    expected.color = random_color
+    expected.name = "test"
+
+    test_clip_obj.set_layer_color(expected)
+
     result = test_clip_obj.get_layer_color(by_index=index)
+    assert result is not None
     assert result.name == "test"
     assert result.color == random_color
 

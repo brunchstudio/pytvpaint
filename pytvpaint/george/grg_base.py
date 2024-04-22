@@ -340,8 +340,8 @@ class SaveFormat(Enum):
     @classmethod
     def from_extension(cls, extension: str) -> SaveFormat:
         """Returns the correct tvpaint format value from a string extension."""
-        extension = extension.replace(".", "").lower()
-        if not hasattr(SaveFormat, extension.upper()):
+        extension = extension.replace(".", "").upper()
+        if not hasattr(SaveFormat, extension):
             raise ValueError(
                 f"Could not find format ({extension}) in accepted formats ({SaveFormat})"
             )
