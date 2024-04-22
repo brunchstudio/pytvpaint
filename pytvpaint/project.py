@@ -46,7 +46,11 @@ class Project(Refreshable, Renderable):
         return self.id == other.id
 
     def refresh(self) -> None:
-        """Refreshed the project data."""
+        """Refreshed the project data.
+
+        Raises:
+            ValueError: if project has been closed
+        """
         if self._is_closed:
             msg = "Project already closed, load the project again to get data"
             raise ValueError(msg)
@@ -67,6 +71,9 @@ class Project(Refreshable, Renderable):
     @property
     def position(self) -> int:
         """The project's position in the project tabs.
+
+        Raises:
+            ValueError: if project cannot be found in open projects
 
         Note:
             the indices go from right to left in the UI
@@ -309,12 +316,13 @@ class Project(Refreshable, Renderable):
         cls,
         by_id: str | None = None,
         by_name: str | None = None,
-    ) -> Project:
+    ) -> Project | None:
         """Find a project by id or by name."""
         for project in Project.open_projects():
             if (by_id and project.id == by_id) or (by_name and project.name == by_name):
                 return project
-        raise ValueError(f"Can't find a project with id: {by_id} and name: {by_name}")
+
+        return None
 
     @staticmethod
     def current_scene_ids() -> Iterator[int]:
@@ -323,7 +331,11 @@ class Project(Refreshable, Renderable):
 
     @property
     def current_scene(self) -> Scene:
-        """Get the current scene of the project."""
+        """Get the current scene of the project.
+
+        Raises:
+            ValueError: if scene cannot be found in project
+        """
         for scene in self.scenes:
             if scene.is_current:
                 return scene
@@ -342,12 +354,13 @@ class Project(Refreshable, Renderable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
-    ) -> Scene:
+    ) -> Scene | None:
         """Find a scene in the project by id or name."""
         for scene in self.scenes:
             if (by_id and scene.id == by_id) or (by_name and scene.name == by_name):
                 return scene
-        raise ValueError("Scene not found")
+
+        return None
 
     @set_as_current
     def add_scene(self) -> Scene:
@@ -386,15 +399,18 @@ class Project(Refreshable, Renderable):
         by_id: int | None = None,
         by_name: str | None = None,
         scene_id: int | None = None,
-    ) -> Clip:
+    ) -> Clip | None:
         """Find a clip by id, name or scene_id."""
-        clips = self.get_scene(by_id=scene_id).clips if scene_id else self.clips
+        clips = self.clips
+        if scene_id:
+            selected_scene = self.get_scene(by_id=scene_id)
+            clips = selected_scene.clips if selected_scene else clips
 
         for clip in clips:
             if (by_id and clip.id == by_id) or (by_name and clip.name == by_name):
                 return clip
 
-        raise ValueError("Clip not found")
+        return None
 
     def add_clip(self, clip_name: str, scene: Scene | None = None) -> Clip:
         """Add a new clip in the given scene or the current one if no scene provided."""
@@ -417,7 +433,7 @@ class Project(Refreshable, Renderable):
 
     def _validate_range(self, start: int, end: int) -> None:
         project_start_frame = self.start_frame
-        project_end_frame = self.start_frame
+        project_end_frame = self.end_frame
         project_mark_in = self.mark_in
         project_mark_out = self.mark_out
 
@@ -445,7 +461,7 @@ class Project(Refreshable, Renderable):
         end: int | None = None,
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Render the project to a single frame or frame sequence or movie.
@@ -466,8 +482,12 @@ class Project(Refreshable, Renderable):
 
         Note:
             This functions uses the project's timeline as a basis for the range (start-end). This timeline includes all
-            the project's clips and is different from a clip range. For more details on the differences in frame range
-            and the timeline in TVPaint, please check the `Limitations` section of the documentation.
+            the project's clips and is different from a clip range. For more details on the differences in frame ranges
+            and the timeline in TVPaint, please check the `Usage/Rendering` section of the documentation.
+
+        Warning:
+            Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+            encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
         """
         default_start = self.mark_in or self.start_frame
         default_end = self.mark_out or self.end_frame
@@ -492,7 +512,7 @@ class Project(Refreshable, Renderable):
         output_path: Path | str | FileSequence,
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Render sequential clips as a single output."""
@@ -544,8 +564,12 @@ class Project(Refreshable, Renderable):
     @mark_in.setter
     @set_as_current
     def mark_in(self, value: int | None) -> None:
-        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
-        value = value or self.mark_in or 0
+        if value is None:
+            action = george.MarkAction.CLEAR
+            value = self.mark_in or 0
+        else:
+            action = george.MarkAction.SET
+            value = value
 
         frame = value - self.start_frame
         george.tv_mark_in_set(
@@ -566,8 +590,12 @@ class Project(Refreshable, Renderable):
     @mark_out.setter
     @set_as_current
     def mark_out(self, value: int | None) -> None:
-        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
-        value = value or self.mark_out or 0
+        if value is None:
+            action = george.MarkAction.CLEAR
+            value = self.mark_out or 0
+        else:
+            action = george.MarkAction.SET
+            value = value
 
         frame = value - self.start_frame
         george.tv_mark_out_set(

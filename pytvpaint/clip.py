@@ -113,7 +113,11 @@ class Clip(Removable, Renderable):
 
     @property
     def scene(self) -> Scene:
-        """The clip's scene."""
+        """The clip's scene.
+
+        Raises:
+            ValueError: if clip cannot be found in the project
+        """
         for scene in self.project.scenes:
             for other_clip in scene.clips:
                 if other_clip == self:
@@ -133,7 +137,11 @@ class Clip(Removable, Renderable):
 
     @property
     def position(self) -> int:
-        """The position of the clip in the scene."""
+        """The position of the clip in the scene.
+
+        Raises:
+            ValueError: if clip cannot be found in the project
+        """
         for pos, clip_id in enumerate(self.scene.clip_ids):
             if clip_id == self.id:
                 return pos
@@ -142,6 +150,7 @@ class Clip(Removable, Renderable):
     @position.setter
     def position(self, value: int) -> None:
         """Set the position of the clip in the scene."""
+        value = max(0, value)
         george.tv_clip_move(self.id, self.scene.id, value)
 
     @property
@@ -334,7 +343,11 @@ class Clip(Removable, Renderable):
 
     @property
     def current_layer(self) -> Layer:
-        """Get the current layer in the clip."""
+        """Get the current layer in the clip.
+
+        Raises:
+            ValueError: if clip cannot be found in the project
+        """
         for layer in self.layers:
             if layer.is_current:
                 return layer
@@ -371,7 +384,7 @@ class Clip(Removable, Renderable):
         start_count: tuple[int, int] | None = None,
         stretch: bool = False,
         time_stretch: bool = False,
-        pre_load: bool = False,
+        preload: bool = False,
         with_name: str = "",
         field_order: george.FieldOrder = george.FieldOrder.LOWER,
     ) -> Layer:
@@ -382,7 +395,7 @@ class Clip(Removable, Renderable):
             start_count: the start and number of image of sequence to load. Defaults to None.
             stretch: Stretch each image to the size of the layer. Defaults to None.
             time_stretch: Once loaded, the layer will have a new number of image corresponding to the project framerate. Defaults to None.
-            pre_load: Load all the images in memory, no more reference on the files. Defaults to None.
+            preload: Load all the images in memory, no more reference on the files. Defaults to None.
             with_name: the name of the new layer
             field_order: the field order. Defaults to None.
 
@@ -397,7 +410,7 @@ class Clip(Removable, Renderable):
             field_order,
             stretch,
             time_stretch,
-            pre_load,
+            preload,
         )
 
         new_layer = Layer.current_layer()
@@ -445,7 +458,7 @@ class Clip(Removable, Renderable):
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Render the clip to a single frame or frame sequence or movie.
@@ -457,7 +470,7 @@ class Clip(Removable, Renderable):
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             layer_selection: list of layers to render, if None render all of them. Defaults to None.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
-            background_mode: the background mode for rendering. Defaults to george.BackgroundMode.NONE.
+            background_mode: the background mode for rendering. Defaults to None.
             format_opts: custom format options. Defaults to None.
 
         Raises:
@@ -467,8 +480,12 @@ class Clip(Removable, Renderable):
 
         Note:
             This functions uses the clip's range as a basis (start-end). This  is different from a project range, which
-            uses the project timeline. For more details on the differences in frame range and the timeline in TVPaint,
-            please check the `Limitations` section of the documentation.
+            uses the project timeline. For more details on the differences in frame ranges and the timeline in TVPaint,
+            please check the `Usage/Rendering` section of the documentation.
+
+        Warning:
+            Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+            encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
         """
         default_start = self.mark_in or self.start
         default_end = self.mark_out or self.end
@@ -491,6 +508,7 @@ class Clip(Removable, Renderable):
         """Exports the clip in .tvp format which can be imported as a project in TVPaint.
 
         Raises:
+            ValueError: if output extension is not (.tvp)
             FileNotFoundError: if the render failed and no files were found on disk
         """
         export_path = Path(export_path)
@@ -515,7 +533,7 @@ class Clip(Removable, Renderable):
         file_pattern: str = r"[%3ii] %ln",
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
         all_images: bool = False,
         ignore_duplicates: bool = False,
@@ -529,13 +547,13 @@ class Clip(Removable, Renderable):
             file_pattern: the file name pattern (%li: layer index, %ln: layer name, %ii: image index, %in: image name, %fi: file index (added in 11.0.8)). Defaults to None.
             layer_selection: list of layers to render or all if None. Defaults to None.
             alpha_mode: the export alpha mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
-            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
+            background_mode: the export background mode. Defaults to None.
             format_opts: custom format options. Defaults to None.
             all_images: export all images (not only the instances). Defaults to False.
             ignore_duplicates: Ignore duplicates images. Defaults to None.
 
         Raises:
-            FileNotFoundError: if the render failed and no files were found on disk
+            FileNotFoundError: if the export failed and no files were found on disk
         """
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
@@ -567,7 +585,7 @@ class Clip(Removable, Renderable):
         end: int | None = None,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip as a PSD.
@@ -579,8 +597,11 @@ class Clip(Removable, Renderable):
             end: the end frame. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
-            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
+            background_mode: the export background mode. Defaults to None.
             format_opts: custom format options. Defaults to None.
+
+        Raises:
+            FileNotFoundError: if the export failed and no files were found on disk
         """
         start = start or self.mark_in or self.start
         end = end or self.mark_out or self.end
@@ -622,7 +643,7 @@ class Clip(Removable, Renderable):
         exposure_label: str = "",
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip as a CSV.
@@ -634,7 +655,7 @@ class Clip(Removable, Renderable):
             exposure_label: give a label when the image is an exposure. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
-            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
+            background_mode: the export background mode. Defaults to None.
             format_opts: custom format options. Defaults to None.
 
         Raises:
@@ -664,7 +685,7 @@ class Clip(Removable, Renderable):
         space: int = 0,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip as sprites in one image.
@@ -675,8 +696,11 @@ class Clip(Removable, Renderable):
             space: the space between each sprite in the image. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
-            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
+            background_mode: the export background mode. Defaults to None.
             format_opts: custom format options. Defaults to None.
+
+        Raises:
+            FileNotFoundError: if the export failed and no files were found on disk
         """
         export_path = Path(export_path)
         save_format = george.SaveFormat.from_extension(export_path.suffix)
@@ -702,7 +726,7 @@ class Clip(Removable, Renderable):
         send: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
+        background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
         """Save the current clip for Flix.
@@ -716,11 +740,12 @@ class Clip(Removable, Renderable):
             send: open a browser with the prefilled url. Defaults to None.
             layer_selection: layers to render. Defaults to None (render all the layers).
             alpha_mode: the alpha save mode. Defaults to george.AlphaSaveMode.PREMULTIPLY.
-            background_mode: the export background mode. Defaults to george.BackgroundMode.NONE.
+            background_mode: the export background mode. Defaults to None.
             format_opts: custom format options. Defaults to None.
 
         Raises:
             ValueError: if the extension is not .xml
+            FileNotFoundError: if the export failed and no files were found on disk
         """
         export_path = Path(export_path)
 
@@ -768,8 +793,12 @@ class Clip(Removable, Renderable):
     @set_as_current
     def mark_in(self, value: int | None) -> None:
         """Set the mark int value of the clip or None to clear it."""
-        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
-        value = value or self.mark_in or 0
+        if value is None:
+            action = george.MarkAction.CLEAR
+            value = self.mark_in or 0
+        else:
+            action = george.MarkAction.SET
+            value = value
 
         frame = value - self.project.start_frame
         george.tv_mark_in_set(
@@ -789,8 +818,12 @@ class Clip(Removable, Renderable):
     @set_as_current
     def mark_out(self, value: int | None) -> None:
         """Set the mark in of the clip or None to clear it."""
-        action = george.MarkAction.CLEAR if value is None else george.MarkAction.SET
-        value = value or self.mark_out or 0
+        if value is None:
+            action = george.MarkAction.CLEAR
+            value = self.mark_out or 0
+        else:
+            action = george.MarkAction.SET
+            value = value
 
         frame = value - self.project.start_frame
         george.tv_mark_out_set(
@@ -805,27 +838,26 @@ class Clip(Removable, Renderable):
         for color_index in range(26):
             yield LayerColor(color_index=color_index, clip=self)
 
-    def set_layer_color(
-        self,
-        index: int,
-        color: george.RGBColor,
-        name: str | None = None,
-    ) -> None:
+    def set_layer_color(self, layer_color: LayerColor) -> None:
         """Set the layer color at the provided index.
 
         Args:
-            index: the layer color index
-            color: the new color
-            name: the name to change. Defaults to None.
+            layer_color: the layer color instance.
         """
-        george.tv_layer_color_set_color(self.id, index, color, name)
+        george.tv_layer_color_set_color(
+            self.id, layer_color.index, layer_color.color, layer_color.name
+        )
 
     def get_layer_color(
         self,
         by_index: int | None = None,
         by_name: str | None = None,
-    ) -> LayerColor:
-        """Get a layer color by index or name."""
+    ) -> LayerColor | None:
+        """Get a layer color by index or name.
+
+        Raises:
+            ValueError: if none of the arguments `by_index` and `by_name` where provided
+        """
         if not by_index and by_name:
             raise ValueError(
                 "At least one value (by_index or by_name) must be provided"
@@ -837,9 +869,7 @@ class Clip(Removable, Renderable):
         try:
             return next(c for c in self.layer_colors if c.name == by_name)
         except StopIteration:
-            raise ValueError(
-                f"No LayerColor found with name ({by_name}) in Clip ({self.name})"
-            )
+            return None
 
     @property
     def bookmarks(self) -> Iterator[int]:
@@ -889,11 +919,16 @@ class Clip(Removable, Renderable):
         by_id: int | None = None,
         by_path: Path | str | None = None,
     ) -> ClipSound | None:
-        """Get a clip sound by id or by path."""
+        """Get a clip sound by id or by path.
+
+        Raises:
+            ValueError: if sound object could not be found in clip
+        """
         for sound in self.sounds:
             if (by_id and sound.id == by_id) or (by_path and sound.path == by_path):
                 return sound
-        raise ValueError("Can't find sound")
+
+        return None
 
     def add_sound(self, sound_path: Path | str) -> ClipSound:
         """Adds a new clip soundtrack."""

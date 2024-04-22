@@ -18,7 +18,7 @@ clip.render("./out.#.png", start=10, end=22)
 !!! warning
 
     For more details on how we handle frame ranges in the projects and clips, please check the sections below, which go
-    into detail about how TVPaint handles ranges and how we changed taht to fit our needs
+    into detail about how TVPaint handles ranges and how we changed it to fit our needs.
 
 ## Sequence parsing with Fileseq
 
@@ -396,3 +396,8 @@ print(c2.timeline_end)  # => 63
     invalid range anyways, then consider using these wrapped functions directly (`george.tv_project_save_sequence`
     , `george.tv_save_sequence`). This also means that you will have to do the range conversions yourself, as shown
     in the examples above.
+
+!!! Warning
+
+    Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+    encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.

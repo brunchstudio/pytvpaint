@@ -255,13 +255,13 @@ def test_project_get_project(test_project_obj: Project) -> None:
 
 
 def test_project_get_project_wrong_id(test_project_obj: Project) -> None:
-    with pytest.raises(ValueError, match="Can't find a project"):
-        Project.get_project(by_id="unknown")
+    res = Project.get_project(by_id="unknown")
+    assert res is None
 
 
 def test_project_get_project_wrong_name(test_project_obj: Project) -> None:
-    with pytest.raises(ValueError, match="Can't find a project"):
-        Project.get_project(by_name="name")
+    res = Project.get_project(by_name="name")
+    assert res is None
 
 
 def test_project_current_scene_ids(

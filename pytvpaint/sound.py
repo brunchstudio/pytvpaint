@@ -91,7 +91,11 @@ class BaseSound(Removable, ABC, Generic[P]):
 
     @property
     def track_index(self) -> int:
-        """Get the soundtrack index in the sound stack."""
+        """Get the soundtrack index in the sound stack.
+
+        Raises:
+            ValueError: if sound object no longer exists
+        """
         # Recomputes the track_index each time because some track
         # can be deleted in the meantime
         for index, data in enumerate(self.iter_sounds_data(self._parent.id)):

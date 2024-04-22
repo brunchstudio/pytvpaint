@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from fileseq.filesequence import FileSequence
+from fileseq.frameset import FrameSet
+
 from pytvpaint import george, log, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.utils import (
@@ -35,7 +38,11 @@ class LayerInstance:
     start: int
 
     def __post_init__(self) -> None:
-        """Checks if the instance exists after init."""
+        """Checks if the instance exists after init.
+
+        Raises:
+            ValueError: if no layer instance found at provided start frame
+        """
         try:
             project_start_frame = self.layer.project.start_frame
             george.tv_instance_get_name(self.layer.id, self.start - project_start_frame)
@@ -388,11 +395,22 @@ class Layer(Removable):
 
     @position.setter
     def position(self, value: int) -> None:
-        """Moves the layer to the provided position."""
+        """Moves the layer to the provided position.
+
+        Note:
+            This function fixes the issues with positions not been set correctly by TVPaint when value is superior to 0
+        """
         if self.position == value:
             return
+
+        value = max(0, value)
+        # TVPaint will always set the position at (value - 1) if value is superior to 0, so we need to add +1 in
+        #  that case to set the position correctly, I don't know why it works this way, but it honestly makes no sense
+        if value != 0:
+            value += 1
+
         self.make_current()
-        george.tv_layer_move(value + 1)
+        george.tv_layer_move(value)
 
     @refreshed_property
     def name(self) -> str:
@@ -805,6 +823,156 @@ class Layer(Removable):
         self.mark_removed()
 
     @set_as_current
+    def render(
+        self,
+        output_path: Path | str | FileSequence,
+        start: int | None = None,
+        end: int | None = None,
+        use_camera: bool = False,
+        alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode | None = None,
+        format_opts: list[str] | None = None,
+    ) -> None:
+        """Render the layer to a single frame or frame sequence or movie.
+
+        Args:
+            output_path: a single file or file sequence pattern
+            start: the start frame to render the layer's start if None. Defaults to None.
+            end: the end frame to render or the layer's end if None. Defaults to None.
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
+            alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
+            background_mode: the background mode for rendering. Defaults to None.
+            format_opts: custom format options. Defaults to None.
+
+        Raises:
+            ValueError: if requested range (start-end) not in clip range/bounds
+            ValueError: if output is a movie
+            FileNotFoundError: if the render failed and no files were found on disk or missing frames
+
+        Note:
+            This functions uses the layer's range as a basis (start-end). This  is different from a project range, which
+            uses the project timeline. For more details on the differences in frame ranges and the timeline in TVPaint,
+            please check the `Usage/Rendering` section of the documentation.
+
+        Warning:
+            Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+            encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
+        """
+        start = self.start if start is None else start
+        end = self.end if end is None else end
+        self.clip.render(
+            output_path=output_path,
+            start=start,
+            end=end,
+            use_camera=use_camera,
+            layer_selection=[self],
+            alpha_mode=alpha_mode,
+            background_mode=background_mode,
+            format_opts=format_opts,
+        )
+
+    @set_as_current
+    def render_frame(
+        self,
+        export_path: Path | str,
+        frame: int | None = None,
+        alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode | None = george.BackgroundMode.NONE,
+        format_opts: list[str] | None = None,
+    ) -> Path:
+        """Render a frame from the layer.
+
+        Args:
+            export_path: the frame export path (the extension determines the output format)
+            frame: the frame to render or the current frame if None. Defaults to None.
+            alpha_mode: the render alpha mode
+            background_mode: the render background mode
+            format_opts: custom output format options to pass when rendering
+
+        Raises:
+            FileNotFoundError: if the render failed or output not found on disk
+
+        Returns:
+            Path: render output path
+        """
+        export_path = Path(export_path)
+        save_format = george.SaveFormat.from_extension(export_path.suffix)
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+
+        frame = frame or self.clip.current_frame
+        self.clip.current_frame = frame
+
+        with utils.render_context(
+            alpha_mode,
+            background_mode,
+            save_format,
+            format_opts,
+            layer_selection=[self],
+        ):
+            george.tv_save_image(export_path)
+
+        if not export_path.exists():
+            raise FileNotFoundError(
+                f"Could not find rendered image ({frame}) at : {export_path.as_posix()}"
+            )
+
+        return export_path
+
+    @set_as_current
+    def render_instances(
+        self,
+        export_path: Path | str | FileSequence,
+        start: int | None = None,
+        end: int | None = None,
+        alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
+        background_mode: george.BackgroundMode | None = None,
+        format_opts: list[str] | None = None,
+    ) -> FileSequence:
+        """Render all layer instances in the provided range for the current layer.
+
+        Args:
+            export_path: the export path (the extension determines the output format)
+            start: the start frame to render the layer's start if None. Defaults to None.
+            end: the end frame to render or the layer's end if None. Defaults to None.
+            alpha_mode: the render alpha mode
+            background_mode: the render background mode
+            format_opts: custom output format options to pass when rendering
+
+        Raises:
+            ValueError: if requested range (start-end) not in layer range/bounds
+            ValueError: if output is a movie
+            FileNotFoundError: if the render failed or output not found on disk
+
+        Returns:
+            FileSequence: instances output sequence
+        """
+        file_sequence, start, end, is_sequence, is_image = utils.handle_output_range(
+            export_path, self.start, self.end, start, end
+        )
+
+        if start < self.start or end > self.end:
+            raise ValueError(
+                f"Render ({start}-{end}) not in clip range ({(self.start, self.end)})"
+            )
+        if not is_image:
+            raise ValueError(
+                f"Video formats ({file_sequence.extension()}) are not supported for instance rendering !"
+            )
+
+        # render to output
+        frames = []
+        for layer_instance in self.instances:
+            cur_frame = layer_instance.start
+            instance_output = Path(file_sequence.frame(cur_frame))
+            self.render_frame(
+                instance_output, cur_frame, alpha_mode, background_mode, format_opts
+            )
+            frames.append(str(cur_frame))
+
+        file_sequence.setFrameSet(FrameSet(",".join(frames)))
+        return file_sequence
+
+    @set_as_current
     def load_image(
         self, image_path: str | Path, frame: int | None = None, stretch: bool = False
     ) -> None:
@@ -830,53 +998,6 @@ class Layer(Removable):
 
             george.tv_load_image(image_path.as_posix(), stretch)
 
-    @set_as_current
-    def render_frame(
-        self,
-        export_path: Path | str,
-        frame: int | None = None,
-        alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
-        background_mode: george.BackgroundMode = george.BackgroundMode.NONE,
-        format_opts: list[str] | None = None,
-    ) -> Path:
-        """Render a frame from the layer.
-
-        Args:
-            export_path: the frame export path (the extension determine the output format)
-            frame: the frame to render or the current frame if None. Defaults to None.
-            alpha_mode: the render alpha mode
-            background_mode: the render background mode
-            format_opts: custom output format options to pass when rendering
-
-        Raises:
-            FileNotFoundError: if the render failed and it can't find file on disk
-
-        Returns:
-            Path:
-        """
-        export_path = Path(export_path)
-        save_format = george.SaveFormat.from_extension(export_path.suffix)
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-
-        frame = frame or self.clip.current_frame
-        self.clip.current_frame = frame
-
-        with utils.render_context(
-            alpha_mode,
-            background_mode,
-            save_format,
-            format_opts,
-            layer_selection=[self],
-        ):
-            george.tv_save_image(export_path)
-
-        if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find rendered image at : {export_path.as_posix()}"
-            )
-
-        return export_path
-
     def get_mark_color(self, frame: int) -> LayerColor | None:
         """Get the mark color at a specific frame.
 
@@ -890,6 +1011,7 @@ class Layer(Removable):
         color_index = george.tv_layer_mark_get(self.id, frame)
         if not color_index:
             return None
+
         return self.clip.get_layer_color(by_index=color_index)
 
     def add_mark(self, frame: int, color: LayerColor) -> None:
@@ -900,10 +1022,12 @@ class Layer(Removable):
             color: the color index
 
         Raises:
-            Exception: if the layer is not an animation layer
+            TypeError: if the layer is not an animation layer
         """
         if not self.is_anim_layer:
-            raise Exception("Can't add a mark because it's not an animation layer")
+            raise TypeError(
+                f"Can't add a mark because this is not an animation layer ({self})"
+            )
         frame = frame - self.project.start_frame
         george.tv_layer_mark_set(self.id, frame, color.index)
 
@@ -1059,6 +1183,7 @@ class Layer(Removable):
             split: True to make each added frame a new image
 
         Raises:
+            TypeError: if the layer is not an animation layer
             ValueError: if the number of frames `nb_frames` is inferior or equal to 0
             ValueError: if an instance already exists at the given range (start + nb_frames)
 
@@ -1066,7 +1191,7 @@ class Layer(Removable):
             LayerInstance: new layer instance
         """
         if not self.is_anim_layer:
-            raise ValueError("The layer needs to be an animation layer")
+            raise TypeError("The layer needs to be an animation layer")
 
         if nb_frames <= 0:
             raise ValueError("Instance number of frames must be at least 1")

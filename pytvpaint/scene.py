@@ -78,14 +78,19 @@ class Scene(Removable):
 
     @property
     def position(self) -> int:
-        """The scene's position in the project."""
+        """The scene's position in the project.
+
+        Raises:
+            ValueError: if scene cannot be found in the project
+        """
         for pos, other_id in enumerate(self.project.current_scene_ids()):
             if other_id == self.id:
                 return pos
-        raise Exception("The clip doesn't exist anymore")
+        raise Exception("The scene doesn't exist anymore")
 
     @position.setter
     def position(self, value: int) -> None:
+        value = max(0, value)
         george.tv_scene_move(self.id, value)
 
     @property
@@ -106,12 +111,13 @@ class Scene(Removable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
-    ) -> Clip:
+    ) -> Clip | None:
         """Find a clip by id or by name."""
         for clip in self.clips:
             if (by_id and clip.id == by_id) or (by_name and clip.name == by_name):
                 return clip
-        raise ValueError("Clip not found")
+
+        return None
 
     @set_as_current
     def add_clip(self, clip_name: str) -> Clip:

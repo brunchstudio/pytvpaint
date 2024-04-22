@@ -340,5 +340,5 @@ def with_loaded_sequence(
         ppm_sequence[0],
         with_name="images",
         stretch=False,
-        pre_load=True,
+        preload=True,
     )
