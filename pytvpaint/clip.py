@@ -558,7 +558,9 @@ class Clip(Removable, Renderable):
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
 
-        fill_background = False if background_mode in [None, george.BackgroundMode.NONE] else True
+        fill_background = bool(
+            background_mode not in [None, george.BackgroundMode.NONE]
+        )
 
         with utils.render_context(
             alpha_mode, background_mode, save_format, format_opts, layer_selection
