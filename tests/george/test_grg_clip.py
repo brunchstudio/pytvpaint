@@ -577,11 +577,11 @@ def test_tv_clip_save_structure_json(
     ppm_sequence: list[Path],
     tmp_path: Path,
     file_format: SaveFormat,
-    fill_background: bool | None,
-    folder_pattern: str | None,
-    file_pattern: str | None,
-    visible_layers_only: bool | None,
-    all_images: bool | None,
+    fill_background: bool,
+    folder_pattern: str,
+    file_pattern: str,
+    visible_layers_only: bool,
+    all_images: bool,
 ) -> None:
     # Import some frames
     load_sequence_with_name(ppm_sequence[0], name="sequence_1", count=5)
