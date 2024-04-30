@@ -558,15 +558,18 @@ class Clip(Removable, Renderable):
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
 
+        fill_background = False if background_mode in [None, george.BackgroundMode.NONE] else True
+
         with utils.render_context(
             alpha_mode, background_mode, save_format, format_opts, layer_selection
         ):
             george.tv_clip_save_structure_json(
                 export_path,
                 save_format,
-                None,
-                folder_pattern,
-                file_pattern,
+                fill_background=fill_background,
+                folder_pattern=folder_pattern,
+                file_pattern=file_pattern,
+                visible_layers_only=True,
                 all_images=all_images,
                 ignore_duplicates=ignore_duplicates,
             )

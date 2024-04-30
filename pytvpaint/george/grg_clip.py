@@ -404,12 +404,12 @@ def tv_save_display(export_path: Path | str) -> None:
 def tv_clip_save_structure_json(
     export_path: Path | str,
     file_format: SaveFormat,
-    fill_background: bool | None = None,
+    fill_background: bool = False,
     folder_pattern: str | None = None,
     file_pattern: str | None = None,
-    visible_layers_only: bool | None = None,
-    all_images: bool | None = None,
-    ignore_duplicates: bool | None = None,
+    visible_layers_only: bool = True,
+    all_images: bool = False,
+    ignore_duplicates: bool = False,
     exclude_instance_names: list[str] | None = None,
 ) -> None:
     """Save the current clip structure in json.
@@ -442,17 +442,16 @@ def tv_clip_save_structure_json(
         "background": int(fill_background) if fill_background else None,
         "patternfolder": folder_pattern,
         "patternfile": file_pattern,
-        "onlyvisiblelayers": visible_layers_only,
-        "allimages": int(all_images) if all_images else None,
-        "ignoreduplicateimages": ignore_duplicates,
+        "onlyvisiblelayers": int(visible_layers_only),
+        "allimages": int(all_images),
+        "ignoreduplicateimages": int(ignore_duplicates),
         "excludenames": (
             ";".join(exclude_instance_names) if exclude_instance_names else None
         ),
     }
+    args.extend(args_dict_to_list(dict_args))
 
-    args_inline = args_dict_to_list(dict_args)
-
-    send_cmd("tv_ClipSaveStructure", *args, *args_inline, error_values=[-1])
+    send_cmd("tv_ClipSaveStructure", *args, error_values=[-1])
 
 
 def tv_clip_save_structure_psd(
