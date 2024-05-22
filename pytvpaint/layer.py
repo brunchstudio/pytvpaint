@@ -785,6 +785,7 @@ class Layer(Removable):
         Returns:
             Layer: the new animation layer
         """
+        clip = clip or Clip.current_clip()
         layer = cls.new(name, clip, color)
         layer.pre_behavior = george.LayerBehavior.HOLD
         layer.post_behavior = george.LayerBehavior.HOLD
@@ -792,7 +793,8 @@ class Layer(Removable):
 
         image = Path(image or "")
         if image.is_file():
-            layer.load_image(image, stretch=stretch)
+            layer.convert_to_anim_layer()
+            layer.load_image(image, frame=clip.start, stretch=stretch)
 
         return layer
 
@@ -819,6 +821,7 @@ class Layer(Removable):
             The current instance won't be usable after this call since it will be mark removed.
         """
         self.clip.make_current()
+        self.is_locked = False
         george.tv_layer_kill(self.id)
         self.mark_removed()
 

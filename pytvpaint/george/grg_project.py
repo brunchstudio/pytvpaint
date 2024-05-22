@@ -265,7 +265,7 @@ def tv_project_save_sequence(
 
     if use_camera:
         args.append("camera")
-    if start and end:
+    if start is not None and end is not None:
         args.extend((start, end))
 
     send_cmd(
