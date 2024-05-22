@@ -126,15 +126,19 @@ def send_cmd(
     ]
     cmd_str = " ".join([str(arg) for arg in [command, *tv_args]])
 
-    is_stack = command in ["tv_UndoOpenStack", "tv_UpdateUndo", "tv_UndoCloseStack"]
+    is_undo_stack = command in [
+        "tv_UndoOpenStack",
+        "tv_UpdateUndo",
+        "tv_UndoCloseStack",
+    ]
 
-    if not is_stack:
+    if not is_undo_stack:
         log.debug(f"[RPC] >> {cmd_str}")
 
     response = rpc_client.execute_remote("execute_george", [cmd_str])
     result = response["result"]
 
-    if not is_stack:
+    if not is_undo_stack:
         log.debug(f"[RPC] << {result}")
 
     # Test for basic ERROR X values and user provided custom errors

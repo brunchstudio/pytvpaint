@@ -410,7 +410,7 @@ def tv_clip_save_structure_json(
     visible_layers_only: bool = True,
     all_images: bool = False,
     ignore_duplicates: bool = False,
-    exclude_instance_names: list[str] | None = None,
+    exclude_names: list[str] | None = None,
 ) -> None:
     """Save the current clip structure in json.
 
@@ -423,7 +423,7 @@ def tv_clip_save_structure_json(
         visible_layers_only: export only visible layers. Defaults to None.
         all_images: export all images. Defaults to None.
         ignore_duplicates: Ignore duplicates images. Defaults to None.
-        exclude_instance_names: the instances names which won't be processed/exported. Defaults to None.
+        exclude_names: the instances names which won't be processed/exported. Defaults to None.
 
     Raises:
         ValueError: the parent folder doesn't exist
@@ -445,9 +445,7 @@ def tv_clip_save_structure_json(
         "onlyvisiblelayers": int(visible_layers_only),
         "allimages": int(all_images),
         "ignoreduplicateimages": int(ignore_duplicates),
-        "excludenames": (
-            ";".join(exclude_instance_names) if exclude_instance_names else None
-        ),
+        "excludenames": (";".join(exclude_names) if exclude_names else None),
     }
     args.extend(args_dict_to_list(dict_args))
 
