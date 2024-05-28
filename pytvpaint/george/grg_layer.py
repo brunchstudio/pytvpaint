@@ -1213,7 +1213,7 @@ def tv_save_image(export_path: Path | str) -> None:
 
 
 @try_cmd(exception_msg="Invalid image format")
-def tv_load_image(img_path: Path | str, stretch: bool | None = None) -> None:
+def tv_load_image(img_path: Path | str, stretch: bool = False) -> None:
     """Load an image in the current image layer.
 
     Raises:

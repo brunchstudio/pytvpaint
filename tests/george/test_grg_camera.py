@@ -99,7 +99,8 @@ def test_tv_camera_insert_point(test_project: TVPProject) -> None:
     assert tv_camera_interpolation(0.0) == point
 
 
-def test_tv_camera_remove_point() -> None:
+def test_tv_camera_remove_point(test_project: TVPProject) -> None:
+    # Note : leave `test_project` in test args otherwise test won't work
     tv_camera_insert_point(0, 50, 25, 0, 0.0)
     tv_camera_remove_point(0)
 

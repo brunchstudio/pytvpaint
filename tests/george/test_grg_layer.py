@@ -927,7 +927,7 @@ def test_tv_load_image(
     test_clip: TVPClip,
     test_layer: TVPLayer,
     ppm_sequence: list[Path],
-    stretch: bool | None,
+    stretch: bool,
 ) -> None:
     tv_load_image(ppm_sequence[0], stretch)
     # Verify that there's an instance frame

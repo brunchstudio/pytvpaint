@@ -301,13 +301,13 @@ def test_tv_get_field(test_project: TVPProject) -> None:
     assert tv_get_field() == test_project.field_order
 
 
-@pytest.mark.parametrize("use_camera", [None, False, True])
+@pytest.mark.parametrize("use_camera", [False, True])
 @pytest.mark.parametrize("start, end", [(None, None), (0, 5), (0, 0), (0, 1), (2, 5)])
 def test_tv_project_save_sequence(
     test_project: TVPProject,
     tmp_path: Path,
     ppm_sequence: list[Path],
-    use_camera: bool | None,
+    use_camera: bool,
     start: int | None,
     end: int | None,
 ) -> None:

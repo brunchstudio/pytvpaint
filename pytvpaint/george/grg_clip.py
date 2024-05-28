@@ -12,7 +12,6 @@ from pytvpaint.george.client.parse import (
     args_dict_to_list,
     tv_parse_dict,
     tv_parse_list,
-    validate_args_list,
 )
 from pytvpaint.george.exceptions import NoObjectWithIdError
 from pytvpaint.george.grg_base import (
@@ -219,18 +218,18 @@ def tv_load_sequence(
     seq_path: Path | str,
     offset_count: tuple[int, int] | None = None,
     field_order: FieldOrder | None = None,
-    stretch: bool | None = None,
-    time_stretch: bool | None = None,
-    preload: bool | None = None,
+    stretch: bool = False,
+    time_stretch: bool = False,
+    preload: bool = False,
 ) -> int:
     """Load a sequence of images or movie in a new layer.
 
     Args:
         seq_path: the first file of the sequence to load
-        offset_count: the start and number of image of sequence to load. Defaults to None.
+        offset_count: the start and number of images in the sequence to load. Defaults to None.
         field_order: the field order. Defaults to None.
         stretch: Stretch each image to the size of the layer. Defaults to None.
-        time_stretch: Once loaded, the layer will have a new number of image corresponding to the project framerate. Defaults to None.
+        time_stretch: Once loaded, the layer will have a new number of images corresponding to the project framerate. Defaults to None.
         preload: Load all the images in memory, no more reference on the files. Defaults to None.
 
     Raises:
@@ -245,27 +244,24 @@ def tv_load_sequence(
     if not seq_path.exists():
         raise FileNotFoundError(f"File not found at: {seq_path.as_posix()}")
 
-    args: list[int | str | None] = [field_order.value if field_order else None]
+    args: list[int | str] = [seq_path.as_posix()]
+    if offset_count and len(offset_count) == 2:
+        args.extend(offset_count)
+    if field_order:
+        args.append(field_order.value)
 
-    if offset_count is not None:
-        offset, count = offset_count
-        args.insert(0, count)
-        args.insert(0, offset)
-
-    # Filter None inline arguments
-    args = [a for a in args if a is not None]
-
-    args += args_dict_to_list(
-        {
-            "stretch": stretch,
-            "timestretch": time_stretch,
-            "preload": preload,
-        }
-    )
+    extra_args = [
+        (stretch, "stretch"),
+        (time_stretch, "timestretch"),
+        (preload, "preload"),
+    ]
+    for param, param_name in extra_args:
+        if not param:
+            continue
+        args.append(param_name)
 
     result = send_cmd(
         "tv_LoadSequence",
-        seq_path.as_posix(),
         *args,
         error_values=[-1],
     )
@@ -646,15 +642,22 @@ def tv_sound_clip_adjust(
     color_index: int | None = None,
 ) -> None:
     """Change a soundtracks settings."""
-    optional_args = [
-        int(mute) if mute is not None else None,
-        volume,
-        offset,
-        (fade_in_start, fade_in_stop, fade_out_start, fade_out_stop),
-        color_index,
-    ]
+    cur_options = tv_sound_clip_info(tv_clip_current_id(), track_index)
+    args: list[int | float | None] = []
 
-    args = validate_args_list(optional_args)
+    optional_args = [
+        (int(mute) if mute is not None else None, int(cur_options.mute)),
+        (volume, cur_options.volume),
+        (offset, cur_options.offset),
+        (fade_in_start, cur_options.fade_in_start),
+        (fade_in_stop, cur_options.fade_in_stop),
+        (fade_out_start, cur_options.fade_out_start),
+        (fade_out_stop, cur_options.fade_out_stop),
+    ]
+    for arg, default_value in optional_args:
+        args.append(arg if arg is not None else default_value)
+
+    args.append(color_index)
     send_cmd("tv_SoundClipAdjust", track_index, *args, error_values=[-2, -3])
 
 

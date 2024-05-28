@@ -11,7 +11,6 @@ from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     tv_cast_to_type,
     tv_parse_list,
-    validate_args_list,
 )
 from pytvpaint.george.exceptions import NoObjectWithIdError
 from pytvpaint.george.grg_base import (
@@ -127,7 +126,7 @@ def tv_project_new(
 
 
 @try_cmd(exception_msg="Invalid format")
-def tv_load_project(project_path: Path | str, silent: bool | None = None) -> str:
+def tv_load_project(project_path: Path | str, silent: bool = False) -> str:
     """Load a file as a project if possible or open Import panel.
 
     Raises:
@@ -141,7 +140,7 @@ def tv_load_project(project_path: Path | str, silent: bool | None = None) -> str
 
     args: list[Any] = [project_path.as_posix()]
 
-    if silent is not None:
+    if silent:
         args.extend(["silent", int(silent)])
 
     return send_cmd("tv_LoadProject", *args, error_values=[-1])
@@ -255,7 +254,7 @@ def tv_get_field() -> FieldOrder:
 
 def tv_project_save_sequence(
     export_path: Path | str,
-    use_camera: bool | None = None,
+    use_camera: bool = False,
     start: int | None = None,
     end: int | None = None,
 ) -> None:
@@ -314,9 +313,7 @@ def tv_frame_rate_set(
     send_cmd("tv_FrameRate", *args)
 
 
-def tv_frame_rate_project_set(
-    frame_rate: float, time_stretch: bool | None = None
-) -> None:
+def tv_frame_rate_project_set(frame_rate: float, time_stretch: bool = False) -> None:
     """Set the framerate of the current project."""
     args: list[Any] = [frame_rate]
     if time_stretch:
@@ -427,22 +424,23 @@ def tv_sound_project_adjust(
     color_index: int | None = None,
 ) -> None:
     """Change the current project's soundtrack settings."""
+    cur_options = tv_sound_project_info(tv_project_current_id(), track_index)
+    args: list[int | float | None] = []
+
     optional_args = [
-        int(mute) if mute is not None else None,
-        volume,
-        offset,
-        (fade_in_start, fade_in_stop, fade_out_start, fade_out_stop),
-        color_index,
+        (int(mute) if mute is not None else None, int(cur_options.mute)),
+        (volume, cur_options.volume),
+        (offset, cur_options.offset),
+        (fade_in_start, cur_options.fade_in_start),
+        (fade_in_stop, cur_options.fade_in_stop),
+        (fade_out_start, cur_options.fade_out_start),
+        (fade_out_stop, cur_options.fade_out_stop),
     ]
+    for arg, default_value in optional_args:
+        args.append(arg if arg is not None else default_value)
 
-    args = validate_args_list(optional_args)
-
-    send_cmd(
-        "tv_SoundProjectAdjust",
-        track_index,
-        *args,
-        error_values=[-2, -3],
-    )
+    args.append(color_index)
+    send_cmd("tv_SoundProjectAdjust", track_index, *args, error_values=[-2, -3])
 
 
 @try_cmd(

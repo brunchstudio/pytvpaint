@@ -13,7 +13,7 @@
 
 **PyTVPaint** is a type-safe Python library that wraps the George programming language commands in order to interact with the 2D animation software TVPaint.
 
-It communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an opened TVPaint instance.
+It communicates through WebSocket to a [custom C++ plugin](https://github.com/brunchstudio/tvpaint-rpc) running in an open TVPaint instance.
 
 You can check the [documentation](https://brunchstudio.github.io/pytvpaint/) for more details.
 
@@ -29,7 +29,7 @@ You can check the [documentation](https://brunchstudio.github.io/pytvpaint/) for
 Install the package with Pip:
 
 ```console
-❯ pip install pytvpaint
+pip install pytvpaint
 ```
 
 ## Simple example

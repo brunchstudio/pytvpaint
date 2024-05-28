@@ -785,6 +785,8 @@ class Layer(Removable):
         Returns:
             Layer: the new animation layer
         """
+        from pytvpaint.clip import Clip
+
         clip = clip or Clip.current_clip()
         layer = cls.new(name, clip, color)
         layer.pre_behavior = george.LayerBehavior.HOLD

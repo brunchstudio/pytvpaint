@@ -249,17 +249,17 @@ def test_tv_last_image(test_clip: TVPClip) -> None:
 
 @pytest.mark.parametrize("offset_count", [None, *itertools.product([0, 1], [0, 1])])
 @pytest.mark.parametrize("field_order", [None, *FieldOrder])
-@pytest.mark.parametrize("stretch", [None, False, True])
-@pytest.mark.parametrize("time_stretch", [None, False, True])
-@pytest.mark.parametrize("preload", [None, False, True])
+@pytest.mark.parametrize("stretch", [False, True])
+@pytest.mark.parametrize("time_stretch", [False, True])
+@pytest.mark.parametrize("preload", [False, True])
 def test_tv_load_sequence(
     ppm_sequence: list[Path],
     test_clip: TVPClip,
     offset_count: tuple[int, int] | None,
     field_order: FieldOrder | None,
-    stretch: bool | None,
-    time_stretch: bool | None,
-    preload: bool | None,
+    stretch: bool,
+    time_stretch: bool,
+    preload: bool,
 ) -> None:
     total_images = len(ppm_sequence)
     first_image = ppm_sequence[0]
