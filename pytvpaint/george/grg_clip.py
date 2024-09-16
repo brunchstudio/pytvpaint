@@ -289,7 +289,7 @@ def tv_save_sequence(
 
     args: list[Any] = [export_path.as_posix()]
 
-    if mark_in and mark_out:
+    if mark_in is not None and mark_out is not None:
         args.extend([mark_in, mark_out])
 
     send_cmd("tv_SaveSequence", *args)
