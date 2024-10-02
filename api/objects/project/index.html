@@ -1,0 +1,5048 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python scripting for TVPaint">
+      
+      
+      
+        <link rel="canonical" href="https://brunchstudio.github.io/pytvpaint/api/objects/project/">
+      
+      
+        <link rel="prev" href="../../../cpp/building/">
+      
+      
+        <link rel="next" href="../project_sound/">
+      
+      
+      <link rel="icon" href="../../../assets/pytvpaint_logo.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.14">
+    
+    
+      
+        <title>Project - PyTVPaint</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.10ba22f1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#project-class" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="PyTVPaint" class="md-header__button md-logo" aria-label="PyTVPaint" data-md-component="logo">
+      
+  <img src="../../../assets/pytvpaint_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PyTVPaint
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Project
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/brunchstudio/pytvpaint" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    brunchstudio/pytvpaint
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
+          
+  
+  Get Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../cpp/" class="md-tabs__link">
+          
+  
+  C++ plugin
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  Python API Documentation
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="PyTVPaint" class="md-nav__button md-logo" aria-label="PyTVPaint" data-md-component="logo">
+      
+  <img src="../../../assets/pytvpaint_logo.png" alt="logo">
+
+    </a>
+    PyTVPaint
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/brunchstudio/pytvpaint" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    brunchstudio/pytvpaint
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Get Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Get Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome to PyTVPaint
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Usage
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/usage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Basics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/rendering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rendering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../limitations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Limitations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Contributing
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/developer_setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Developer setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/internals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Internals
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/wrap_george/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Wrapping George commands
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/modify_objects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modifying high-level classes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../credits/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Credits
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    C++ plugin
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            C++ plugin
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cpp/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cpp/building/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Building
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Python API Documentation
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Python API Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Project
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Project
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pytvpaint.project" class="md-nav__link">
+    <span class="md-ellipsis">
+      project
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Project">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.id" class="md-nav__link">
+    <span class="md-ellipsis">
+      id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.position" class="md-nav__link">
+    <span class="md-ellipsis">
+      position
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.is_closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_closed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      exists
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.is_current" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_current
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.width" class="md-nav__link">
+    <span class="md-ellipsis">
+      width
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.height" class="md-nav__link">
+    <span class="md-ellipsis">
+      height
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.fps" class="md-nav__link">
+    <span class="md-ellipsis">
+      fps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.playback_fps" class="md-nav__link">
+    <span class="md-ellipsis">
+      playback_fps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.field_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      field_order
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.start_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      start_frame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.end_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      end_frame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_frame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.background_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      background_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.background_colors" class="md-nav__link">
+    <span class="md-ellipsis">
+      background_colors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.header_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      header_info
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.author" class="md-nav__link">
+    <span class="md-ellipsis">
+      author
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.scenes" class="md-nav__link">
+    <span class="md-ellipsis">
+      scenes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_clip" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_clip
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      clips
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.clip_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      clip_names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      sounds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.mark_in" class="md-nav__link">
+    <span class="md-ellipsis">
+      mark_in
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.mark_out" class="md-nav__link">
+    <span class="md-ellipsis">
+      mark_out
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      refresh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.make_current" class="md-nav__link">
+    <span class="md-ellipsis">
+      make_current
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.path" class="md-nav__link">
+    <span class="md-ellipsis">
+      path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.resize" class="md-nav__link">
+    <span class="md-ellipsis">
+      resize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.set_fps" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_fps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.pixel_aspect_ratio" class="md-nav__link">
+    <span class="md-ellipsis">
+      pixel_aspect_ratio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.clear_background" class="md-nav__link">
+    <span class="md-ellipsis">
+      clear_background
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.get_project" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_project
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_scene_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_scene_ids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.get_scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.add_scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.get_clip" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_clip
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.add_clip" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_clip
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.add_sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_sound
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.render" class="md-nav__link">
+    <span class="md-ellipsis">
+      render
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.render_clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      render_clips
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_project_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_project_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_project" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_project
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.open_projects_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_projects_ids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.open_projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_projects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.new" class="md-nav__link">
+    <span class="md-ellipsis">
+      new
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.new_from_camera" class="md-nav__link">
+    <span class="md-ellipsis">
+      new_from_camera
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.duplicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      duplicate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.close_all" class="md-nav__link">
+    <span class="md-ellipsis">
+      close_all
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.load" class="md-nav__link">
+    <span class="md-ellipsis">
+      load
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save" class="md-nav__link">
+    <span class="md-ellipsis">
+      save
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.load_panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_panel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.load_palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_palette
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save_palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_palette
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save_video_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_video_dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save_audio_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_audio_dependencies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project_sound/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ProjectSound
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scene/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scene
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clip/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Clip
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clip_sound/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ClipSound
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../layer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Layer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../layer_instance/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LayerInstance
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../layer_color/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LayerColor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../camera/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Camera
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    George
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            George
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/project/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Project
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/scene/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scene
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/clip/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Clip
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/layer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Layer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/camera/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Camera
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/misc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Misc
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../george/exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Exceptions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Client
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Client
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../client/communication/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Communication
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../client/rpc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    JSON-RPC
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../client/parsing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Parsing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pytvpaint.project" class="md-nav__link">
+    <span class="md-ellipsis">
+      project
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Project">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.id" class="md-nav__link">
+    <span class="md-ellipsis">
+      id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.position" class="md-nav__link">
+    <span class="md-ellipsis">
+      position
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.is_closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_closed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      exists
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.is_current" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_current
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.width" class="md-nav__link">
+    <span class="md-ellipsis">
+      width
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.height" class="md-nav__link">
+    <span class="md-ellipsis">
+      height
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.fps" class="md-nav__link">
+    <span class="md-ellipsis">
+      fps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.playback_fps" class="md-nav__link">
+    <span class="md-ellipsis">
+      playback_fps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.field_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      field_order
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.start_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      start_frame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.end_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      end_frame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_frame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.background_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      background_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.background_colors" class="md-nav__link">
+    <span class="md-ellipsis">
+      background_colors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.header_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      header_info
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.author" class="md-nav__link">
+    <span class="md-ellipsis">
+      author
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.scenes" class="md-nav__link">
+    <span class="md-ellipsis">
+      scenes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_clip" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_clip
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      clips
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.clip_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      clip_names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      sounds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.mark_in" class="md-nav__link">
+    <span class="md-ellipsis">
+      mark_in
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.mark_out" class="md-nav__link">
+    <span class="md-ellipsis">
+      mark_out
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      refresh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.make_current" class="md-nav__link">
+    <span class="md-ellipsis">
+      make_current
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.path" class="md-nav__link">
+    <span class="md-ellipsis">
+      path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.resize" class="md-nav__link">
+    <span class="md-ellipsis">
+      resize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.set_fps" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_fps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.pixel_aspect_ratio" class="md-nav__link">
+    <span class="md-ellipsis">
+      pixel_aspect_ratio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.clear_background" class="md-nav__link">
+    <span class="md-ellipsis">
+      clear_background
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.get_project" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_project
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_scene_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_scene_ids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.get_scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.add_scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.get_clip" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_clip
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.add_clip" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_clip
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.add_sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_sound
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.render" class="md-nav__link">
+    <span class="md-ellipsis">
+      render
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.render_clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      render_clips
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_project_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_project_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.current_project" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_project
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.open_projects_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_projects_ids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.open_projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_projects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.new" class="md-nav__link">
+    <span class="md-ellipsis">
+      new
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.new_from_camera" class="md-nav__link">
+    <span class="md-ellipsis">
+      new_from_camera
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.duplicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      duplicate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.close_all" class="md-nav__link">
+    <span class="md-ellipsis">
+      close_all
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.load" class="md-nav__link">
+    <span class="md-ellipsis">
+      load
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save" class="md-nav__link">
+    <span class="md-ellipsis">
+      save
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.load_panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_panel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.load_palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_palette
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save_palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_palette
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save_video_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_video_dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pytvpaint.project.Project.save_audio_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_audio_dependencies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="project-class">Project class<a class="headerlink" href="#project-class" title="Permanent link">&para;</a></h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="pytvpaint.project"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Project class.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="pytvpaint.project.Project" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">Project</span><span class="p">(</span><span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span></code>
+
+<a href="#pytvpaint.project.Project" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>pytvpaint.<a class="autorefs autorefs-internal" title="pytvpaint.utils" href="../../utils/#pytvpaint.utils">utils</a>.<a class="autorefs autorefs-internal" title="pytvpaint.utils.Refreshable" href="../../utils/#pytvpaint.utils.Refreshable">Refreshable</a></code>, <code>pytvpaint.<a class="autorefs autorefs-internal" title="pytvpaint.utils" href="../../utils/#pytvpaint.utils">utils</a>.<a class="autorefs autorefs-internal" title="pytvpaint.utils.Renderable" href="../../utils/#pytvpaint.utils.Renderable">Renderable</a></code></p>
+
+  
+      <p>A TVPaint project is the highest object that contains everything in the data hierarchy.</p>
+<p>It looks like this: Project -&gt; Scene -&gt; Clip -&gt; Layer -&gt; LayerInstance</p>
+
+                <details class="quote">
+                  <summary>Source code in <code>pytvpaint/project.py</code></summary>
+                  <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">project_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_is_closed</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_project_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+                </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.id" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">id</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.id" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project id.</p>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>the id is persistent on project load/close.</p>
+</details>  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.position" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">position</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.position" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's position in the project tabs.</p>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if project cannot be found in open projects</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>the indices go from right to left in the UI</p>
+</details>  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.is_closed" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">is_closed</span><span class="p">:</span> <span class="nb">bool</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.is_closed" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns <code>True</code> if the project is closed.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.exists" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">exists</span><span class="p">:</span> <span class="nb">bool</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.exists" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Checks if the project exists on disk.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.is_current" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">is_current</span><span class="p">:</span> <span class="nb">bool</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.is_current" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns <code>True</code> if the project is the current selected one in the UI.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.name" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.name" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The name of the project which is the filename without the extension.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.width" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">width</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.width" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The width of the canvas.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.height" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">height</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.height" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The height of the canvas.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.fps" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">fps</span><span class="p">:</span> <span class="nb">float</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.fps" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's framerate.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.playback_fps" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">playback_fps</span><span class="p">:</span> <span class="nb">float</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.playback_fps" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's playback framerate.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.field_order" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">field_order</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">FieldOrder</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.field_order" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The field order.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.start_frame" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">start_frame</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.start_frame" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's start frame.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.end_frame" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">end_frame</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.end_frame" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's end frame, meaning the last frame of the last clip in the project's timeline.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.current_frame" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">current_frame</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.current_frame" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the current frame relative to the timeline.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.background_mode" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">background_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">BackgroundMode</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.background_mode" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get/Set the background mode.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.background_colors" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">background_colors</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">george</span><span class="o">.</span><span class="n">RGBColor</span><span class="p">,</span> <span class="n">george</span><span class="o">.</span><span class="n">RGBColor</span><span class="p">]</span> <span class="o">|</span> <span class="n">george</span><span class="o">.</span><span class="n">RGBColor</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.background_colors" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get/Set the background color(s).</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.RGBColor" href="../../george/misc/#pytvpaint.george.grg_base.RGBColor">RGBColor</a>, pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.RGBColor" href="../../george/misc/#pytvpaint.george.grg_base.RGBColor">RGBColor</a>] | pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.RGBColor" href="../../george/misc/#pytvpaint.george.grg_base.RGBColor">RGBColor</a> | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a tuple of two colors if checker, a single color if solid or None if empty</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.header_info" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">header_info</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.header_info" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's header info.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.author" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">author</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.author" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's author info.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.notes" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">notes</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.notes" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's notes text.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.current_scene" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">current_scene</span><span class="p">:</span> <span class="n">Scene</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.current_scene" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the current scene of the project.</p>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if scene cannot be found in project</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.scenes" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">scenes</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Scene</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.scenes" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Yields the project's scenes.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.current_clip" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">current_clip</span><span class="p">:</span> <span class="n">Clip</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.current_clip" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the project's current clip.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.clips" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">clips</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Clip</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.clips" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Iterates over all the clips in the project's scenes.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.clip_names" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">clip_names</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.clip_names" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Optimized way to get the clip names. Useful for <code>get_unique_name</code>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.sounds" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">sounds</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">ProjectSound</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.sounds" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Iterator over the project sounds.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.mark_in" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">mark_in</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.mark_in" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the project mark in or None if no mark in set.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pytvpaint.project.Project.mark_out" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">mark_out</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.mark_out" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the project mark out or None if no mark out set.</p>
+  </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.refresh" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">refresh</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.refresh" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Refreshed the project data.</p>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if project has been closed</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Refreshed the project data.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: if project has been closed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_closed</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Project already closed, load the project again to get data&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_on_call</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_project_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.make_current" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">make_current</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.make_current" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Make the project the current one.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">make_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make the project the current one.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_project_select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.path" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span></code>
+
+<a href="#pytvpaint.project.Project.path" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project path on disk.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@refreshed_property</span>
+<span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The project path on disk.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">path</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.resize" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">resize</span><span class="p">(</span><span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">resize_opt</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">ResizeOption</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span></code>
+
+<a href="#pytvpaint.project.Project.resize" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Resize the current project and returns a new one.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>width</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the new width</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>height</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the new height</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>overwrite</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>overwrite the original project, default is to create a new project</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>resize_opt</code></td>
+          <td>
+                <code>pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.ResizeOption" href="../../george/misc/#pytvpaint.george.grg_base.ResizeOption">ResizeOption</a> | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>how to resize the project</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>pytvpaint.<a class="autorefs autorefs-internal" title="pytvpaint.project" href="#pytvpaint.project">project</a>.<a class="autorefs autorefs-internal" title="pytvpaint.project.Project" href="#pytvpaint.project.Project">Project</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the newly resized project</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">resize</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">resize_opt</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">ResizeOption</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resize the current project and returns a new one.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        width: the new width</span>
+<span class="sd">        height: the new height</span>
+<span class="sd">        overwrite: overwrite the original project, default is to create a new project</span>
+<span class="sd">        resize_opt: how to resize the project</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the newly resized project</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="n">origin_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span>
+    <span class="n">origin_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+
+    <span class="k">if</span> <span class="n">resize_opt</span><span class="p">:</span>
+        <span class="n">george</span><span class="o">.</span><span class="n">tv_resize_page</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">resize_opt</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">george</span><span class="o">.</span><span class="n">tv_resize_project</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+
+    <span class="c1"># The resized project is at the same position and replaced the original one</span>
+    <span class="n">resized_id</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_project_enum_id</span><span class="p">(</span><span class="n">origin_position</span><span class="p">)</span>
+    <span class="n">resized_project</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">resized_id</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+        <span class="n">resized_project</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">origin_path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">resized_project</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.set_fps" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">set_fps</span><span class="p">(</span><span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">time_stretch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">preview</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.set_fps" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Set the project's framerate.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">set_fps</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">time_stretch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">preview</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the project&#39;s framerate.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_frame_rate_set</span><span class="p">(</span><span class="n">fps</span><span class="p">,</span> <span class="n">time_stretch</span><span class="p">,</span> <span class="n">preview</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.pixel_aspect_ratio" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pixel_aspect_ratio</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">float</span></code>
+
+<a href="#pytvpaint.project.Project.pixel_aspect_ratio" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The project's pixel aspect ratio.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@refreshed_property</span>
+<span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">pixel_aspect_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The project&#39;s pixel aspect ratio.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">pixel_aspect_ratio</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.clear_background" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">clear_background</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.clear_background" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Clear the background color and set it to None.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">clear_background</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear the background color and set it to None.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">background_mode</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">BackgroundMode</span><span class="o">.</span><span class="n">NONE</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">background_colors</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">george</span><span class="o">.</span><span class="n">RGBColor</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+        <span class="n">george</span><span class="o">.</span><span class="n">RGBColor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.get_project" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_project</span><span class="p">(</span><span class="n">by_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">by_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.get_project" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Find a project by id or by name.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">get_project</span><span class="p">(</span>
+    <span class="bp">cls</span><span class="p">,</span>
+    <span class="n">by_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">by_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a project by id or by name.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="n">Project</span><span class="o">.</span><span class="n">open_projects</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">by_id</span> <span class="ow">and</span> <span class="n">project</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">by_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">by_name</span> <span class="ow">and</span> <span class="n">project</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">by_name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">project</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.current_scene_ids" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">current_scene_ids</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.current_scene_ids" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Yields the current project's scene ids.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">current_scene_ids</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Yields the current project&#39;s scene ids.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">position_generator</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pos</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_scene_enum_id</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.get_scene" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_scene</span><span class="p">(</span><span class="n">by_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">by_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scene</span> <span class="o">|</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.get_scene" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Find a scene in the project by id or name.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_scene</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">by_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">by_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scene</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a scene in the project by id or name.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">scene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">by_id</span> <span class="ow">and</span> <span class="n">scene</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">by_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">by_name</span> <span class="ow">and</span> <span class="n">scene</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">by_name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">scene</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.add_scene" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">add_scene</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Scene</span></code>
+
+<a href="#pytvpaint.project.Project.add_scene" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a new scene in the project.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">add_scene</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scene</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a new scene in the project.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pytvpaint.scene</span> <span class="kn">import</span> <span class="n">Scene</span>
+
+    <span class="k">return</span> <span class="n">Scene</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.get_clip" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_clip</span><span class="p">(</span><span class="n">by_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">by_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scene_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Clip</span> <span class="o">|</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.get_clip" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Find a clip by id, name or scene_id.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_clip</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">by_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">by_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scene_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Clip</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a clip by id, name or scene_id.&quot;&quot;&quot;</span>
+    <span class="n">clips</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clips</span>
+    <span class="k">if</span> <span class="n">scene_id</span><span class="p">:</span>
+        <span class="n">selected_scene</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_scene</span><span class="p">(</span><span class="n">by_id</span><span class="o">=</span><span class="n">scene_id</span><span class="p">)</span>
+        <span class="n">clips</span> <span class="o">=</span> <span class="n">selected_scene</span><span class="o">.</span><span class="n">clips</span> <span class="k">if</span> <span class="n">selected_scene</span> <span class="k">else</span> <span class="n">clips</span>
+
+    <span class="k">for</span> <span class="n">clip</span> <span class="ow">in</span> <span class="n">clips</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">by_id</span> <span class="ow">and</span> <span class="n">clip</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">by_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">by_name</span> <span class="ow">and</span> <span class="n">clip</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">by_name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">clip</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.add_clip" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">add_clip</span><span class="p">(</span><span class="n">clip_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="n">Scene</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Clip</span></code>
+
+<a href="#pytvpaint.project.Project.add_clip" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a new clip in the given scene or the current one if no scene provided.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">add_clip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clip_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="n">Scene</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Clip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a new clip in the given scene or the current one if no scene provided.&quot;&quot;&quot;</span>
+    <span class="n">scene</span> <span class="o">=</span> <span class="n">scene</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_scene</span>
+    <span class="k">return</span> <span class="n">scene</span><span class="o">.</span><span class="n">add_clip</span><span class="p">(</span><span class="n">clip_name</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.add_sound" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">add_sound</span><span class="p">(</span><span class="n">sound_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProjectSound</span></code>
+
+<a href="#pytvpaint.project.Project.add_sound" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a new sound clip to the project.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">add_sound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sound_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProjectSound</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a new sound clip to the project.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ProjectSound</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">sound_path</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.render" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">render</span><span class="p">(</span><span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">FileSequence</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_camera</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">alpha_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span><span class="o">.</span><span class="n">PREMULTIPLY</span><span class="p">,</span> <span class="n">background_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">BackgroundMode</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">format_opts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.render" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Render the project to a single frame or frame sequence or movie.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>output_path</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/pathlib.html#module-pathlib">pathlib</a>.<a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a> | <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | fileseq.<span title="fileseq.filesequence">filesequence</span>.<span title="fileseq.filesequence.FileSequence">FileSequence</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a single file or file sequence pattern</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>start</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the start frame to render or the mark in or the project's start frame if None. Defaults to None.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>end</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the end frame to render or the mark out or the project's end frame if None. Defaults to None.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_camera</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>use the camera for rendering, otherwise render the whole canvas. Defaults to False.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>alpha_mode</code></td>
+          <td>
+                <code>pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.AlphaSaveMode" href="../../george/misc/#pytvpaint.george.grg_base.AlphaSaveMode">AlphaSaveMode</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.</p>
+            </div>
+          </td>
+          <td>
+                <code>pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.AlphaSaveMode" href="../../george/misc/#pytvpaint.george.grg_base.AlphaSaveMode">AlphaSaveMode</a>.<span title="pytvpaint.george.AlphaSaveMode.PREMULTIPLY">PREMULTIPLY</span></code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>background_mode</code></td>
+          <td>
+                <code>pytvpaint.<span title="pytvpaint.george">george</span>.<a class="autorefs autorefs-internal" title="pytvpaint.george.BackgroundMode" href="../../george/project/#pytvpaint.george.grg_project.BackgroundMode">BackgroundMode</a> | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the background mode for rendering. Defaults to george.BackgroundMode.NONE.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>format_opts</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>] | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>custom format options. Defaults to None.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if requested range (start-end) not in project range/bounds</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if output is a movie, and it's duration is equal to 1 frame</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError">FileNotFoundError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if the render failed and no files were found on disk or missing frames</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>This functions uses the project's timeline as a basis for the range (start-end). This timeline includes all
+the project's clips and is different from a clip range. For more details on the differences in frame ranges
+and the timeline in TVPaint, please check the <code>Usage/Rendering</code> section of the documentation.</p>
+</details>
+<details class="warning" open>
+  <summary>Warning</summary>
+  <p>Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.</p>
+</details>
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span>
+<span class="normal">489</span>
+<span class="normal">490</span>
+<span class="normal">491</span>
+<span class="normal">492</span>
+<span class="normal">493</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">render</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">FileSequence</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_camera</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">alpha_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span><span class="o">.</span><span class="n">PREMULTIPLY</span><span class="p">,</span>
+    <span class="n">background_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">BackgroundMode</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">format_opts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Render the project to a single frame or frame sequence or movie.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        output_path: a single file or file sequence pattern</span>
+<span class="sd">        start: the start frame to render or the mark in or the project&#39;s start frame if None. Defaults to None.</span>
+<span class="sd">        end: the end frame to render or the mark out or the project&#39;s end frame if None. Defaults to None.</span>
+<span class="sd">        use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.</span>
+<span class="sd">        alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.</span>
+<span class="sd">        background_mode: the background mode for rendering. Defaults to george.BackgroundMode.NONE.</span>
+<span class="sd">        format_opts: custom format options. Defaults to None.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: if requested range (start-end) not in project range/bounds</span>
+<span class="sd">        ValueError: if output is a movie, and it&#39;s duration is equal to 1 frame</span>
+<span class="sd">        FileNotFoundError: if the render failed and no files were found on disk or missing frames</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        This functions uses the project&#39;s timeline as a basis for the range (start-end). This timeline includes all</span>
+<span class="sd">        the project&#39;s clips and is different from a clip range. For more details on the differences in frame ranges</span>
+<span class="sd">        and the timeline in TVPaint, please check the `Usage/Rendering` section of the documentation.</span>
+
+<span class="sd">    Warning:</span>
+<span class="sd">        Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we&#39;re still</span>
+<span class="sd">        encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mark_in</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_frame</span>
+    <span class="n">default_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mark_out</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_frame</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">(</span>
+        <span class="n">output_path</span><span class="p">,</span>
+        <span class="n">default_start</span><span class="p">,</span>
+        <span class="n">default_end</span><span class="p">,</span>
+        <span class="n">start</span><span class="p">,</span>
+        <span class="n">end</span><span class="p">,</span>
+        <span class="n">use_camera</span><span class="p">,</span>
+        <span class="n">layer_selection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">alpha_mode</span><span class="o">=</span><span class="n">alpha_mode</span><span class="p">,</span>
+        <span class="n">background_mode</span><span class="o">=</span><span class="n">background_mode</span><span class="p">,</span>
+        <span class="n">format_opts</span><span class="o">=</span><span class="n">format_opts</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.render_clips" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">render_clips</span><span class="p">(</span><span class="n">clips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Clip</span><span class="p">],</span> <span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">FileSequence</span><span class="p">,</span> <span class="n">use_camera</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">alpha_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span><span class="o">.</span><span class="n">PREMULTIPLY</span><span class="p">,</span> <span class="n">background_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">BackgroundMode</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">format_opts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.render_clips" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Render sequential clips as a single output.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
+<span class="normal">511</span>
+<span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">render_clips</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">clips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Clip</span><span class="p">],</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">FileSequence</span><span class="p">,</span>
+    <span class="n">use_camera</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">alpha_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">AlphaSaveMode</span><span class="o">.</span><span class="n">PREMULTIPLY</span><span class="p">,</span>
+    <span class="n">background_mode</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">BackgroundMode</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">format_opts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Render sequential clips as a single output.&quot;&quot;&quot;</span>
+    <span class="n">clips</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">clips</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">clips</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">timeline_start</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">clips</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">timeline_end</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+        <span class="n">output_path</span><span class="p">,</span>
+        <span class="n">start</span><span class="p">,</span>
+        <span class="n">end</span><span class="p">,</span>
+        <span class="n">use_camera</span><span class="p">,</span>
+        <span class="n">alpha_mode</span><span class="p">,</span>
+        <span class="n">background_mode</span><span class="p">,</span>
+        <span class="n">format_opts</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.current_project_id" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">current_project_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.current_project_id" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the current project id.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">current_project_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the current project id.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_project_current_id</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.current_project" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">current_project</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Project</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.current_project" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the current project.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">current_project</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Project</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the current project.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Project</span><span class="p">(</span><span class="n">project_id</span><span class="o">=</span><span class="n">Project</span><span class="o">.</span><span class="n">current_project_id</span><span class="p">())</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.open_projects_ids" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">open_projects_ids</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.open_projects_ids" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Yields the ids of the currently open projects.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">open_projects_ids</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Yields the ids of the currently open projects.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">position_generator</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pos</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_project_enum_id</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.open_projects" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">open_projects</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Project</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.open_projects" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Iterator over the currently open projects.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">open_projects</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Project</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Iterator over the currently open projects.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">project_id</span> <span class="ow">in</span> <span class="n">Project</span><span class="o">.</span><span class="n">open_projects_ids</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="n">Project</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.new" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">new</span><span class="p">(</span><span class="n">project_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1920</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1080</span><span class="p">,</span> <span class="n">pixel_aspect_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">frame_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">24.0</span><span class="p">,</span> <span class="n">field_order</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">FieldOrder</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">FieldOrder</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span> <span class="n">start_frame</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.new" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a new project.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span>
+<span class="normal">628</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">new</span><span class="p">(</span>
+    <span class="bp">cls</span><span class="p">,</span>
+    <span class="n">project_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1920</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1080</span><span class="p">,</span>
+    <span class="n">pixel_aspect_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">frame_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">24.0</span><span class="p">,</span>
+    <span class="n">field_order</span><span class="p">:</span> <span class="n">george</span><span class="o">.</span><span class="n">FieldOrder</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">FieldOrder</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span>
+    <span class="n">start_frame</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new project.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_project_new</span><span class="p">(</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">project_path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">as_posix</span><span class="p">(),</span>
+        <span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">pixel_aspect_ratio</span><span class="p">,</span>
+        <span class="n">frame_rate</span><span class="p">,</span>
+        <span class="n">field_order</span><span class="p">,</span>
+        <span class="n">start_frame</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">current_project</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.new_from_camera" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">new_from_camera</span><span class="p">(</span><span class="n">export_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span></code>
+
+<a href="#pytvpaint.project.Project.new_from_camera" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a new cropped project from the camera view.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">630</span>
+<span class="normal">631</span>
+<span class="normal">632</span>
+<span class="normal">633</span>
+<span class="normal">634</span>
+<span class="normal">635</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">new_from_camera</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new cropped project from the camera view.&quot;&quot;&quot;</span>
+    <span class="n">cam_project_id</span> <span class="o">=</span> <span class="n">george</span><span class="o">.</span><span class="n">tv_project_render_camera</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">cam_project</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">cam_project_id</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">export_path</span><span class="p">:</span>
+        <span class="n">export_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">export_path</span><span class="p">)</span>
+        <span class="n">export_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cam_project</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">export_path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cam_project</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.duplicate" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">duplicate</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Project</span></code>
+
+<a href="#pytvpaint.project.Project.duplicate" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Duplicate the project and return the new one.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span>
+<span class="normal">647</span>
+<span class="normal">648</span>
+<span class="normal">649</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">duplicate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Duplicate the project and return the new one.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_project_duplicate</span><span class="p">()</span>
+    <span class="n">duplicated</span> <span class="o">=</span> <span class="n">Project</span><span class="o">.</span><span class="n">current_project</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">make_current</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">duplicated</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.close" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">close</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.close" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Closes the project.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">651</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Closes the project.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_is_closed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_project_close</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.close_all" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">close_all</span><span class="p">(</span><span class="n">close_tvp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.close_all" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Closes all open projects.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>close_tvp</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>close the TVPaint instance as well</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">656</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">close_all</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">close_tvp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Closes all open projects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        close_tvp: close the TVPaint instance as well</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">open_projects</span><span class="p">()):</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">close_tvp</span><span class="p">:</span>
+        <span class="n">george</span><span class="o">.</span><span class="n">tv_quit</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.load" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">load</span><span class="p">(</span><span class="n">project_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#pytvpaint.project.Project.load" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load an existing .tvpp/.tvp project or .tvpx file.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">669</span>
+<span class="normal">670</span>
+<span class="normal">671</span>
+<span class="normal">672</span>
+<span class="normal">673</span>
+<span class="normal">674</span>
+<span class="normal">675</span>
+<span class="normal">676</span>
+<span class="normal">677</span>
+<span class="normal">678</span>
+<span class="normal">679</span>
+<span class="normal">680</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">project_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Project</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load an existing .tvpp/.tvp project or .tvpx file.&quot;&quot;&quot;</span>
+    <span class="n">project_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_path</span><span class="p">)</span>
+
+    <span class="c1"># Check if project not already open, if so, return it</span>
+    <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">open_projects</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">project</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="n">project_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">project</span>
+
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_load_project</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="n">silent</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">current_project</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.save" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.save" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Saves the project on disk.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">682</span>
+<span class="normal">683</span>
+<span class="normal">684</span>
+<span class="normal">685</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Saves the project on disk.&quot;&quot;&quot;</span>
+    <span class="n">save_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_save_project</span><span class="p">(</span><span class="n">save_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.load_panel" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">load_panel</span><span class="p">(</span><span class="n">panel_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.load_panel" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load an external TVPaint panel.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">load_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load an external TVPaint panel.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_load_project</span><span class="p">(</span><span class="n">panel_path</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.load_palette" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">load_palette</span><span class="p">(</span><span class="n">palette_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.load_palette" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load a palette.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">692</span>
+<span class="normal">693</span>
+<span class="normal">694</span>
+<span class="normal">695</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">load_palette</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">palette_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a palette.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_save_palette</span><span class="p">(</span><span class="n">palette_path</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.save_palette" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">save_palette</span><span class="p">(</span><span class="n">save_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.save_palette" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Save a palette to the given path.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">697</span>
+<span class="normal">698</span>
+<span class="normal">699</span>
+<span class="normal">700</span>
+<span class="normal">701</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">save_palette</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save a palette to the given path.&quot;&quot;&quot;</span>
+    <span class="n">save_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_save_project</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.save_video_dependencies" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">save_video_dependencies</span><span class="p">(</span><span class="n">on_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.save_video_dependencies" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Saves the video dependencies.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">703</span>
+<span class="normal">704</span>
+<span class="normal">705</span>
+<span class="normal">706</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">save_video_dependencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Saves the video dependencies.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_project_save_video_dependencies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">on_save</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pytvpaint.project.Project.save_audio_dependencies" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">save_audio_dependencies</span><span class="p">(</span><span class="n">on_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+<a href="#pytvpaint.project.Project.save_audio_dependencies" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Saves audio dependencies.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>pytvpaint/project.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">708</span>
+<span class="normal">709</span>
+<span class="normal">710</span>
+<span class="normal">711</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@set_as_current</span>
+<span class="k">def</span> <span class="nf">save_audio_dependencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Saves audio dependencies.&quot;&quot;&quot;</span>
+    <span class="n">george</span><span class="o">.</span><span class="n">tv_project_save_audio_dependencies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">on_save</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-meta__inner" style="padding: 0px 20px">
+  <div style="display: flex; align-items: center; gap: 20px; margin: 15px 0px">
+    <span class="md-copyright__highlight" style="font-size: 0.64rem"
+      >Made with ❤️ at</span
+    >
+
+    <a
+      href="https://brunchstudio.tv/"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="display: flex; justify-content: center; align-items: center"
+    >
+      <img src="/pytvpaint/assets/logo_brunch_white.svg" width="100" />
+    </a>
+  </div>
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "content.tabs.link", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.bd41221c.min.js"></script>
+      
+    
+  </body>
+</html>
