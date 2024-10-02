@@ -701,11 +701,11 @@ class Project(Refreshable, Renderable):
         george.tv_save_project(save_path)
 
     @set_as_current
-    def save_video_dependencies(self) -> None:
+    def save_video_dependencies(self, on_save: bool = True, now: bool = True) -> None:
         """Saves the video dependencies."""
-        george.tv_project_save_video_dependencies()
+        george.tv_project_save_video_dependencies(self.id, on_save, now)
 
     @set_as_current
-    def save_audio_dependencies(self) -> None:
+    def save_audio_dependencies(self, on_save: bool = True) -> None:
         """Saves audio dependencies."""
-        george.tv_project_save_audio_dependencies()
+        george.tv_project_save_audio_dependencies(self.id, on_save)

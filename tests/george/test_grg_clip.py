@@ -541,7 +541,7 @@ def test_tv_save_sequence(
     clip = tv_clip_info(tv_clip_current_id())
     start, end = (
         (mark_in, mark_out)
-        if mark_in and mark_out
+        if mark_in is not None and mark_out is not None
         else (clip.first_frame, clip.last_frame)
     )
 

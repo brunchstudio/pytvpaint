@@ -369,14 +369,28 @@ def tv_save_palette(palette_path: Path | str) -> None:
     send_cmd("tv_SavePalette", palette_path.as_posix())
 
 
-def tv_project_save_video_dependencies() -> None:
+def tv_project_save_video_dependencies(
+    project_id: str, on_save: bool = True, now: bool = False
+) -> int:
     """Saves current project video dependencies."""
-    send_cmd("tv_ProjectSaveVideoDependencies")
+    args: list[Any] = [project_id]
+    if not now:
+        args.append(int(on_save))
+    return int(
+        send_cmd("tv_ProjectSaveVideoDependencies", *args, error_values=[-1, -2])
+    )
 
 
-def tv_project_save_audio_dependencies() -> None:
+def tv_project_save_audio_dependencies(project_id: str, on_save: bool = True) -> int:
     """Saves current project audio dependencies."""
-    send_cmd("tv_ProjectSaveAudioDependencies")
+    return int(
+        send_cmd(
+            "tv_ProjectSaveAudioDependencies",
+            project_id,
+            int(on_save),
+            error_values=[-1, -2],
+        )
+    )
 
 
 def tv_sound_project_info(project_id: str, track_index: int) -> TVPSound:
