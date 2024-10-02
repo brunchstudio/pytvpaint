@@ -396,12 +396,23 @@ def test_tv_save_palette_wrong_path(tmp_path: Path) -> None:
         tv_save_palette(tmp_path / "out" / "palette.tvpx")
 
 
-def test_tv_project_save_video_dependencies() -> None:
-    tv_project_save_video_dependencies()
+def test_tv_project_save_video_dependencies(test_project: TVPProject) -> None:
+    with pytest.raises(GeorgeError):
+        tv_project_save_video_dependencies("")
+
+    assert tv_project_save_video_dependencies(test_project.id) == 0
+    assert tv_project_save_video_dependencies(test_project.id, True, False) == 1
+    assert tv_project_save_video_dependencies(test_project.id, True, True) == 1
+    assert tv_project_save_video_dependencies(test_project.id, False, True) == 1
 
 
-def test_tv_project_save_audio_dependencies() -> None:
-    tv_project_save_audio_dependencies()
+def test_tv_project_save_audio_dependencies(test_project: TVPProject) -> None:
+    with pytest.raises(GeorgeError):
+        tv_project_save_audio_dependencies("")
+
+    assert tv_project_save_audio_dependencies(test_project.id) == 0
+    assert tv_project_save_audio_dependencies(test_project.id, True) == 1
+    assert tv_project_save_audio_dependencies(test_project.id, False) == 1
 
 
 def test_tv_sound_project_info(test_project: TVPProject, wav_file: Path) -> None:

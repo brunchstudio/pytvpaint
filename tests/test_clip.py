@@ -338,7 +338,6 @@ def test_clip_render_mp4(
     expected: str,
     error: type[Exception] | None,
 ) -> None:
-
     if error:
         with pytest.raises(error):
             test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
