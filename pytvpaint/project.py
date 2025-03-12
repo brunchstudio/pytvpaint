@@ -23,10 +23,14 @@ if TYPE_CHECKING:
     from pytvpaint.scene import Scene
 
 
-class Project(Refreshable, Renderable):
-    """A TVPaint project is the highest object that contains everything in the data hierarchy.
+# FIXME george.tv_project_info() values of field_order have been removed in versions > 12 so for now we provide it ourselves
 
-    It looks like this: Project -> Scene -> Clip -> Layer -> LayerInstance
+
+class Project(Refreshable, Renderable):
+    """A TVPaint project is the highest/root object that contains everything in the data hierarchy.
+
+    The Project structure can be split like so : Project -> Scene -> Clip -> Layer -> LayerInstance
+    Or since TVPaint 12, like so : Project -> Scene -> Clip -> LayerFolder -> Layer -> LayerInstance
     """
 
     def __init__(self, project_id: str) -> None:
@@ -46,7 +50,7 @@ class Project(Refreshable, Renderable):
         return self.id == other.id
 
     def refresh(self) -> None:
-        """Refreshed the project data.
+        """Refreshes the project data.
 
         Raises:
             ValueError: if project has been closed

@@ -12,9 +12,11 @@ from pytvpaint.utils import (
     set_as_current,
 )
 
+# FIXME tv_scene_create doesn't seem to work
+
 
 class Scene(Removable):
-    """A Scene is a collection of clips. A Scene is inside a project."""
+    """A Scene is a collection of clips. A Scene is parented to a project."""
 
     def __init__(self, scene_id: int, project: Project) -> None:
         super().__init__()
@@ -45,12 +47,42 @@ class Scene(Removable):
         )
 
     @classmethod
-    def new(cls, project: Project | None = None) -> Scene:
-        """Creates a new scene in the provided project."""
+    def new(cls, project: Project | None = None, clips: list[str] | None = None) -> Scene:
+        """Creates a new scene in the provided project.
+
+        Args:
+            project: parent project
+            clips: list of clip names to create alongside new scene
+
+        Returns:
+            new scene instance
+        """
         project = project or Project.current_project()
         project.make_current()
+
+        # TODO commenting this for now until george.tv_scene_create is fixed by TVP devs
+        # if not clips or george.is_tvp_version_below_12():
+        #     george.tv_scene_new()
+        #     new_scene = cls.current_scene()
+        #
+        #     if clips and george.is_tvp_version_below_12():
+        #         for clip_name in clips:
+        #             new_scene.add_clip(clip_name)
+        #
+        #     return new_scene
+        #
+        # # if here, then we are using tvp 12 or superior
+        # scene_id = george.tv_scene_create(clips)
+        # return project.get_scene(by_id=scene_id)
+
         george.tv_scene_new()
-        return cls.current_scene()
+        new_scene = cls.current_scene()
+
+        if clips and george.is_tvp_version_below_12():
+            for clip_name in clips:
+                new_scene.add_clip(clip_name)
+
+        return new_scene
 
     def make_current(self) -> None:
         """Make this scene the current one."""
@@ -132,6 +164,21 @@ class Scene(Removable):
         dup_pos = self.position + 1
         dup_id = george.tv_scene_enum_id(dup_pos)
         return Scene(dup_id, self.project)
+
+    @george.min_version_compatible(min_version="12")
+    def split(self) -> list[Scene]:
+        """Duplicate the scene and return it."""
+        self.project.make_current()
+        clip_ids = george.tv_scene_split(self.id)
+
+        new_scenes = []
+        for clip_id in clip_ids:
+            clip = self.project.get_clip(by_id=clip_id)
+            if not clip:
+                continue
+
+            new_scenes.append(clip.scene)
+        return new_scenes
 
     def remove(self) -> None:
         """Remove the scene and all the clips inside.

@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from pytvpaint.george.exceptions import GeorgeError
-from pytvpaint.george.grg_base import FieldOrder
+from pytvpaint.george.grg_base import FieldOrder, is_tvp_version_below_12
 from pytvpaint.george.grg_camera import (
     TVPCameraPoint,
     tv_camera_enum_points,
@@ -23,8 +23,9 @@ def test_tv_camera_info_get(test_project: TVPProject) -> None:
     camera = tv_camera_info_get()
     assert camera.width == test_project.width
     assert camera.height == test_project.height
-    assert camera.frame_rate == test_project.frame_rate
     assert camera.pixel_aspect_ratio == test_project.pixel_aspect_ratio
+    if is_tvp_version_below_12():
+        assert camera.frame_rate == test_project.frame_rate
 
 
 @pytest.mark.parametrize(

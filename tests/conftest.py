@@ -54,6 +54,30 @@ T = TypeVar("T")
 FixtureYield = Generator[T, None, None]
 
 
+def _fix_tvp_12_selection() -> None:
+    from packaging import version
+
+    _, tvp_version, _ = george.tv_version()
+    current_version = version.parse(tvp_version)
+
+    # if tvp_version >= 12 and current_layer is Camera, then select first real layer instead:
+    if current_version.major >= 12:
+        current_clip = Project.current_project().current_clip
+        current_layer = current_clip.current_layer
+        if current_layer.layer_type == george.LayerType.CAMERA:
+            # switch to first layer in real/non-camera layers
+            first_layer = None
+            for layer in current_clip.layers:
+                if layer.layer_type == george.LayerType.CAMERA:
+                    continue
+
+                first_layer = layer
+                break
+
+            if first_layer:
+                first_layer.make_current()
+
+
 @pytest.fixture(scope="function")
 def pen_brush_reset() -> FixtureYield[None]:
     """Resets the pen brush after the test"""
@@ -68,13 +92,18 @@ def test_project(tmp_path: Path) -> FixtureYield[TVPProject]:
     Useful when you want to isolate a test
     """
     project_id = tv_project_new(tmp_path / "project.tvpp")
+
+    _fix_tvp_12_selection()
+
     yield tv_project_info(project_id)
     tv_project_close(project_id)
 
 
 @pytest.fixture
 def test_project_obj(test_project: TVPProject) -> FixtureYield[Project]:
-    yield Project(test_project.id)
+    p = Project(test_project.id)
+    _fix_tvp_12_selection()
+    yield p
 
 
 @pytest.fixture
@@ -299,7 +328,26 @@ def create_some_layers(
         layer_id = tv_layer_get_id(i + 1)
         layers.append(Layer(layer_id, test_clip_obj))
 
-    # Remove the default clip
+    # Remove the default layer
+    tv_layer_kill(tv_layer_get_id(0))
+
+    yield layers
+
+
+@pytest.fixture
+def create_some_layer_folders(
+    test_project_obj: Project,
+    test_clip_obj: Clip,
+) -> FixtureYield[list[Layer]]:
+    """Create some layers in a test project/scene and yields them"""
+    layers: list[Layer] = []
+
+    for i in range(5):
+        tv_layer_create(f"layer_{i}", layer_type=0)
+        layer_id = tv_layer_get_id(i + 1)
+        layers.append(Layer(layer_id, test_clip_obj))
+
+    # Remove the default layer
     tv_layer_kill(tv_layer_get_id(0))
 
     yield layers
@@ -342,3 +390,8 @@ def with_loaded_sequence(
         stretch=False,
         preload=True,
     )
+
+
+@pytest.fixture(scope="function", autouse=True)
+def fix_tvp_12_selection() -> None:
+    _fix_tvp_12_selection()

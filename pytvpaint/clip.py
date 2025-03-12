@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from fileseq.filesequence import FileSequence
 
 from pytvpaint import george, utils
 from pytvpaint.camera import Camera
-from pytvpaint.layer import Layer, LayerColor
+from pytvpaint.layer import CameraLayer, CTGLayer, Layer, LayerColor, LayerFolder
 from pytvpaint.sound import ClipSound
 from pytvpaint.utils import (
     Removable,
@@ -116,7 +116,7 @@ class Clip(Removable, Renderable):
         """The clip's scene.
 
         Raises:
-            ValueError: if clip cannot be found in the project
+            ValueError: if no current scene in the project
         """
         for scene in self.project.scenes:
             for other_clip in scene.clips:
@@ -326,19 +326,99 @@ class Clip(Removable, Renderable):
         """Iterator over the layer ids."""
         return utils.position_generator(lambda pos: george.tv_layer_get_id(pos))
 
+    def _all_layers(self, filter_types: tuple[type, ...] | None = None, ignore_types: tuple[type, ...] | None = None) -> Iterator[Layer]:
+        """Iterator over the clip's layers.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+        """
+        for layer_id in self.layer_ids:
+            layer_data = george.tv_layer_info(layer_id)
+
+            layer_class = Layer
+            if layer_data.type == george.LayerType.FOLDER:
+                layer_class = LayerFolder
+            elif layer_data.type == george.LayerType.CAMERA:
+                layer_class = CameraLayer
+            # handle CTG layers like regular layers in TVP versions < 12
+            elif not george.is_tvp_version_below_12() and layer_data.type is george.LayerType.SCRIBBLES:
+                layer_class = CTGLayer
+
+            if filter_types and layer_class not in filter_types:
+                continue
+            if ignore_types and layer_class in ignore_types:
+                continue
+
+            yield layer_class(layer_id, clip=self, data=layer_data)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def all_layers(self) -> Iterator[Layer]:
+        """Iterator over the clip's layers regardless of their type.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        yield from self._all_layers()
+
     @property
     def layers(self) -> Iterator[Layer]:
-        """Iterator over the clip's layers."""
-        from pytvpaint.layer import Layer
+        """Iterator over the clip's layers, ignores all Folder, Camera and CTG layers."""
+        yield from self._all_layers(ignore_types=(LayerFolder, CameraLayer, CTGLayer))
 
-        for layer_id in self.layer_ids:
-            yield Layer(layer_id, clip=self)
+    @property
+    @george.min_version_compatible(min_version="12")
+    def ctg_layers(self) -> Iterator[CTGLayer]:
+        """Iterator over the clip's CTG layers.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        yield from self._all_layers(filter_types=(CTGLayer, ))
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def folders(self) -> Iterator[LayerFolder]:
+        """Iterator over the clip's Folder layers.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        yield from self._all_layers(filter_types=(LayerFolder, ))
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def camera_layer(self) -> CameraLayer | None:
+        """Iterator over the clip's Folder layers.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        camera_layer = next(self._all_layers(filter_types=(CameraLayer, )), None)
+        if camera_layer:
+            return cast(CameraLayer, camera_layer)
+
+        # if we're here then the camera layer has probably been deleted, let's recreate it by switching to the camera.
+        george.tv_set_active_shape(george.TVPShape.CAMERA)
+        return cast(CameraLayer, next(self._all_layers(filter_types=(CameraLayer, )), None))
 
     @property
     @set_as_current
     def layer_names(self) -> Iterator[str]:
         """Iterator over the clip's layer names."""
-        for layer in self.layers:
+        for layer in self._all_layers():
             yield layer.name
 
     @property
@@ -346,12 +426,12 @@ class Clip(Removable, Renderable):
         """Get the current layer in the clip.
 
         Raises:
-            ValueError: if clip cannot be found in the project
+            ValueError: if no current layer in clip
         """
-        for layer in self.layers:
+        for layer in self._all_layers():
             if layer.is_current:
                 return layer
-        raise Exception("Couldn't find a current layer")
+        raise ValueError("Couldn't find a current layer")
 
     def get_layer(
         self,
@@ -359,12 +439,25 @@ class Clip(Removable, Renderable):
         by_name: str | None = None,
     ) -> Layer | None:
         """Get a specific layer by id or name."""
-        return utils.get_tvp_element(self.layers, by_id, by_name)
+        return utils.get_tvp_element(self._all_layers(), by_id, by_name)
 
     @set_as_current
     def add_layer(self, layer_name: str) -> Layer:
         """Add a new layer in the layer stack."""
         return Layer.new(name=layer_name, clip=self)
+
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def add_layer_folder(self, folder_name: str) -> LayerFolder:
+        """Add a new layer in the layer stack.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        return cast(LayerFolder, LayerFolder.new(name=folder_name, clip=self))
 
     @property
     def selected_layers(self) -> Iterator[Layer]:

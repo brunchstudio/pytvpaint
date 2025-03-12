@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
-from pytvpaint import george, utils
+from pytvpaint import george, log, utils
 from pytvpaint.utils import (
     Refreshable,
     Removable,
@@ -15,6 +15,13 @@ from pytvpaint.utils import (
 
 if TYPE_CHECKING:
     from pytvpaint.clip import Clip
+    from pytvpaint.layer import Layer
+
+
+# FIXME Camera.anti_aliasing always returns 1, Camera.fps no longer returns/sets fps, now only fps is Project fps
+# FIXME most Camera values can still be edited/queried using george.tv_camera_info_set() but they are not reflected in
+#  UI and so can be unintentionally edited or reset
+# FIXME george.tv_camera_info_get() values of pixel aspect ratio and fps have been swapped
 
 
 class Camera(Refreshable):
@@ -30,7 +37,7 @@ class Camera(Refreshable):
         self._points: list[CameraPoint] = []
 
     def refresh(self) -> None:
-        """Refreshed the camera data."""
+        """Refreshes the camera data."""
         if not self.refresh_on_call and self._data:
             return
         self._data = george.tv_camera_info_get()
@@ -72,12 +79,20 @@ class Camera(Refreshable):
 
     @refreshed_property
     @set_as_current
+    @george.deprecated_warning(
+        msg="DEPRECATED: Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead. "
+        "For now, in TVP 12, it always returns 1.0 but will be removed in future versions."
+    )
     def fps(self) -> float:
         """The framerate of the camera."""
         return self._data.frame_rate
 
     @fps.setter
     @set_as_current
+    @george.deprecated_warning(
+        msg="DEPRECATED: Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead. "
+        "For now, in TVP 12, it always sets 1.0 but will be removed in future versions."
+    )
     def fps(self, value: float) -> None:
         george.tv_camera_info_set(
             self.width,
@@ -105,8 +120,17 @@ class Camera(Refreshable):
 
     @refreshed_property
     @set_as_current
+    @george.deprecated_warning(
+        msg="DEPRECATED: Property `Camera.anti_aliasing` not longer exists in TVP 12, "
+        "for now, in TVP 12, it always returns 1 but will be removed in future versions."
+    )
     def anti_aliasing(self) -> int:
-        """The antialiasing value of the camera."""
+        """The antialiasing value of the camera.
+
+        Warning:
+            DEPRECATED: This property has been removed from in TVP 12 and for now always returns 1 but will be removed
+                        in future versions.
+        """
         return self._data.anti_aliasing
 
     @refreshed_property
@@ -119,6 +143,20 @@ class Camera(Refreshable):
     @set_as_current
     def field_order(self, value: george.FieldOrder) -> None:
         george.tv_camera_info_set(self.width, self.height, field_order=value)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def layer(self) -> Layer | None:
+        """The layer associated to this camera.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        return self.clip.camera_layer
 
     @set_as_current
     def insert_point(
@@ -135,7 +173,18 @@ class Camera(Refreshable):
     @property
     @set_as_current
     def points(self) -> Iterator[CameraPoint]:
-        """Iterator for the `CameraPoint` objects of the camera."""
+        """Iterator for the `CameraPoint` objects of the camera.
+
+        Warning:
+            Property `Camera.points` usually only returns the first camera point and nothing else,
+            this is a TVPaint limitation, we advise using `Camera.get_point_data_at()` to get more accurate results.
+        """
+        log.warning(
+            "Property `Camera.points` usually only returns the first camera point and nothing else, "
+            "this is a TVPaint limitation, we advise using `Camera.get_point_data_at()` to get more accurate "
+            "results."
+        )
+
         points_data = utils.position_generator(
             lambda pos: george.tv_camera_enum_points(pos)
         )
@@ -143,10 +192,16 @@ class Camera(Refreshable):
             yield CameraPoint(index, camera=self, data=point_data)
 
     @set_as_current
-    def get_point_data_at(self, position: float) -> george.TVPCameraPoint:
+    def get_point_data_at(self, position: float) -> InterpolationCameraPoint:
         """Get the points data interpolated at that position (between 0 and 1)."""
         position = max(0.0, min(position, 1.0))
-        return george.tv_camera_interpolation(position)
+        return InterpolationCameraPoint(position, self, george.tv_camera_interpolation(position))
+
+    @set_as_current
+    def get_point_data_at_frame(self, frame: int) -> FrameCameraPoint:
+        """Get the points data interpolated at that position (between 0 and 1)."""
+        real_frame = (frame - self.clip.project.start_frame)
+        return FrameCameraPoint(frame, self, george.tv_camera_info_frame(real_frame))
 
     @set_as_current
     def remove_point(self, index: int) -> None:
@@ -176,7 +231,7 @@ class CameraPoint(Removable):
         self._data = data or george.tv_camera_enum_points(self._index)
 
     def refresh(self) -> None:
-        """Refreshed the camera point data."""
+        """Refreshes the camera point data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -273,6 +328,16 @@ class CameraPoint(Removable):
             scale=value,
         )
 
+    @property
+    def width(self) -> float:
+        """The scale of the camera at that point."""
+        return self.camera.clip.project.width * (self.scale * 0.01)
+
+    @property
+    def height(self) -> float:
+        """The scale of the camera at that point."""
+        return self.camera.clip.project.height * (self.scale * 0.01)
+
     @classmethod
     def new(
         cls,
@@ -295,3 +360,86 @@ class CameraPoint(Removable):
         """
         george.tv_camera_remove_point(self.index)
         self.mark_removed()
+
+
+class InterpolationCameraPoint(CameraPoint):
+    """A Read-Only CameraPoint.
+
+    You can use them to animate the camera movement.
+    """
+
+    def __init__(
+        self,
+        interpolation_point: float,
+        camera: Camera,
+        data: george.TVPCameraPoint | None = None,
+    ) -> None:
+        super().__init__(-1, camera, data)
+        self._interpolation_point = interpolation_point
+
+    def __repr__(self) -> str:
+        """String representation of the camera point."""
+        return f"CameraPoint({self.camera.clip.name})<Interpolation:{self.interpolation_point}>"
+
+    @property
+    def interpolation_point(self) -> float:
+        """Interpolation point (between 0 and 1) for this CameraPoint."""
+        return self._interpolation_point
+
+    def refresh(self) -> None:
+        """Refreshes the camera point data at the interpolation point."""
+        if not self.refresh_on_call and self._data:
+            return
+        self._data = self.camera.get_point_data_at(self._interpolation_point)
+
+    def remove(self) -> None:
+        """Remove the camera point.
+
+        Warning:
+            the FrameCameraPoint instance is read-only and cannot be removed as  it doesn't really exist
+        """
+        log.warning("Read-Only InterpolationCameraPoint cannot be deleted as it doesn't really exist, "
+                    "ignoring request.")
+        return
+
+
+class FrameCameraPoint(CameraPoint):
+    """A Read-Only CameraPoint.
+
+    You can use them to animate the camera movement.
+    """
+
+    def __init__(
+        self,
+        frame: int,
+        camera: Camera,
+        data: george.TVPCameraPoint | None = None,
+    ) -> None:
+        super().__init__(-1, camera, data)
+        self._frame = frame
+
+    def __repr__(self) -> str:
+        """String representation of the camera point."""
+        return f"CameraPoint({self.camera.clip.name})<Frame:{self.frame}>"
+
+    @property
+    def frame(self) -> float:
+        """Frame for this CameraPoint."""
+        return self._frame
+
+    def refresh(self) -> None:
+        """Refreshes the camera point data at the frame."""
+        if not self.refresh_on_call and self._data:
+            return
+        real_frame = (self._frame - self.camera.clip.project.start_frame)
+        self._data = george.tv_camera_info_frame(real_frame)
+
+    def remove(self) -> None:
+        """Remove the camera point.
+
+        Warning:
+            the FrameCameraPoint instance is read-only and cannot be removed as  it doesn't really exist
+        """
+        log.warning("Read-Only FrameCameraPoint cannot be deleted as it doesn't really exist, "
+                    "ignoring request.")
+        return

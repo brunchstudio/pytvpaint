@@ -144,7 +144,7 @@ def send_cmd(
     # Test for basic ERROR X values and user provided custom errors
     res_in_error_values = error_values and result in list(map(str, error_values))
     if res_in_error_values or re.match(r"ERROR -?\d+", result, re.IGNORECASE):
-        msg = f"Received value: '{result}' considered as an error"
+        msg = f"Received value: `{result}` which is considered as an error"
         raise GeorgeError(msg, error_value=result)
 
     return result

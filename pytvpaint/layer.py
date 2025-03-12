@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from fileseq.filesequence import FileSequence
@@ -21,9 +21,26 @@ from pytvpaint.utils import (
 )
 
 if TYPE_CHECKING:
+    from pytvpaint.camera import Camera
     from pytvpaint.clip import Clip
     from pytvpaint.project import Project
     from pytvpaint.scene import Scene
+
+
+# FIXME folder layer has no way of knowing which layers are it's children
+# FIXME child layers have no way of knowing if they are in a folder layer or which one
+# FIXME CameraLayer is not a layer and most layer functions will ignore, prefer use of Camera object instead
+# FIXME CTG layer sometimes takes a while to update in the UI, don't know if incident is isolated to me or generalised
+# FIXME tv_CTGGetSources doesn't seem to work, maybe some missing/undocumented attributes
+# FIXME tv_CTGGetSources is actually misspelled and is actually tv_CTGGetSource without the `s` at the end
+# FIXME tv_CTGGetSources actually requires and returns layer Ids not names
+# FIXME creating a CTG layer from a folder crashes TVPaint
+# FIXME moving a layer that is already in a folder in the same folder crashes TVPaint (check again)
+# FIXME tv_layer_move position is relative to root and not folder, this is not ideal
+# FIXME not providing a FolderID to tv_LayerMove doesn't move the layer to the root, you just need to move outside the
+#  folder range for it to work
+# FIXME moving a layer inside a folder can be done without providing a FolderID, just by moving the layer in the folder's range
+# FIXME not knowing whether a layer is in a folder or not is not great, same for folder not knowing it's children
 
 
 @dataclass
@@ -329,15 +346,20 @@ class LayerColor(Refreshable):
 
 
 class Layer(Removable):
-    """A Layer is inside a clip and contains drawings."""
+    """A Layer is parented to a clip and contains LayerInstances."""
 
-    def __init__(self, layer_id: int, clip: Clip | None = None) -> None:
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
         from pytvpaint.clip import Clip
 
         super().__init__()
         self._id = layer_id
         self._clip = clip or Clip.current_clip()
-        self._data = george.tv_layer_info(self.id)
+        self._data = data or george.tv_layer_info(self.id)
 
     def refresh(self) -> None:
         """Refreshes the layer data."""
@@ -352,13 +374,15 @@ class Layer(Removable):
 
     def __repr__(self) -> str:
         """The string representation of the layer."""
-        return f"Layer({self.name})<id:{self.id}>"
+        return f"{self.__class__.__name__}({self.name})<id:{self.id}>"
 
     def __eq__(self, other: object) -> bool:
         """Two layers are equal if their id is the same."""
         if not isinstance(other, Layer):
             return NotImplemented
-        return self.id == other.id
+
+        is_same_type = self.layer_type == other.layer_type
+        return is_same_type and self.id == other.id
 
     @property
     def id(self) -> int:
@@ -411,6 +435,35 @@ class Layer(Removable):
 
         self.make_current()
         george.tv_layer_move(value)
+
+    @george.min_version_compatible(min_version="12")
+    def set_folder_position(self, folder: LayerFolder, position: int) -> None:
+        """Moves the layer to the provided position in the folder.
+
+        Note:
+            the position is relative to the root of the layer stack and not the folder.
+            If the position is larger than that of the last layer in the folder, then the layer will be placed last.
+            If you want to move a layer outside it's folder then just set its position using the layer.position property
+            and move it outside the range of the folder, meaning before the first or after the last layer in the folder.
+        """
+        value = max(0, position)
+        # TVPaint will always set the position at (value - 1) if value is superior to 0, so we need to add +1 in
+        #  that case to set the position correctly, I don't know why it works this way, but it honestly makes no sense
+        if value != 0:
+            value += 1
+
+        self.make_current()
+        george.tv_layer_move(value, folder.id)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def folder(self) -> None:
+        raise NotImplementedError("There is currently no way to get the parent folder from a Layer.")
+
+    @folder.setter
+    @george.min_version_compatible(min_version="12")
+    def folder(self, folder: LayerFolder):
+        george.tv_layer_move(self.position, folder.id)
 
     @refreshed_property
     def name(self) -> str:
@@ -633,6 +686,37 @@ class Layer(Removable):
         """Returns True if the layer is an animation layer."""
         return self.layer_type == george.LayerType.SEQUENCE
 
+    @property
+    @george.min_version_compatible(min_version="12")
+    def is_ctg_layer(self) -> bool:
+        """Returns True if the layer is a CTG layer."""
+        return self.layer_type == george.LayerType.SCRIBBLES
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def is_ctg_source(self) -> bool:
+        """Returns True if the layer is a CTG layer source."""
+        return bool(george.tv_layer_is_ctg_source())
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def sourced_ctg_layers(self) -> list[CTGLayer]:
+        """Returns a list of CTGLayer instances that use this layer as a source."""
+        if not self.is_ctg_source:
+            return []
+
+        ctg_layers = []
+        for layer_id in george.tv_layer_is_ctg_source():
+            ctg_layer = self.clip.get_layer(by_id=layer_id)
+            if not ctg_layer:
+                continue
+
+            ctg_layers.append(ctg_layer)
+
+        return cast(list[CTGLayer], ctg_layers)
+
     def load_dependencies(self) -> None:
         """Load all dependencies of the layer in memory."""
         george.tv_layer_load_dependencies(self.id)
@@ -701,9 +785,10 @@ class Layer(Removable):
         """
         george.tv_layer_merge_all(keep_color_grp, keep_img_mark, keep_instance_name)
 
-    @staticmethod
+    @classmethod
     @george.undoable
     def new(
+        cls,
         name: str,
         clip: Clip | None = None,
         color: LayerColor | None = None,
@@ -728,10 +813,10 @@ class Layer(Removable):
         clip.make_current()
 
         name = utils.get_unique_name(clip.layer_names, name)
-        layer_id = george.tv_layer_create(name)
+        layer_type = 1 if cls == Layer else 0
+        layer_id = george.tv_layer_create(name, layer_type=layer_type)
 
-        layer = Layer(layer_id=layer_id, clip=clip)
-
+        layer = cls(layer_id=layer_id, clip=clip)
         if color:
             layer.color = color
 
@@ -1246,3 +1331,161 @@ class Layer(Removable):
             process: the instance naming process
         """
         george.tv_instance_name(self.id, mode, prefix, suffix, process)
+
+
+class LayerFolder(Layer):
+    """A LayerFolder is parented to a clip and contains Layers."""
+
+    @george.min_version_compatible(min_version="12")
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
+        super().__init__(layer_id, clip, data)
+
+    def remove(self, remove_children: bool = True) -> None:
+        """Remove the layer from the clip.
+
+        Args:
+            remove_children: True will remove child layers in the folder, False will remove the folder and move the
+                              layers to the root level. Default value is True.
+
+        Warning:
+            The current instance won't be usable after this call since it will be mark removed.
+        """
+        self.clip.make_current()
+        self.is_locked = False
+        george.tv_layer_folder_delete(self.id, remove_children)
+        self.mark_removed()
+
+
+class CameraLayer(Layer):
+    """A CameraLayer is parented to a clip and is linked to the Camera object."""
+
+    @george.min_version_compatible(min_version="12")
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
+        super().__init__(layer_id, clip, data)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def camera(self) -> Camera | None:
+        """Returns the Camera object linked ot this layer, if no camera is linked to teh layer, returns None."""
+        if self.layer_type != george.LayerType.CAMERA:
+            return None
+        return self.clip.camera
+
+
+class CTGLayer(Layer):
+    """A CameraLayer is parented to a clip and is linked to the Camera object."""
+
+    @george.min_version_compatible(min_version="12")
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
+        super().__init__(layer_id, clip, data)
+
+    @classmethod
+    @george.min_version_compatible(min_version="12")
+    @george.undoable
+    def new(
+        cls,
+        name: str,
+        clip: Clip | None = None,
+        color: LayerColor | None = None,
+        sources: list[Layer] | None = None,
+    ) -> CTGLayer:
+        """Create a new CTG layer.
+
+        Args:
+            name: the name of the new layer
+            clip: the parent clip
+            color: the layer color
+            sources: the layer sources
+
+        Returns:
+            CTGLayer: the new layer
+
+        Note:
+            The layer name is checked against all other layers to have a unique name using `get_unique_name`.
+            This can take a while if you have a lot of layers.
+        """
+        from pytvpaint.clip import Clip
+
+        clip = clip or Clip.current_clip()
+        clip.make_current()
+
+        name = utils.get_unique_name(clip.layer_names, name)
+        layer_id = george.tv_ctg_layer_create(name, sources=[layer.name for layer in sources])
+
+        layer = cls(layer_id=layer_id, clip=clip)
+        if color:
+            layer.color = color
+
+        return layer
+
+    @property
+    @set_as_current
+    def squiggles_visible(self) -> bool:
+        prev_value = george.tv_ctg_squiggles_visible(self.id, True)
+        # reset value
+        george.tv_ctg_squiggles_visible(self.id, prev_value)
+        return prev_value
+
+    @squiggles_visible.setter
+    @set_as_current
+    def squiggles_visible(self, value: bool) -> None:
+        george.tv_ctg_squiggles_visible(self.id, value)
+
+    @property
+    @set_as_current
+    def apply_changes(self) -> bool:
+        prev_value = george.tv_ctg_apply_changes(self.id, True)
+        # reset value
+        george.tv_ctg_apply_changes(self.id, prev_value)
+        return prev_value
+
+    @apply_changes.setter
+    @set_as_current
+    def apply_changes(self, value: bool) -> None:
+        george.tv_ctg_apply_changes(self.id, value)
+
+    @property
+    def sources(self) -> list[Layer]:
+        sources = []
+
+        # TODO commenting this since it was used when tv_CTGGetSources "wasn't" working
+        # for layer in self.clip.layers:
+        #     if not layer.is_ctg_source:
+        #         continue
+        #     if self.id not in [ctg_layer.id for ctg_layer in layer.sourced_ctg_layers]:
+        #         continue
+        #     sources.append(layer)
+
+        for layer_id in george.tv_ctg_get_source(self.id):
+            layer = self.clip.get_layer(by_id=layer_id)
+            if not layer:
+                continue
+            sources.append(layer)
+        return sources
+
+    def add_sources(self, sources: list[Layer]) -> None:
+        george.tv_ctg_source_add(self.id, [layer.id for layer in sources if self not in layer.sourced_ctg_layers])
+
+    def remove_sources(self, sources: list[Layer]) -> None:
+        george.tv_ctg_source_remove(self.id, [layer.id for layer in sources if self in layer.sourced_ctg_layers])
+
+    @set_as_current
+    def load_structure(self) -> None:
+        george.tv_ctg_load_structure(self.id)
+
+

@@ -47,7 +47,7 @@ range values tend to change and are seemingly handled differently between the UI
 
 PyTVPaint handles frames differently in an effort to have a similar behaviour to the other industry software we're
 familiar with (Premiere, Maya, etc...). Meaning that the ranges provided to the API will have to be formatted a certain
-way, with the API handling all the appropriate range conversion behind the scenes.
+way, with the API handling all the appropriate range conversions behind the scenes.
 
 To explain how this works we first need to review how TVPaint handles ranges (grab a cup coffee, this might take a while...).
 
@@ -154,7 +154,7 @@ p.start_frame = 0
 george.tv_save_sequence('out.#.png', 0, 11)
 # => renders a sequence of 11 frames with our updated range of (0-11)
 
-george.tv_project_save_sequence('out.#.png', start=53, end=63)
+george.tv_project_save_sequence('out.#.png', start=0, end=11)
 # ERROR : only renders 6 frames
 ```
 
@@ -165,8 +165,8 @@ so what's happening ?
 
 To understand what's happening we need to understand how TVPaint handles its timeline...and the answer is that it doesn't
 really handle a timeline. TVPaint's elements are handled more like lists than anything else, so all elements start at `0`
-and have a range of `(0 to N)`, however there are really two lists; projects have their timeline/list and clips also have
-their own timeline/list that is connected to the project's timeline. So to recap:
+and have a range of `(0 to N)`. However, there are really *two* lists; projects have their timeline/list and clips also have
+their own individual timeline/list that is connected to the project's timeline. So to recap:
 
 - Clip: a clip's timeline always starts at 0 and goes to N, N being the last image in the "longest" layer in the clip.
 - Project: a project's timeline always starts at 0 and goes to N, N being the last frame in the last clip of the project.
@@ -186,11 +186,11 @@ project's start frame. So to correct our second example, we'd need to subtract t
 we want to render, like so :
 
 ```python
-p_start = 53
+project_start = 53
 start, end = (53, 63)
 # clean range before render
-start = (start - p_start)  # 0
-end = (end - p_start)  # 10
+start = (start - project_start)  # 0
+end = (end - project_start)  # 10
 
 george.tv_save_sequence('out.#.png', start, end)
 # => renders a correct sequence of 11 frames with a range of (53-63) (as seen in the timeline in the Clip's UI)
@@ -205,8 +205,9 @@ Except we kind of tried this already when we reverted the project start frame to
 ### Mark IN/OUT
 
 The reason the project has only been rendering 6 frames is because we set a mark IN and OUT on the clip at `(55-60)`.
-This means that the project now only sees the frames between the mark IN and OUT _(see figures 8 and 9 below)_. If we had only set the mark
-IN but not the mark OUT, the project would see all the frames between the mark IN and the clip's end frame and vice versa.
+This means that the project now only sees the frames between the mark IN and OUT _(see figures 8 and 9 below)_. If we 
+had only set the mark IN but not the mark OUT, the project would see all the frames between the mark IN and the clip's 
+end frame and vice versa.
 
 ![](../assets/range8.png) <figcaption style="font-size:0.7em">figure 8 - No Mark IN/OUT</figcaption>
 
@@ -215,40 +216,45 @@ IN but not the mark OUT, the project would see all the frames between the mark I
 ![](../assets/range9.png) <figcaption style="font-size:0.7em">figure 9 - Project Timeline with same clip Mark IN/OUT at 55/60</figcaption>
 
 So this explains why we only had 6 frames rendered, since the duration of the range `(55-60)` is equal to 6 frames.
-You probably noticed that there is still an issue. The project now says it's range is `(53-59)` _(figure 9 above)_ while the clip
-says it's range _(when taking the Mark IN/OUT into account)_ is at `(55-60)` and it's full range is _(without mark IN/OUT)_ is `(53-63)` _(figure 7 above)_
+
+You probably noticed that there is still an issue. The project now says it's range is `(53-59)` _(figure 9 above)_ 
+while the clip says it's range _(when taking the Mark IN/OUT into account)_ is at `(55-60)` and it's full range is 
+_(without mark IN/OUT)_ is `(53-63)` _(figure 7 above)_
 
 This is not a bug, when you take into account the fact that the project's timeline is separate from the clip timeline and
 ignores the frames outside the Mark IN/OUT it starts to make sense.
 
-We know the project start frame is ignored by the George rendering functions (as mentioned above) and all timelines (project and clip)
-really start a 0. So our project would only see 6 frames in the clip (the one between Mark IN `55` and the Mark OUT `60`),
-the project's timeline is really `(0-5)` + the project start frame `53` and we get `(53-58)`.
+We know the project start frame is ignored by the rendering functions (as mentioned above) and all timelines 
+(project and clip) really start a 0. So our project would only see 6 frames in the clip (the one between Mark IN `55` 
+and the Mark OUT `60`), the project's timeline is really `(0-5)` + the project start frame `53` and we get `(53-58)`.
 
 So to fix our previous example and render our clip from the project we would need to do this
 
 ```python
-p_start = 53
+project_start = 53
 
 start, end = (53, 63)
 # clean range before render
-start = (start - p_start)  # 0
-end = (end - p_start)  # 10
+start = (start - project_start)  # 0
+end = (end - project_start)  # 10
 
 mark_in, mark_out = (55, 60)
 # clean mark IN/OUT range before render
-mark_in = (mark_in - p_start)  # 2
-mark_out = (mark_out - p_start)  # 7
+mark_in = (mark_in - project_start)  # 2
+mark_out = (mark_out - project_start)  # 7
 
 george.tv_save_sequence('out.#.png', start, end)
-# => renders a correct sequence of 11 frames with a range of (53-63) (as seen in the timeline in the Clip's UI)
+# => renders a correct sequence of 11 frames with a range of (53-63) 
+# (as seen in the timeline in the Clip's UI)
 
 george.tv_save_sequence('out.#.png', mark_in, mark_out)
-# => renders a correct sequence of 6 frames with a range of (55-50) (as seen in the timeline in the Clip's UI)
+# => renders a correct sequence of 6 frames with a range of (55-60) 
+# (as seen in the timeline in the Clip's UI)
 
-render_duration = (mark_in - mark_out) + 1  # 6
+render_duration = (mark_in - mark_out) + 1  # ==> (55 - 60) + 1 ==> 6
 george.tv_project_save_sequence('out.#.png', start=0, end=render_duration)
-# => renders a correct sequence of 6 frames with a range of (53-58) (as seen in the timeline in the Project's UI)
+# => renders a correct sequence of 6 frames with a range of (55-60 for the project, 53-58 for the clip) 
+# (as seen in the timeline in the Project's UI)
 ```
 
 !!! Note
@@ -285,26 +291,29 @@ So if we want to render the new clip we would do :
 
 # rendering from the clip, using the clip's timeline
 george.tv_save_sequence('out.#.png', 0, 4)
-# => renders a correct sequence of 5 frames with a range of (53-57) (as seen in the timeline in the Clip's UI)
+# => renders a correct sequence of 5 frames with a range of (53-57) 
+# (as seen in the timeline in the Clip's UI)
 
 # rendering from the project, using the project's timeline
 george.tv_project_save_sequence('out.#.png', start=6, end=10)
-# => renders a correct sequence of 6 frames with a range of (59-63) (as seen in the timeline in the Project's UI)
+# => renders a correct sequence of 6 frames with a range of (59-63) 
+# (as seen in the timeline in the Project's UI)
 ```
 
 ### Rendering the camera
 
-!!! tip
+!!! Tip
 
     Rendering the camera does not affect the timeline, however only `tv_project_save_sequence` has an option to render the
     camera. So you'll have to use the project and it's range to render any frames with the camera.
 
 ### Invalid Ranges
 
-An invalid range can be provided to both functions and instead of raising an error, both will render some frames.
-Here we will try to describe the observed behavior when encountering an invalid range.
+TVPaint does not raise an error when provided with an invalid range, and such a range can be provided to both rendering 
+functions and both will render some frames, though often the incorrect ones.
+Here we will try to describe what an invalid is and the observed behavior when encountering an invalid range.
 
-!!! info
+!!! Info
 
     A rendering range is considered invalid if it starts before the Project's or Clip's start frame and ends after
     the Project's or Clip's end frame
@@ -315,6 +324,14 @@ For a project using `tv_project_save_sequence`
 | :-------------------------------------------- | :-------------------------------- |
 | range starts before the project's start frame | Renders all images in the project |
 | range ends after the project's end frame      | Renders all images in the project |
+
+
+!!! Warning
+    
+    You might think that using invalid range is fine with `tv_project_save_sequence` since it stills renders all frames, 
+    but depending on the first frame provided to TVPaint you might end up with the wrong range in your file names, 
+    Ex: a project with a range of (0-20) if rendered with a range (-1, 22) will output 21 frames all named incorrectly 
+    and starting at -1 instead of 0, si it is important to avoid invalid ranges as much as possible  
 
 For a clip using `tv_save_sequence`
 
@@ -328,9 +345,9 @@ For a clip using `tv_save_sequence`
 
 ### How PyTVPaint handles a frame range
 
-We it comes to our API, we take a very `what you see is what you get` approach when handling the timeline. Basically if timeline in the UI says
-that your clip's range is `(55-60)` (as seen in the examples above) then that is what you should provide to our functions.
-PyTVPaint will handle the range conversion behind the scenes.
+When it comes to our API, we take a very `what you see is what you get` approach when handling the timeline. 
+Basically if the timeline in the UI says that your clip's range is `(55-60)` (as seen in the examples above) then that 
+is what you should provide to our functions. PyTVPaint will then handle the range conversion behind the scenes.
 
 ```python
 from pytvpaint.clip import Clip
@@ -387,8 +404,9 @@ print(c2.timeline_end)  # => 63
 
 !!! Warning
 
-    PyTVPaint uses `tv_project_save_sequence` to render frames for the project and the clips, this means that when
+    PyTVPaint uses `tv_project_save_sequence` to render both the project and the clips, this means that when
     rendering a clip, it will consider any range outside the clip's Mark IN/OUT (if they have been set) as invalid.
+    We do not use `tv_save_sequence` as it doesn't handle camera rending.
 
 !!! Warning
 
@@ -401,3 +419,4 @@ print(c2.timeline_end)  # => 63
 
     Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
     encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
+

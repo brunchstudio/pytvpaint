@@ -111,10 +111,11 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
             f"Enum index {index} is out of bounds (max {len(enum_members) - 1})"
         )
 
-    if get_origin(cast_type) is tuple:
+    if get_origin(cast_type) in (tuple, list):
         # Split by space and convert each member to the right type
-        values_types = zip(value.split(" "), get_args(cast_type))
-        return cast(T, tuple(tv_cast_to_type(v, t) for v, t in values_types))
+        value_type = get_args(cast_type)[0]
+        values_types = [tv_cast_to_type(v, value_type) for v in value.split()]
+        return cast(T, get_origin(cast_type)(values_types))
 
     if cast_type == bool:
         return cast(T, value.lower() in ["1", "on", "true"])
@@ -128,7 +129,7 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
 FieldTypes: TypeAlias = list[tuple[str, Any]]
 
 
-def _get_dataclass_fields(
+def get_dataclass_fields(
     datacls: DataclassInstance | type[DataclassInstance],
 ) -> FieldTypes:
     """Get the dataclass key/type pairs and filter those with the "parsed" metadata.
@@ -164,7 +165,7 @@ def tv_parse_dict(
     """
     # For dataclasses get the type hints and filter those with metadata
     if is_dataclass(with_fields):
-        with_fields = _get_dataclass_fields(with_fields)
+        with_fields = get_dataclass_fields(with_fields)
     else:
         # Explicitly cast because we are sure now
         with_fields = cast(FieldTypes, with_fields)
@@ -253,7 +254,7 @@ def tv_parse_list(
 
     # Get type annotations from the dataclass fields
     if is_dataclass(with_fields):
-        with_fields = _get_dataclass_fields(with_fields)
+        with_fields = get_dataclass_fields(with_fields)
     else:
         # Explicitly cast because we are sure now
         with_fields = cast(FieldTypes, with_fields)
@@ -291,12 +292,14 @@ Value = Union[int, float, str, bool, None]
 
 
 def validate_args_list(optional_args: Sequence[Value | tuple[Value, ...]]) -> list[Any]:
-    """Some George functions only accept a list of values and not key:value pairs, so to set the last positional argument for instance, you need to give all the previous ones.
+    """Validates *args equivalent for tvpaint
 
-    This function allows you to give a list of argument or key:value pairs (as tuples) and check that they are not None.
+    Some George functions only accept a list of values and not key:value pairs. If for instance, you need to set the
+    last positional argument for a function call, you need to provide all the preceding arguments.
+    This function, given a list of arguments or key:value pairs (as tuples) checks that they are valid/not None.
 
     For example, for `tv_camerainfo [<iWidth> <iHeight> [<field_order>]]`
-    you can't give `[500, None, "upper"]` because `<iHeight>` is not defined.
+    you can't pass `[500, None, "upper"]` because `<iHeight>` is not defined.
 
     Args:
         optional_args: list of values or tuple of values (args block)

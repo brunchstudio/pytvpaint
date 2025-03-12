@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 from collections.abc import Generator
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, TypeVar, cast, overload
 
+from packaging import version
 from typing_extensions import Literal, TypeAlias
 
 from pytvpaint import log
@@ -623,15 +625,81 @@ def tv_warn(msg: str) -> None:
 
 
 def tv_version() -> tuple[str, str, str]:
-    """Returns the software name, version and language."""
+    """Returns TVPaint version and language info.
+
+    Returns:
+        software_name (str): software full name (ex: TVPaint Animation 12.0.0 Pro)
+        tvp_version (str): version number (ex: 12.0.0)
+        language (str): language (ex: fr, en, etc...)
+    """
     cmd_fields = [
         ("software_name", str),
         ("version", str),
         ("language", str),
     ]
     res = tv_parse_list(send_cmd("tv_Version"), with_fields=cmd_fields)
-    software_name, version, language = res.values()
-    return software_name, version, language
+    software_name, tvp_version, language = res.values()
+    return software_name, tvp_version, language
+
+
+def is_tvp_version_below_12() -> bool:
+    """Helper function to check if the connected tvpaint instance version is below v12."""
+    _, tvp_version, _ = tv_version()
+    return version.parse(tvp_version).major < 12
+
+
+def min_version_compatible(min_version: str) -> Callable[[T], T]:
+    """Decorator to apply on object methods.
+
+    Given a minimum version, checks if the current tvpaint version if above the minimum requirement otherwise it
+    raises a NotImplemented error
+
+    Args:
+        min_version (str): minimum version required to run this version
+
+    Returns:
+        the decorated function
+    """
+
+    def decorate(func: T) -> T:
+        @functools.wraps(func)
+        def applicator(*args: Any, **kwargs: Any) -> Any:
+            _, tvp_version, _ = tv_version()
+            current_version = version.parse(tvp_version)
+            min_version_parse = version.parse(min_version)
+
+            if current_version < min_version_parse:
+                msg = f"This function is only available in TVPaint version ({min_version}) and above."
+                raise NotImplementedError(msg)
+
+            return func(*args, **kwargs)
+
+        return cast(T, applicator)
+
+    return decorate
+
+
+def deprecated_warning(msg: str) -> Callable[[T], T]:
+    """Decorator to apply on object methods.
+
+    Prints a deprecation message when decorated function is called
+
+    Args:
+        msg (str): deprecation message
+
+    Returns:
+        the decorated function
+    """
+
+    def decorate(func: T) -> T:
+        @functools.wraps(func)
+        def applicator(*args: Any, **kwargs: Any) -> Any:
+            log.warning(msg)
+            return func(*args, **kwargs)
+
+        return cast(T, applicator)
+
+    return decorate
 
 
 def tv_quit() -> None:
@@ -657,13 +725,13 @@ def tv_menu_hide() -> None:
 def add_some_magic(
     i_am_a_badass: bool = False, magic_number: int | None = None
 ) -> None:
-    """Don't use ! Will change your life forever..."""
+    """Don't use this function ! It just might change your life forever..."""
     if not i_am_a_badass:
         log.warning("Sorry, you're not enough of a badass for this function...")
 
     magic_number = magic_number or 14
     send_cmd("tv_MagicNumber", magic_number)
-    log.info("Totally worth it, right ? ^^")
+    log.info("Totally worth it, right ?! ^^")
 
 
 def tv_menu_show(
@@ -1044,8 +1112,16 @@ def tv_set_b_pen_hsl(color: HSLColor) -> HSLColor:
     return _tv_set_ab_pen("b", color.h, color.s, color.l, color_format="hsl")
 
 
+@deprecated_warning(
+    msg="DEPRECATED: Function `tv_pen` is most likely deprecated it is undocumented in the George reference but still "
+    "works, We advise using `tv_penbrush` instead."
+)
 def tv_pen(size: float) -> float:
-    """Change current pen tool size. This function is most likely deprecated it is undocumented in the George reference but still works."""
+    """Change current pen tool size.
+
+    Warning:
+        DEPRECATED: Function `tv_pen` is deprecated, We advise using `tv_penbrush` instead.
+    """
     res = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
     return cast(float, res["size"])
 
@@ -1056,7 +1132,7 @@ def tv_pen_brush_get(tool_mode: bool = False) -> TVPPenBrush:
     result = send_cmd("tv_PenBrush", *args)
 
     # Remove the first value which is tv_penbrush
-    result = result[len("tv_penbrush") + 1 :]
+    result = result[len("tv_penbrush") + 1:]
 
     res = tv_parse_dict(result, with_fields=TVPPenBrush)
     return TVPPenBrush(**res)
@@ -1107,8 +1183,8 @@ def tv_line(
     args = [
         *xy1,
         *xy2,
-        bool(right_click),
-        bool(dry),
+        right_click,
+        dry,
     ]
     send_cmd("tv_Line", *args)
 

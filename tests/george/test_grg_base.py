@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from packaging import version
 from pytest_mock import MockFixture
 
 from pytvpaint.george.client import send_cmd
@@ -55,13 +56,12 @@ from pytvpaint.george.grg_project import TVPProject
 
 
 def test_tv_version() -> None:
-    from packaging import version as version_utils
+    name, tvp_version, lang = tv_version()
+    min_version = version.parse("11.0")
+    current_version = version.parse(tvp_version)
 
-    name, version, lang = tv_version()
-    min_version = version_utils.parse("1.0")
-
-    assert "TVP Animation" in name
-    assert version_utils.parse(version) >= min_version
+    assert "TVP Animation" in name or "TVPaint Animation" in name
+    assert current_version >= min_version
     assert lang in ["en", "fr", "ja", "zh"]
 
 

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from pytvpaint import log
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     args_dict_to_list,
@@ -18,6 +20,8 @@ from pytvpaint.george.grg_base import (
     BlendingMode,
     GrgErrorValue,
     RGBColor,
+    is_tvp_version_below_12,
+    min_version_compatible,
 )
 
 
@@ -97,12 +101,16 @@ class LayerType(Enum):
         SEQUENCE:
         XSHEET:
         SCRIBBLES:
+        FOLDER:
+        CAMERA:
     """
 
     IMAGE = "image"
     SEQUENCE = "sequence"
     XSHEET = "xsheet"
     SCRIBBLES = "scribbles"
+    FOLDER = "folder"
+    CAMERA = "camera"
 
 
 class StencilMode(Enum):
@@ -241,13 +249,26 @@ def tv_layer_info(layer_id: int) -> TVPLayer:
 
 
 @try_cmd(exception_msg="Couldn't move current layer to position")
-def tv_layer_move(position: int) -> None:
+def tv_layer_move(position: int, folder_id: int | None = None) -> None:
     """Move the current layer to a new position in the layer stack.
+
+    Args:
+        position: position to move layer to
+        folder_id: parent folder id,
 
     Raises:
         GeorgeError: if layer could not be moved
     """
-    send_cmd("tv_LayerMove", position)
+    if folder_id is not None and is_tvp_version_below_12():
+        log.warning(
+            "`folder_id` option is only available in TVPaint version 12 and above."
+        )
+
+    args = [position]
+    if not is_tvp_version_below_12():
+        args.append(folder_id)
+
+    send_cmd("tv_LayerMove", *args)
 
 
 @try_cmd(
@@ -327,9 +348,24 @@ def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
     return frame, count
 
 
-def tv_layer_create(name: str) -> int:
-    """Create a new image layer with the given name."""
-    return int(send_cmd("tv_LayerCreate", name, handle_string=False))
+def tv_layer_create(name: str, layer_type: int = 1) -> int:
+    """Create a new image layer with the given name.
+
+    Args:
+        name: layer name
+        layer_type: 1 for normal layer, 0 for Folder layer (only available for TVPaint 12 and above)
+
+    """
+    if layer_type != 1 and is_tvp_version_below_12():
+        log.warning(
+            "`layer_type` selection is only available in TVPaint version 12 and above."
+        )
+
+    args = [name]
+    if not is_tvp_version_below_12():
+        args.append(str(layer_type))
+
+    return int(send_cmd("tv_LayerCreate", *args, handle_string=False))
 
 
 def tv_layer_duplicate(name: str) -> int:
@@ -361,6 +397,21 @@ def tv_layer_kill(layer_id: int) -> None:
         NoObjectWithIdError: if given an invalid layer id
     """
     send_cmd("tv_LayerKill", layer_id)
+
+
+@min_version_compatible(min_version="12")
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid layer id",
+)
+def tv_layer_folder_delete(layer_id: int, remove_children: bool) -> None:
+    """Delete the layer with provided id.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid layer id
+        NotImplemented: if used in tvpaint version inferior to 12
+    """
+    send_cmd("tv_LayerFolderDelete", layer_id, int(not remove_children))
 
 
 def tv_layer_density_get() -> int:
@@ -519,10 +570,8 @@ def tv_layer_stencil_set(layer_id: int, mode: StencilMode) -> None:
     Raises:
         NoObjectWithIdError: if given an invalid layer id
     """
-    if mode == StencilMode.OFF:
-        args = ["off"]
-    elif mode == StencilMode.ON:
-        args = ["on"]
+    if mode in [StencilMode.ON, StencilMode.OFF]:
+        args = [mode.value]
     else:
         args = ["on", mode.value]
 
@@ -1235,3 +1284,109 @@ def tv_load_image(img_path: Path | str, stretch: bool = False) -> None:
 def tv_clear(fill_b_pen: bool = False) -> None:
     """Clear (or fill with BPen) the current image (selection) of the current layer."""
     send_cmd("tv_Clear", int(fill_b_pen))
+
+
+@min_version_compatible(min_version="12")
+def tv_layer_is_ctg_source() -> list[int]:
+    """Returns list of CTG layers (ids) that use the current layer as a source"""
+    res = send_cmd("tv_LayerIsCTGSource", error_values=[GrgErrorValue.EMPTY])
+    with contextlib.suppress(Exception):
+        layer_ids = [int(layer_id) for layer_id in res.split()]
+        if any([layer_id < 0 for layer_id in layer_ids]):
+            return []
+        else:
+            return layer_ids
+
+    return []
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_layer_create(name: str, sources: list[str] | None = None) -> int:
+    """Create a new CTG layer with the given name.
+
+    Args:
+        name: layer name
+        sources: list of source layer ids
+
+    Returns:
+        layer_id: new layer id
+    """
+    sources = sources or []
+    return int(send_cmd("tv_CTGLayerCreate", name, *sources))
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_load_structure(ctg_layer_id: int) -> None:
+    """Create a new CTG layer with the given name.
+
+    Args:
+        ctg_layer_id: ctg layer id
+
+    Raises:
+        ValueError: if Invalid layer id
+    """
+    res = send_cmd("tv_CTGLoadStructure ", ctg_layer_id)
+    with contextlib.suppress(Exception):
+        if int(res) < 0:
+            raise ValueError("Invalid layer id")
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_apply_changes(ctg_layer_id: int, apply: bool) -> bool:
+    """Set Apply Changes value on CTG layer
+
+    Args:
+        ctg_layer_id: ctg layer id
+        apply: True to apply changes, False otherwise
+
+    Returns:
+        bool: previous value
+    """
+    res = send_cmd("tv_CTGApplyChanges", ctg_layer_id, "on" if apply else "off")
+    return tv_cast_to_type(res, bool)
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_squiggles_visible(ctg_layer_id: int, visible: bool) -> bool:
+    """Set squiggles visibility on CTG layer
+
+    Args:
+        ctg_layer_id: ctg layer id
+        visible: True to make squiggles visible, False otherwise
+
+    Returns:
+        bool: previous value
+    """
+    res = send_cmd("tv_CTGSquigglesVisible", ctg_layer_id, "on" if visible else "off")
+    return tv_cast_to_type(res, bool)
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_get_source(ctg_layer_id: int) -> list[int]:
+    """Get a CTG layer's sources
+
+    Args:
+        ctg_layer_id: ctg layer id
+
+    Returns:
+        sources: list of sours layer Ids
+
+    Warning:
+        this function is documented as `tv_CTGGetSources` but it is in fact `tv_CTGGetSource` without the `s`
+    """
+    res = send_cmd("tv_CTGGetSource", ctg_layer_id)
+    return tv_cast_to_type(res, list[int])
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_source_add(ctg_layer_id: int, source_ids: list[int]) -> None:
+    send_cmd("tv_CTGSource", "add", ctg_layer_id, *source_ids)
+
+
+@min_version_compatible(min_version="12")
+def tv_ctg_source_remove(ctg_layer_id: int, source_ids: list[int]) -> None:
+    send_cmd("tv_CTGSource", "remove", ctg_layer_id, *source_ids)
+
+
+
+

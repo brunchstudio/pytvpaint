@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
 from pytvpaint.george.client import send_cmd
 from pytvpaint.george.client.parse import (
+    DataclassInstance,
+    get_dataclass_fields,
     tv_parse_list,
     validate_args_list,
 )
-from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue
+from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue, is_tvp_version_below_12
 
 
 @dataclass(frozen=True)
@@ -21,7 +24,7 @@ class TVPCamera:
     field_order: FieldOrder
     frame_rate: float
     pixel_aspect_ratio: float
-    anti_aliasing: int
+    anti_aliasing: int = 1
 
 
 @dataclass(frozen=True)
@@ -36,7 +39,15 @@ class TVPCameraPoint:
 
 def tv_camera_info_get() -> TVPCamera:
     """Get the information of the camera."""
-    return TVPCamera(**tv_parse_list(send_cmd("tv_CameraInfo"), with_fields=TVPCamera))
+    if is_tvp_version_below_12():
+        fields = TVPCamera
+    else:  # values of pixel aspect ratio and fps have been swapped in versions > 12
+        fields = get_dataclass_fields(cast(DataclassInstance, TVPCamera))
+        fields_keys = list(dict(fields).keys())
+        pixel_aspect_index, fps_index = fields_keys.index('pixel_aspect_ratio'), fields_keys.index('frame_rate')
+        fields[pixel_aspect_index], fields[fps_index] = fields[fps_index], fields[pixel_aspect_index]
+
+    return TVPCamera(**tv_parse_list(send_cmd("tv_CameraInfo"), with_fields=fields))
 
 
 def tv_camera_info_set(
@@ -70,6 +81,17 @@ def tv_camera_interpolation(position: float) -> TVPCameraPoint:
     """Get the position/angle/scale values at the given position on the camera path (between 0 and 1)."""
     res = tv_parse_list(
         send_cmd("tv_CameraInterpolation", position),
+        with_fields=TVPCameraPoint,
+    )
+    return TVPCameraPoint(**res)
+
+
+def tv_camera_info_frame(frame: int) -> TVPCameraPoint:
+    """Get the position/angle/scale values at the given frame."""
+    errors = ["Given frame out of camera layer's range"]
+    res = send_cmd("tv_CameraInfoFrame", frame, error_values=errors)
+    res = tv_parse_list(
+        res,
         with_fields=TVPCameraPoint,
     )
     return TVPCameraPoint(**res)

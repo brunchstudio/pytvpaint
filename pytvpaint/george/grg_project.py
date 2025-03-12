@@ -5,10 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
+    DataclassInstance,
+    get_dataclass_fields,
     tv_cast_to_type,
     tv_parse_list,
 )
@@ -19,6 +21,7 @@ from pytvpaint.george.grg_base import (
     ResizeOption,
     RGBColor,
     TVPSound,
+    is_tvp_version_below_12,
 )
 
 
@@ -33,8 +36,8 @@ class TVPProject:
     height: int
     pixel_aspect_ratio: float
     frame_rate: float
-    field_order: FieldOrder
-    start_frame: int
+    field_order: FieldOrder = FieldOrder.NONE
+    start_frame: int = 0
 
 
 class BackgroundMode(Enum):
@@ -49,6 +52,33 @@ class BackgroundMode(Enum):
     CHECK = "check"
     COLOR = "color"
     NONE = "none"
+
+
+@try_cmd(
+    raise_exc=NoObjectWithIdError,
+    exception_msg="Invalid project id",
+)
+def tv_project_info(project_id: str) -> TVPProject:
+    """Get info of the given project.
+
+    Raises:
+        NoObjectWithIdError: if given an invalid project id
+    """
+    result = send_cmd("tv_ProjectInfo", project_id, error_values=[GrgErrorValue.EMPTY])
+
+    if is_tvp_version_below_12():
+        fields = TVPProject
+    else:
+        # values of field_order have been removed in versions > 12 so for now we provide it ourselves
+        fields = get_dataclass_fields(cast(DataclassInstance, TVPProject))
+        fields_keys = list(dict(fields).keys())
+        field_order_index, start_frame_index = fields_keys.index('field_order'), fields_keys.index('start_frame')
+        fields[field_order_index], fields[start_frame_index] = fields[start_frame_index], fields[field_order_index]
+        result = f"{result} {tv_get_field().value}"
+
+    project = tv_parse_list(result, with_fields=fields)
+    project["id"] = project_id
+    return TVPProject(**project)
 
 
 def tv_background_get() -> (
@@ -181,22 +211,6 @@ def tv_project_enum_id(position: int) -> str:
 def tv_project_current_id() -> str:
     """Get the id of the current project."""
     return send_cmd("tv_ProjectCurrentId")
-
-
-@try_cmd(
-    raise_exc=NoObjectWithIdError,
-    exception_msg="Invalid project id",
-)
-def tv_project_info(project_id: str) -> TVPProject:
-    """Get info of the given project.
-
-    Raises:
-        NoObjectWithIdError: if given an invalid project id
-    """
-    result = send_cmd("tv_ProjectInfo", project_id, error_values=[GrgErrorValue.EMPTY])
-    project = tv_parse_list(result, with_fields=TVPProject)
-    project["id"] = project_id
-    return TVPProject(**project)
 
 
 def tv_get_project_name() -> str:
