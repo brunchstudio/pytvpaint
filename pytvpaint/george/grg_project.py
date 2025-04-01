@@ -66,14 +66,17 @@ def tv_project_info(project_id: str) -> TVPProject:
     """
     result = send_cmd("tv_ProjectInfo", project_id, error_values=[GrgErrorValue.EMPTY])
 
-    if is_tvp_version_below_12():
-        fields = TVPProject
-    else:
+    fields = get_dataclass_fields(cast(DataclassInstance, TVPProject))
+    if not is_tvp_version_below_12():
         # values of field_order have been removed in versions > 12 so for now we provide it ourselves
-        fields = get_dataclass_fields(cast(DataclassInstance, TVPProject))
-        fields_keys = list(dict(fields).keys())
-        field_order_index, start_frame_index = fields_keys.index('field_order'), fields_keys.index('start_frame')
-        fields[field_order_index], fields[start_frame_index] = fields[start_frame_index], fields[field_order_index]
+        fields_keys: list[str] = list(dict(fields).keys())
+        field_order_index, start_frame_index = fields_keys.index(
+            "field_order"
+        ), fields_keys.index("start_frame")
+        fields[field_order_index], fields[start_frame_index] = (
+            fields[start_frame_index],
+            fields[field_order_index],
+        )
         result = f"{result} {tv_get_field().value}"
 
     project = tv_parse_list(result, with_fields=fields)

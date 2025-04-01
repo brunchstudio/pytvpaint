@@ -60,6 +60,9 @@ def test_tv_camera_info_set(
     for attr, arg in zip(attrs_check, args):
         current = getattr(camera, attr)
         err_msg = f"Error checking {attr} (expected: {arg}, current: {current})"
+
+        if not is_tvp_version_below_12() and attr == 'frame_rate':
+            continue
         assert current == arg, err_msg
 
 
@@ -77,6 +80,7 @@ def map_value(start: int, end: int, ratio: float) -> float:
     return start + (end - start) * ratio
 
 
+@pytest.mark.skipif(not is_tvp_version_below_12(), reason="Function no longer works properly in TVP 12")
 def test_tv_camera_interpolation(test_project: TVPProject) -> None:
     start_x = 0
     start_y = 0
@@ -89,11 +93,13 @@ def test_tv_camera_interpolation(test_project: TVPProject) -> None:
     steps = 10
     for i in range(steps + 1):
         ratio = i / steps
-        inter = tv_camera_interpolation(i / steps)
+        inter = tv_camera_interpolation(ratio)
         assert round(inter.x) == map_value(start_x, end_x, ratio)
         assert round(inter.y) == map_value(start_y, end_y, ratio)
 
 
+@pytest.mark.skipif(not is_tvp_version_below_12(),
+                    reason="Skipping since tv_camera_interpolation no longer works properly in TVP 12")
 def test_tv_camera_insert_point(test_project: TVPProject) -> None:
     point = TVPCameraPoint(50, 26, 0, scale=0.0)
     tv_camera_insert_point(0, point.x, point.y, point.angle, point.angle)
@@ -109,6 +115,8 @@ def test_tv_camera_remove_point(test_project: TVPProject) -> None:
         tv_camera_enum_points(0)
 
 
+@pytest.mark.skipif(not is_tvp_version_below_12(),
+                    reason="Skipping since tv_camera_enum_points no longer works properly in TVP 12")
 def test_tv_camera_set_point() -> None:
     tv_camera_insert_point(0, 50, 25, 0, 0.0)
     new_point = TVPCameraPoint(67, 34, 1, 0.5)

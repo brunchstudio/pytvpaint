@@ -52,6 +52,8 @@ def tv_scene_create(clips: list[str]) -> int:
     Returns:
         scene_id: new scene id
 
+    Warning:
+        This function doesn't seem to work for now.
     """
     return int(send_cmd("tv_SceneCreate", *clips))
 
@@ -68,4 +70,3 @@ def tv_scene_split(scene_id: int) -> list[int]:
 
     """
     return tv_cast_to_type(send_cmd("tv_SceneSplit", scene_id), list[int])
-

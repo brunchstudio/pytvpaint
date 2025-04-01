@@ -113,9 +113,15 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
 
     if get_origin(cast_type) in (tuple, list):
         # Split by space and convert each member to the right type
-        value_type = get_args(cast_type)[0]
-        values_types = [tv_cast_to_type(v, value_type) for v in value.split()]
-        return cast(T, get_origin(cast_type)(values_types))
+        values_types = []
+        sub_value_types = get_args(cast_type)
+        for index, sub_value in enumerate(value.split()):
+            sub_value_type = sub_value_types[index]
+            cast_sub_value = tv_cast_to_type(sub_value, sub_value_type)
+            values_types.append(cast_sub_value)
+
+        origin_type = get_origin(cast_type)
+        return cast(T, origin_type(values_types))  # type: ignore[misc]
 
     if cast_type == bool:
         return cast(T, value.lower() in ["1", "on", "true"])
@@ -292,7 +298,7 @@ Value = Union[int, float, str, bool, None]
 
 
 def validate_args_list(optional_args: Sequence[Value | tuple[Value, ...]]) -> list[Any]:
-    """Validates *args equivalent for tvpaint
+    """Validates *args equivalent for tvpaint.
 
     Some George functions only accept a list of values and not key:value pairs. If for instance, you need to set the
     last positional argument for a function call, you need to provide all the preceding arguments.

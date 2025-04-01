@@ -27,22 +27,6 @@ if TYPE_CHECKING:
     from pytvpaint.scene import Scene
 
 
-# FIXME folder layer has no way of knowing which layers are it's children
-# FIXME child layers have no way of knowing if they are in a folder layer or which one
-# FIXME CameraLayer is not a layer and most layer functions will ignore, prefer use of Camera object instead
-# FIXME CTG layer sometimes takes a while to update in the UI, don't know if incident is isolated to me or generalised
-# FIXME tv_CTGGetSources doesn't seem to work, maybe some missing/undocumented attributes
-# FIXME tv_CTGGetSources is actually misspelled and is actually tv_CTGGetSource without the `s` at the end
-# FIXME tv_CTGGetSources actually requires and returns layer Ids not names
-# FIXME creating a CTG layer from a folder crashes TVPaint
-# FIXME moving a layer that is already in a folder in the same folder crashes TVPaint (check again)
-# FIXME tv_layer_move position is relative to root and not folder, this is not ideal
-# FIXME not providing a FolderID to tv_LayerMove doesn't move the layer to the root, you just need to move outside the
-#  folder range for it to work
-# FIXME moving a layer inside a folder can be done without providing a FolderID, just by moving the layer in the folder's range
-# FIXME not knowing whether a layer is in a folder or not is not great, same for folder not knowing it's children
-
-
 @dataclass
 class LayerInstance:
     """A layer instance is a frame where there is a drawing. It only has a start frame.
@@ -458,11 +442,19 @@ class Layer(Removable):
     @property
     @george.min_version_compatible(min_version="12")
     def folder(self) -> None:
-        raise NotImplementedError("There is currently no way to get the parent folder from a Layer.")
+        """The layer's parent folder if any.
+
+        Raises:
+            NotImplementedError: as there is currently no way to get the parent folder from a Layer.
+        """
+        raise NotImplementedError(
+            "There is currently no way to get the parent folder from a Layer."
+        )
 
     @folder.setter
     @george.min_version_compatible(min_version="12")
-    def folder(self, folder: LayerFolder):
+    def folder(self, folder: LayerFolder) -> None:
+        """Set the layer's parent folder."""
         george.tv_layer_move(self.position, folder.id)
 
     @refreshed_property
@@ -1424,8 +1416,11 @@ class CTGLayer(Layer):
         clip = clip or Clip.current_clip()
         clip.make_current()
 
+        sources = sources or []
         name = utils.get_unique_name(clip.layer_names, name)
-        layer_id = george.tv_ctg_layer_create(name, sources=[layer.name for layer in sources])
+        layer_id = george.tv_ctg_layer_create(
+            name, sources=[layer.name for layer in sources]
+        )
 
         layer = cls(layer_id=layer_id, clip=clip)
         if color:
@@ -1436,6 +1431,7 @@ class CTGLayer(Layer):
     @property
     @set_as_current
     def squiggles_visible(self) -> bool:
+        """Get squiggles visibility."""
         prev_value = george.tv_ctg_squiggles_visible(self.id, True)
         # reset value
         george.tv_ctg_squiggles_visible(self.id, prev_value)
@@ -1444,11 +1440,13 @@ class CTGLayer(Layer):
     @squiggles_visible.setter
     @set_as_current
     def squiggles_visible(self, value: bool) -> None:
+        """Set squiggles visibility."""
         george.tv_ctg_squiggles_visible(self.id, value)
 
     @property
     @set_as_current
     def apply_changes(self) -> bool:
+        """Get CTG Layer's apply changes value."""
         prev_value = george.tv_ctg_apply_changes(self.id, True)
         # reset value
         george.tv_ctg_apply_changes(self.id, prev_value)
@@ -1457,19 +1455,21 @@ class CTGLayer(Layer):
     @apply_changes.setter
     @set_as_current
     def apply_changes(self, value: bool) -> None:
+        """Set CTG Layer's apply changes value."""
         george.tv_ctg_apply_changes(self.id, value)
 
     @property
     def sources(self) -> list[Layer]:
+        """Get this CTG layer's source layers."""
         sources = []
 
         # TODO commenting this since it was used when tv_CTGGetSources "wasn't" working
         # for layer in self.clip.layers:
         #     if not layer.is_ctg_source:
-        #         continue
+        #         continue # noqa: ERA001
         #     if self.id not in [ctg_layer.id for ctg_layer in layer.sourced_ctg_layers]:
-        #         continue
-        #     sources.append(layer)
+        #         continue # noqa: ERA001
+        #     sources.append(layer) # noqa: ERA001
 
         for layer_id in george.tv_ctg_get_source(self.id):
             layer = self.clip.get_layer(by_id=layer_id)
@@ -1479,13 +1479,19 @@ class CTGLayer(Layer):
         return sources
 
     def add_sources(self, sources: list[Layer]) -> None:
-        george.tv_ctg_source_add(self.id, [layer.id for layer in sources if self not in layer.sourced_ctg_layers])
+        """Add a list of Layers as sources for this CTG layer."""
+        george.tv_ctg_source_add(
+            self.id,
+            [layer.id for layer in sources if self not in layer.sourced_ctg_layers],
+        )
 
     def remove_sources(self, sources: list[Layer]) -> None:
-        george.tv_ctg_source_remove(self.id, [layer.id for layer in sources if self in layer.sourced_ctg_layers])
+        """Remove a list of Layers from the sources for this CTG layer."""
+        george.tv_ctg_source_remove(
+            self.id, [layer.id for layer in sources if self in layer.sourced_ctg_layers]
+        )
 
     @set_as_current
     def load_structure(self) -> None:
+        """Load CTG layer structure."""
         george.tv_ctg_load_structure(self.id)
-
-

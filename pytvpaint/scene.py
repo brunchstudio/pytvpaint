@@ -12,8 +12,6 @@ from pytvpaint.utils import (
     set_as_current,
 )
 
-# FIXME tv_scene_create doesn't seem to work
-
 
 class Scene(Removable):
     """A Scene is a collection of clips. A Scene is parented to a project."""
@@ -47,7 +45,9 @@ class Scene(Removable):
         )
 
     @classmethod
-    def new(cls, project: Project | None = None, clips: list[str] | None = None) -> Scene:
+    def new(
+        cls, project: Project | None = None, clips: list[str] | None = None
+    ) -> Scene:
         """Creates a new scene in the provided project.
 
         Args:
@@ -62,18 +62,18 @@ class Scene(Removable):
 
         # TODO commenting this for now until george.tv_scene_create is fixed by TVP devs
         # if not clips or george.is_tvp_version_below_12():
-        #     george.tv_scene_new()
-        #     new_scene = cls.current_scene()
+        #     george.tv_scene_new() # noqa: ERA001
+        #     new_scene = cls.current_scene() # noqa: ERA001
         #
         #     if clips and george.is_tvp_version_below_12():
         #         for clip_name in clips:
-        #             new_scene.add_clip(clip_name)
+        #             new_scene.add_clip(clip_name) # noqa: ERA001
         #
-        #     return new_scene
+        #     return new_scene # noqa: ERA001
         #
         # # if here, then we are using tvp 12 or superior
-        # scene_id = george.tv_scene_create(clips)
-        # return project.get_scene(by_id=scene_id)
+        # scene_id = george.tv_scene_create(clips) # noqa: ERA001
+        # return project.get_scene(by_id=scene_id) # noqa: ERA001
 
         george.tv_scene_new()
         new_scene = cls.current_scene()

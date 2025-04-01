@@ -92,3 +92,57 @@ issues in the table below:
 | `tv_SoundClipReload`                                                                 | Doesn't accept a proper clip id, only `0` seems to work for the current clip                                                                                               |
 | `tv_LayerSelectInfo`                                                                 | Does not select frames as stated in the documentation and will also return non selected frames if attribute `full` is set to True                                          |
 | `tv_ProjectSaveAudioDependencies` and `tv_ProjectSaveVideoDependencies`                                                | Missing arguments in documentation rendering the function useless, thankfully someone provided the correct details [here](http://tvpaint.net/forum/viewtopic.php?p=136709) |
+
+
+## TVPaint 12 Bugs and Breaking Changes
+
+TVPaint 12 introduces a lot of welcome changes (especially for the artists) and some new needed function for 
+developers. However it also introduces a lot of breaking changes and some new bugs. 
+
+To deal with these changes as well as the new functions exclusive to TVP 12, we added a couple decorators and functions 
+
+| Method                                                                               | Description                                                                                              |
+|:-------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------|
+| [`min_version_compatible`](api/george/misc.md#pytvpaint.george.grg_base.min_version_compatible)    | When used as decorator, checks if the tvp instance making the call is above the miniumum version needed. |
+| [`deprecated_warning`](api/george/misc.md#pytvpaint.george.grg_base.deprecated_warning) | When used as decorator, will log a warning message anytime the decorated function is called.             |
+| [`is_tvp_version_below_12`](api/george/misc.md#pytvpaint.george.grg_base.is_tvp_version_below_12) | Returns a True if the tvp instances version is below 12.                                                 |
+
+
+Below is also a list of the current breaking changes and bugs we noticed during development
+
+### C++ Plugin :
+* [BUG] plugin PIRF_HIDDEN_REQ doesn't seem to be working anymore, the plugin window is now visible and closing it kills the plugin with no way to restart it without restarting tvpaint.
+
+### Project :
+* [DEPRECATED/BREAKING] [`tv_ProjectInfo`](api/george/project.md#pytvpaint.george.grg_project.tv_project_info) values of `field_order` have been removed so for now we provide it ourselves.
+
+### Scene :
+* [BUG] [`tv_SceneCreate`](api/george/scene.md#pytvpaint.george.grg_scene.tv_scene_create) doesn't seem to work.
+
+### Layers :
+* [ERROR] [`tv_CTGGetSources`](api/george/layer.md#pytvpaint.george.grg_layer.tv_ctg_get_source) is actually misspelled and is actually tv_CTGGetSource without the `s` at the end.
+* [ERROR] [`tv_CTGGetSources`](api/george/layer.md#pytvpaint.george.grg_layer.tv_ctg_get_source) actually requires and returns layer Ids not names.
+* [FEATURE] Some function now return a clear error message which is much appreciated (Ex: [`tv_CTGSource`](api/george/layer.md#pytvpaint.george.grg_layer.tv_ctg_source_add))
+* child layers have no way of knowing if they are in a folder layer or which one.
+* Folder layer has no way of knowing which layers are its children.
+* [BUG] Creating a CTG layer from a folder crashes TVPaint.
+* [BUG] Moving a layer that is already in a folder in the same folder crashes TVPaint.
+* [`tv_LayerMove`](api/george/layer.md#pytvpaint.george.grg_layer.tv_layer_move) can now move layers into folders but the position is relative to the root and not the folder, 
+ this is not ideal, since we can't know if a layer is already in a folder or not, which adds a lot of uncertainty when moving layers in and out of folders.
+* Not providing a `FolderID` to [`tv_LayerMove`](api/george/layer.md#pytvpaint.george.grg_layer.tv_layer_move) doesn't 
+ move the layer to the root, you just need to move outside the folder range for it to work, which again is pretty tough to do since we can't get the child layers of a folder and therefore their positions.
+* Moving a layer inside a folder can be done without providing a `FolderID`, just by moving the layer in the folder's range.
+* [BUG] UI doesn't always update when values are set/updated via code, you either have to wait a few seconds for a refresh, or click somewhere else, this might lead to errors when users are using the UI at the same time.
+* [BUG] CTG layer sometimes takes a while to update in the UI (a few seconds), which means they can be unintentionally edited or reset before the update.
+* CameraLayer is not really a layer and most layer functions will ignore it, prefer use of PyTVPaint [`Camera`](api/objects/camera.md#pytvpaint.camera.Camera) object instead.
+* [BUG] Selecting the Camera Layer in the UI now disables/greys out most layer related tools (this is a new behaviour), this causes a lot of errors when using pipeline tools or 
+ TVPaint panels as TVPaint now raises an error messages anytime you try to use a tool that is not camera related when the camera layer is selected. 
+ The problem is that the Camera layer is now also the default layer and selected by default when creating/opening any project.
+
+### Camera :
+* [DEPRECATED/BREAKING] Camera.anti_aliasing always returns 1, [`Camera.fps`](api/objects/camera.md#pytvpaint.camera.Camera.fps) no longer returns/sets fps, now only fps is Project fps.
+* [BUG] Most Camera values can still be edited/queried using [`tv_CameraInfo`](api/george/camera.md#pytvpaint.george.grg_camera.tv_camera_info_get) but they are not reflected in
+  UI, and so they can be unintentionally edited or reset.
+* [DEPRECATED/BREAKING] [`tv_CameraInfo`](api/george/camera.md#pytvpaint.george.grg_camera.tv_camera_info_get) values of pixel aspect ratio and fps have been "swapped" (since camera fps is no longer provided).
+* [BUG] [`tv_CameraInterpolation`](api/george/camera.md#pytvpaint.george.grg_camera.tv_camera_interpolation) doesn't work properly in TVP12 and always returns an "empty" point.
+

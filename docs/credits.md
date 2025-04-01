@@ -19,7 +19,7 @@
 
 - The C++ plugin was inspired from existing codebase of Ynput's [OpenPype TVPaint plugin](https://github.com/ynput/OpenPype/tree/develop/openpype/hosts/tvpaint/tvpaint_plugin/plugin_code).
 - Also thanks to [Jakub Trllo](https://www.linkedin.com/in/jakub-trllo-751387a6/) from Ynput who helped with the C++ implementation on their Discord server.
-- The TVPaint dev team for their patience and help with our questions and the [George commands documentation](https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands) from TVPaint.
+- The TVPaint dev team for their patience and help with our questions and the [George commands documentation](https://doc.tvpaint.com/docs/george/instructions-commands) from TVPaint.
 
 ## :snake: Logo
 

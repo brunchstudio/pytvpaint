@@ -649,9 +649,9 @@ def is_tvp_version_below_12() -> bool:
 
 
 def min_version_compatible(min_version: str) -> Callable[[T], T]:
-    """Decorator to apply on object methods.
+    """Decorator to apply on methods.
 
-    Given a minimum version, checks if the current tvpaint version if above the minimum requirement otherwise it
+    Given a minimum version, checks if the current tvpaint version is above the minimum requirement otherwise it
     raises a NotImplemented error
 
     Args:
@@ -680,9 +680,9 @@ def min_version_compatible(min_version: str) -> Callable[[T], T]:
 
 
 def deprecated_warning(msg: str) -> Callable[[T], T]:
-    """Decorator to apply on object methods.
+    """Decorator to apply on methods.
 
-    Prints a deprecation message when decorated function is called
+    Prints a deprecation message/warning when decorated function is called
 
     Args:
         msg (str): deprecation message
@@ -1132,7 +1132,7 @@ def tv_pen_brush_get(tool_mode: bool = False) -> TVPPenBrush:
     result = send_cmd("tv_PenBrush", *args)
 
     # Remove the first value which is tv_penbrush
-    result = result[len("tv_penbrush") + 1:]
+    result = result[(len("tv_penbrush") + 1) :]
 
     res = tv_parse_dict(result, with_fields=TVPPenBrush)
     return TVPPenBrush(**res)

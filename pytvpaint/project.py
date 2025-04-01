@@ -23,9 +23,6 @@ if TYPE_CHECKING:
     from pytvpaint.scene import Scene
 
 
-# FIXME george.tv_project_info() values of field_order have been removed in versions > 12 so for now we provide it ourselves
-
-
 class Project(Refreshable, Renderable):
     """A TVPaint project is the highest/root object that contains everything in the data hierarchy.
 

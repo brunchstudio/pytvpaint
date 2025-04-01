@@ -265,7 +265,7 @@ def tv_layer_move(position: int, folder_id: int | None = None) -> None:
         )
 
     args = [position]
-    if not is_tvp_version_below_12():
+    if not is_tvp_version_below_12() and folder_id:
         args.append(folder_id)
 
     send_cmd("tv_LayerMove", *args)
@@ -1288,14 +1288,14 @@ def tv_clear(fill_b_pen: bool = False) -> None:
 
 @min_version_compatible(min_version="12")
 def tv_layer_is_ctg_source() -> list[int]:
-    """Returns list of CTG layers (ids) that use the current layer as a source"""
+    """Returns list of CTG layers (ids) that use the current layer as a source."""
     res = send_cmd("tv_LayerIsCTGSource", error_values=[GrgErrorValue.EMPTY])
     with contextlib.suppress(Exception):
         layer_ids = [int(layer_id) for layer_id in res.split()]
+
         if any([layer_id < 0 for layer_id in layer_ids]):
             return []
-        else:
-            return layer_ids
+        return layer_ids
 
     return []
 
@@ -1333,7 +1333,7 @@ def tv_ctg_load_structure(ctg_layer_id: int) -> None:
 
 @min_version_compatible(min_version="12")
 def tv_ctg_apply_changes(ctg_layer_id: int, apply: bool) -> bool:
-    """Set Apply Changes value on CTG layer
+    """Set Apply Changes value on CTG layer.
 
     Args:
         ctg_layer_id: ctg layer id
@@ -1348,7 +1348,7 @@ def tv_ctg_apply_changes(ctg_layer_id: int, apply: bool) -> bool:
 
 @min_version_compatible(min_version="12")
 def tv_ctg_squiggles_visible(ctg_layer_id: int, visible: bool) -> bool:
-    """Set squiggles visibility on CTG layer
+    """Set squiggles visibility on CTG layer.
 
     Args:
         ctg_layer_id: ctg layer id
@@ -1363,7 +1363,7 @@ def tv_ctg_squiggles_visible(ctg_layer_id: int, visible: bool) -> bool:
 
 @min_version_compatible(min_version="12")
 def tv_ctg_get_source(ctg_layer_id: int) -> list[int]:
-    """Get a CTG layer's sources
+    """Get a CTG layer's sources.
 
     Args:
         ctg_layer_id: ctg layer id
@@ -1380,13 +1380,26 @@ def tv_ctg_get_source(ctg_layer_id: int) -> list[int]:
 
 @min_version_compatible(min_version="12")
 def tv_ctg_source_add(ctg_layer_id: int, source_ids: list[int]) -> None:
-    send_cmd("tv_CTGSource", "add", ctg_layer_id, *source_ids)
+    """Add layers as sources for the CTG layer.
+
+    Args:
+        ctg_layer_id: ctg layer id
+        source_ids: list of layer Ids to add as sources for the CTG layer
+
+    Raises:
+        ValueError: if layer Id(s) already set as source
+    """
+    res = send_cmd("tv_CTGSource", "add", ctg_layer_id, *source_ids)
+    if not res == "0":
+        raise ValueError(res)
 
 
 @min_version_compatible(min_version="12")
 def tv_ctg_source_remove(ctg_layer_id: int, source_ids: list[int]) -> None:
+    """Remove layers from sources for the CTG layer.
+
+    Args:
+        ctg_layer_id: ctg layer id
+        source_ids: list of layer Ids to remove as sources for the CTG layer
+    """
     send_cmd("tv_CTGSource", "remove", ctg_layer_id, *source_ids)
-
-
-
-
