@@ -574,12 +574,12 @@ class Clip(Removable, Renderable):
             FileNotFoundError: if the render failed and no files were found on disk or missing frames
 
         Note:
-            This functions uses the clip's range as a basis (start-end). This  is different from a project range, which
+            This function uses the clip's range as a basis (start-end). This  is different from the project range, which
             uses the project timeline. For more details on the differences in frame ranges and the timeline in TVPaint,
             please check the `Usage/Rendering` section of the documentation.
 
         Warning:
-            Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+            Even though pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
             encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
         """
         default_start = self.mark_in or self.start

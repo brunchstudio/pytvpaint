@@ -356,7 +356,7 @@ def render_context(
             should_be_visible = not layer_selection or layer in layer_selection
             layer.is_visible = should_be_visible
 
-    # Do the render
+    # Do the rendering
     yield
 
     # Restore the previous values
