@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 
 from pytvpaint import george, utils
@@ -143,13 +144,22 @@ class Scene(Removable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
     ) -> Clip | None:
-        """Find a clip by id or by name."""
-        for clip in self.clips:
-            if (by_id and clip.id == by_id) or (by_name and clip.name == by_name):
-                return clip
+        """Find a clip by id or by name.
 
-        return None
+        Args:
+            by_id: search by id. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+
+        Raises:
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            Clip | None: the searched element or None if search was unsuccessful
+        """
+        return utils.get_tvp_element(self.clips, by_id=by_id, by_name=by_name, by_regex=by_regex)
 
     @set_as_current
     def add_clip(self, clip_name: str) -> Clip:

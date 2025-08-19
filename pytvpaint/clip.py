@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -97,6 +98,7 @@ class Clip(Removable, Renderable):
 
     def make_current(self) -> None:
         """Make the clip the current one."""
+        self.project.make_current()
         if george.tv_clip_current_id() == self.id:
             return
         george.tv_clip_select(self.id)
@@ -439,9 +441,22 @@ class Clip(Removable, Renderable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
     ) -> Layer | None:
-        """Get a specific layer by id or name."""
-        return utils.get_tvp_element(self.get_layers(), by_id, by_name)
+        """Get a specific layer by id or name.
+
+        Args:
+            by_id: search by id. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+
+        Raises:
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            Layer | None: the searched element or None if search was unsuccessful
+        """
+        return utils.get_tvp_element(self.get_layers(), by_id=by_id, by_name=by_name, by_regex=by_regex)
 
     @set_as_current
     def add_layer(self, layer_name: str) -> Layer:
@@ -952,24 +967,38 @@ class Clip(Removable, Renderable):
         self,
         by_index: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
     ) -> LayerColor | None:
         """Get a layer color by index or name.
 
+        Args:
+            by_index: search by color index. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+
         Raises:
-            ValueError: if none of the arguments `by_index` and `by_name` where provided
+            ValueError: if none of the search arguments where provided
         """
-        if not by_index and by_name:
-            raise ValueError(
-                "At least one value (by_index or by_name) must be provided"
-            )
+        values = (by_index, by_name, by_regex)
+        if not any(v is not None for v in values):
+            raise ValueError(f"At least one value ({' or '.join(values)} must be provided")
 
         if by_index is not None:
             return next(c for i, c in enumerate(self.layer_colors) if i == by_index)
 
-        try:
-            return next(c for c in self.layer_colors if c.name == by_name)
-        except StopIteration:
-            return None
+        if by_name is not None:
+            try:
+                return next(c for c in self.layer_colors if c.name.lower() == by_name.lower())
+            except StopIteration:
+                return None
+
+        if by_regex is not None:
+            try:
+                return next(c for c in self.layer_colors if by_regex.search(c.name))
+            except StopIteration:
+                return None
+
+        return None
 
     @property
     def bookmarks(self) -> Iterator[int]:
@@ -1016,17 +1045,31 @@ class Clip(Removable, Renderable):
 
     def get_sound(
         self,
-        by_id: int | None = None,
+        by_track_index: int | None = None,
         by_path: Path | str | None = None,
     ) -> ClipSound | None:
-        """Get a clip sound by id or by path.
+        """Get a clip sound by track index or path.
+
+        Args:
+            by_track_index: search by track index. Defaults to None.
+            by_path: search by path. Defaults to None.
 
         Raises:
-            ValueError: if sound object could not be found in clip
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            ClipSound | None: the searched element or None if search was unsuccessful
         """
+        values = (by_track_index, by_path)
+        if not any(v is not None for v in values):
+            raise ValueError(f"At least one value ({' or '.join(values)} must be provided")
+
         for sound in self.sounds:
-            if (by_id and sound.id == by_id) or (by_path and sound.path == by_path):
-                return sound
+            if by_track_index is not None and sound.by_track_index != by_track_index:
+                continue
+            if by_path is not None and sound.path != Path(by_path):
+                continue
+            return sound
 
         return None
 

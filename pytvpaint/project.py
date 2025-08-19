@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+import re
 from pathlib import Path
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 from fileseq.filesequence import FileSequence
@@ -317,13 +318,26 @@ class Project(Refreshable, Renderable):
         cls,
         by_id: str | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
+        by_path: str | Path | None = None,
     ) -> Project | None:
-        """Find a project by id or by name."""
-        for project in Project.open_projects():
-            if (by_id and project.id == by_id) or (by_name and project.name == by_name):
-                return project
+        """Find a project by id or by name or by path.
 
-        return None
+        Args:
+            by_id: search by id. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+            by_path: search by path. Defaults to None.
+
+        Raises:
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            Project | None: the searched element or None if search was unsuccessful
+        """
+
+        return utils.get_tvp_element(Project.open_projects(), by_id=by_id, by_name=by_name,
+                                     by_regex=by_regex, by_path=by_path)
 
     @staticmethod
     def current_scene_ids() -> Iterator[int]:
@@ -351,15 +365,19 @@ class Project(Refreshable, Renderable):
         for scene_id in self.current_scene_ids():
             yield Scene(scene_id, self)
 
-    def get_scene(
-        self,
-        by_id: int | None = None,
-        by_name: str | None = None,
-    ) -> Scene | None:
-        """Find a scene in the project by id or name."""
+    def get_scene(self, scene_id: int) -> Scene | None:
+        """Find a scene in the project by id.
+
+        Args:
+            scene_id: scene id
+
+        Returns:
+            Scene | None: the searched element or None if search was unsuccessful
+        """
         for scene in self.scenes:
-            if (by_id and scene.id == by_id) or (by_name and scene.name == by_name):
-                return scene
+            if scene.id != scene_id:
+                continue
+            return scene
 
         return None
 
@@ -399,19 +417,29 @@ class Project(Refreshable, Renderable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
         scene_id: int | None = None,
     ) -> Clip | None:
-        """Find a clip by id, name or scene_id."""
+        """Find a clip by id or name, filter search by scene_id if needed.
+
+        Args:
+            by_id: search by id. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+            scene_id: parent scene id. Defaults to None.
+
+        Raises:
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            Clip | None: the searched element or None if search was unsuccessful
+        """
         clips = self.clips
         if scene_id:
             selected_scene = self.get_scene(by_id=scene_id)
             clips = selected_scene.clips if selected_scene else clips
 
-        for clip in clips:
-            if (by_id and clip.id == by_id) or (by_name and clip.name == by_name):
-                return clip
-
-        return None
+        return utils.get_tvp_element(clips, by_id=by_id, by_name=by_name, by_regex=by_regex)
 
     def add_clip(self, clip_name: str, scene: Scene | None = None) -> Clip:
         """Add a new clip in the given scene or the current one if no scene provided."""

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import contextlib
 import re
+import contextlib
 from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from pathlib import Path
@@ -332,7 +332,6 @@ def render_context(
         format_opts: the custom format options as strings. Defaults to None.
         layer_selection: the layers to render. Defaults to None.
     """
-    from pytvpaint.clip import Clip
 
     # Save the current state
     pre_alpha_save_mode = george.tv_alpha_save_mode_get()
@@ -349,7 +348,7 @@ def render_context(
 
     layers_visibility = []
     if layer_selection:
-        clip = Clip.current_clip()
+        clip = layer_selection[0].clip
         layers_visibility = [(layer, layer.is_visible) for layer in clip.layers]
         # Show and hide the clip layers to render
         for layer, _ in layers_visibility:
@@ -414,38 +413,48 @@ class _TVPElement(Protocol):
     def name(self) -> str: ...
 
 
-TVPElementType = TypeVar("TVPElementType", bound=_TVPElement)
+class _TVPElementWithPath(_TVPElement):
+
+    @property
+    def path(self) -> Path: ...
+
+
+_TVPElementType = TypeVar("_TVPElementType", bound=_TVPElement)
+_TVPElementWithPathType = TypeVar("_TVPElementWithPathType", bound=_TVPElementWithPath)
 
 
 def get_tvp_element(
-    tvp_elements: Iterator[TVPElementType],
+    tvp_elements: Iterator[_TVPElementType | _TVPElementWithPathType],
     by_id: int | str | None = None,
     by_name: str | None = None,
+    by_regex: re.Pattern[str] | None = None,
     by_path: str | Path | None = None,
-) -> TVPElementType | None:
+) -> _TVPElementType | _TVPElementWithPathType | None:
     """Search for a TVPaint element by attributes.
 
     Args:
         tvp_elements: a collection of TVPaint objects
         by_id: search by id. Defaults to None.
         by_name: search by name, search is case-insensitive. Defaults to None.
+        by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
         by_path: search by path. Defaults to None.
 
     Raises:
-        ValueError: if bad arguments were given
+        ValueError: if none of the search arguments where provided
 
     Returns:
-        TVPElementType | None: the found element
+        _TVPElementType | None: the searched element or None if search was unsuccessful
     """
-    if by_id is None and by_name is None:
-        raise ValueError(
-            "At least one of the values (id or name) must be provided, none found !"
-        )
+    values = (by_id, by_name, by_regex, by_path)
+    if not any(v is not None for v in values):
+        raise ValueError(f"At least one value ({' or '.join(values)} must be provided")
 
     for element in tvp_elements:
         if by_id is not None and element.id != by_id:
             continue
         if by_name is not None and element.name.lower() != by_name.lower():
+            continue
+        if by_regex is not None and element.name != by_regex.search(element.name):
             continue
         if by_path is not None and getattr(element, "path") != Path(by_path):
             continue
