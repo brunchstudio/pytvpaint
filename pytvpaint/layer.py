@@ -177,7 +177,7 @@ class LayerInstance:
 
     def select(self) -> None:
         """Select all frames in this instance."""
-        self.layer.select_frames(self.start, (self.length - 1))
+        self.layer.select_frames(self.start, self.end)
 
     @property
     def next(self) -> LayerInstance | None:
@@ -1142,6 +1142,17 @@ class Layer(Removable):
             self.remove_mark(frame)
 
     @set_as_current
+    def pan(self, position: tuple[int, int], move_fill: bool = False, anti_aliasing: bool = False) -> None:
+        """Apply a panning FX to teh current layer.
+
+        Args:
+            position: new position of the layer (position is calculated from the top left corner of the layer frame)
+            move_fill: True to moved and fill all screen, False to only move images
+            anti_aliasing: apply antialiasing
+        """
+        george.tv_panning(position[0], position[1], move_fill, anti_aliasing)
+
+    @set_as_current
     def select_frames(self, start: int, end: int) -> None:
         """Select the frames from a start and count.
 
@@ -1188,10 +1199,23 @@ class Layer(Removable):
         """Copy the selected instances."""
         george.tv_layer_copy()
 
-    @set_as_current
-    def paste_selection(self) -> None:
-        """Paste the previously copied instances."""
+    def paste_selection(self, target_layer: Layer | None = None) -> None:
+        """Paste the layer into another layer (regardless of the project)."""
+        if target_layer:
+            target_layer.make_current()
         george.tv_layer_paste()
+
+    @set_as_current
+    def cut(self) -> None:
+        """Copy the layer (cuts all instances in layer)."""
+        self.select_all_frames()
+        self.cut_selection()
+
+    @set_as_current
+    def copy(self) -> None:
+        """Copy the layer (copies all instances in layer)."""
+        self.select_all_frames()
+        self.copy_selection()
 
     @refreshed_property
     @set_as_current
@@ -1249,6 +1273,7 @@ class Layer(Removable):
             if layer_instance.start > to_frame:
                 break
 
+    @set_as_current
     def add_instance(
         self,
         start: int | None = None,
