@@ -330,11 +330,11 @@ def tv_layer_select_info(full: bool = False) -> tuple[int, int]:
     """Get Selected frames in a layer.
 
     Args:
-        full:  Always get the selection range, even on a non anim/ctg layer
+        full:  returns the layers full range (from the first to the last instance), even on a non anim/ctg layer
 
     Returns:
-        frame: the start frame of the selection
-        count: the number of frames in the selection
+        frame: the start frame of the selection. If full is set to True will return the first frame in the layer
+        count: the number of frames in the selection. If full is set to True will return the number of frames in the layer
 
     Bug:
         The official documentation states that this functions selects the layer frames, it does not, it simply
@@ -1403,3 +1403,16 @@ def tv_ctg_source_remove(ctg_layer_id: int, source_ids: list[int]) -> None:
         source_ids: list of layer Ids to remove as sources for the CTG layer
     """
     send_cmd("tv_CTGSource", "remove", ctg_layer_id, *source_ids)
+
+
+def tv_panning(x: int, y: int, move_fill: bool = False, anti_aliasing: bool = False) -> None:
+    """Apply a panning FX to teh current layer.
+
+    Args:
+        x: new x position of the layer (position is calculated from the top left corner of the layer frame)
+        y: new y position of the layer (position is calculated from the top left corner of the layer frame)
+        move_fill: True to moved and fill all screen, False to only move images
+        anti_aliasing: apply antialiasing
+    """
+    anti_aliasing = 0 if not anti_aliasing else 2
+    send_cmd("tv_Panning ", x, y, int(move_fill), anti_aliasing)
