@@ -166,7 +166,9 @@ class Clip(Removable, Renderable):
         """Set the clip name."""
         if self.name == value:
             return
-        value = utils.get_unique_name(self.project.clip_names, value)
+
+        clip_names = [clip.name for clip in self.project.clips if clip != clip]
+        value = utils.get_unique_name(clip_names, value)
         george.tv_clip_name_set(self.id, value)
 
     @refreshed_property
@@ -310,7 +312,10 @@ class Clip(Removable, Renderable):
         """
         george.tv_clip_duplicate(self.id)
         new_clip = self.project.current_clip
-        new_clip.name = utils.get_unique_name(self.project.clip_names, new_clip.name)
+
+        clip_names = [clip.name for clip in self.project.clips if clip != new_clip]
+        new_clip.name = utils.get_unique_name(clip_names, new_clip.name)
+
         return new_clip
 
     def remove(self) -> None:
@@ -351,10 +356,7 @@ class Clip(Removable, Renderable):
             elif layer_data.type == george.LayerType.CAMERA:
                 layer_class = CameraLayer
             # handle CTG layers like regular layers in TVP versions < 12
-            elif (
-                not george.is_tvp_version_below_12()
-                and layer_data.type is george.LayerType.SCRIBBLES
-            ):
+            elif not george.is_tvp_version_below_12() and layer_data.type is george.LayerType.SCRIBBLES:
                 layer_class = CTGLayer
 
             if filter_types and layer_class not in filter_types:
@@ -414,9 +416,7 @@ class Clip(Removable, Renderable):
 
         # if we're here then the camera layer has probably been deleted, let's recreate it by switching to the camera.
         george.tv_set_active_shape(george.TVPShape.CAMERA)
-        return cast(
-            CameraLayer, next(self.get_layers(filter_types=(CameraLayer,)), None)
-        )
+        return cast(CameraLayer, next(self.get_layers(filter_types=(CameraLayer,)), None))
 
     @property
     @set_as_current
@@ -539,9 +539,7 @@ class Clip(Removable, Renderable):
             (clip_mark_out if clip_mark_out else clip_end),
         )
         if start < clip_full_range[0] or end > clip_full_range[1]:
-            raise ValueError(
-                f"Render ({start}-{end}) not in clip range ({clip_full_range})"
-            )
+            raise ValueError(f"Render ({start}-{end}) not in clip range ({clip_full_range})")
 
     def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
         # get project start to get real values
@@ -630,9 +628,7 @@ class Clip(Removable, Renderable):
         george.tv_save_clip(export_path)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_json(
@@ -668,13 +664,9 @@ class Clip(Removable, Renderable):
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
 
-        fill_background = bool(
-            background_mode not in [None, george.BackgroundMode.NONE]
-        )
+        fill_background = bool(background_mode not in [None, george.BackgroundMode.NONE])
 
-        with utils.render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_json(
                 export_path,
                 save_format,
@@ -687,9 +679,7 @@ class Clip(Removable, Renderable):
             )
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_psd(
@@ -745,9 +735,7 @@ class Clip(Removable, Renderable):
             assert FileSequence.findSequenceOnDisk(check_path)
         else:
             if not export_path.exists():
-                raise FileNotFoundError(
-                    f"Could not find output at : {export_path.as_posix()}"
-                )
+                raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_csv(
@@ -782,15 +770,11 @@ class Clip(Removable, Renderable):
         if export_path.suffix != ".csv":
             raise ValueError("Export path must have .csv extension")
 
-        with utils.render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_csv(export_path, all_images, exposure_label)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_sprites(
@@ -820,15 +804,11 @@ class Clip(Removable, Renderable):
         export_path = Path(export_path)
         save_format = george.SaveFormat.from_extension(export_path.suffix)
 
-        with utils.render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_sprite(export_path, layout, space)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_flix(
@@ -868,18 +848,13 @@ class Clip(Removable, Renderable):
             raise ValueError("Export path must have .xml extension")
 
         original_file = self.project.path
-        import_parameters = (
-            import_parameters
-            or 'waitForSource="1" multipleSetups="1" replaceSelection="0"'
-        )
+        import_parameters = import_parameters or 'waitForSource="1" multipleSetups="1" replaceSelection="0"'
 
         # The project needs to be saved
         self.project.save()
 
         # save alpha mode and save format values
-        with utils.render_context(
-            alpha_mode, background_mode, None, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, None, format_opts, layer_selection):
             george.tv_clip_save_structure_flix(
                 export_path,
                 start,
@@ -891,9 +866,7 @@ class Clip(Removable, Renderable):
             )
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @property
     @set_as_current
@@ -916,9 +889,7 @@ class Clip(Removable, Renderable):
             value = value
 
         frame = value - self.project.start_frame
-        george.tv_mark_in_set(
-            reference=george.MarkReference.CLIP, frame=frame, action=action
-        )
+        george.tv_mark_in_set(reference=george.MarkReference.CLIP, frame=frame, action=action)
 
     @property
     @set_as_current
@@ -959,9 +930,7 @@ class Clip(Removable, Renderable):
         Args:
             layer_color: the layer color instance.
         """
-        george.tv_layer_color_set_color(
-            self.id, layer_color.index, layer_color.color, layer_color.name
-        )
+        george.tv_layer_color_set_color(self.id, layer_color.index, layer_color.color, layer_color.name)
 
     def get_layer_color(
         self,
@@ -1003,9 +972,7 @@ class Clip(Removable, Renderable):
     @property
     def bookmarks(self) -> Iterator[int]:
         """Iterator over the clip bookmarks."""
-        bookmarks_iter = utils.position_generator(
-            lambda pos: george.tv_bookmarks_enum(pos)
-        )
+        bookmarks_iter = utils.position_generator(lambda pos: george.tv_bookmarks_enum(pos))
         project_start_frame = self.project.start_frame
         return (frame + project_start_frame for frame in bookmarks_iter)
 
@@ -1036,9 +1003,7 @@ class Clip(Removable, Renderable):
     @property
     def sounds(self) -> Iterator[ClipSound]:
         """Iterates through the clip's soundtracks."""
-        sounds_data = utils.position_generator(
-            lambda pos: george.tv_sound_clip_info(self.id, pos)
-        )
+        sounds_data = utils.position_generator(lambda pos: george.tv_sound_clip_info(self.id, pos))
 
         for track_index, _ in enumerate(sounds_data):
             yield ClipSound(track_index, clip=self)

@@ -1102,14 +1102,14 @@ def tv_layer_color_visible(color_index: int) -> bool:
     Raises:
         NoObjectWithIdError: if given an invalid layer id
     """
-    return bool(
+    return bool(int(
         send_cmd(
             "tv_LayerColor",
             LayerColorAction.VISIBLE.value,
             color_index,
             error_values=[-1],
         )
-    )
+    ))
 
 
 @try_cmd(

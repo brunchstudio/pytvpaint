@@ -70,9 +70,7 @@ def tv_project_info(project_id: str) -> TVPProject:
     if not is_tvp_version_below_12():
         # values of field_order have been removed in versions > 12 so for now we provide it ourselves
         fields_keys: list[str] = list(dict(fields).keys())
-        field_order_index, start_frame_index = fields_keys.index(
-            "field_order"
-        ), fields_keys.index("start_frame")
+        field_order_index, start_frame_index = fields_keys.index("field_order"), fields_keys.index("start_frame")
         fields[field_order_index], fields[start_frame_index] = (
             fields[start_frame_index],
             fields[field_order_index],
@@ -84,9 +82,7 @@ def tv_project_info(project_id: str) -> TVPProject:
     return TVPProject(**project)
 
 
-def tv_background_get() -> (
-    tuple[BackgroundMode, tuple[RGBColor, RGBColor] | RGBColor | None]
-):
+def tv_background_get() -> tuple[BackgroundMode, tuple[RGBColor, RGBColor] | RGBColor | None]:
     """Get the background mode of the project, and the color(s) if in `color` or `check` mode.
 
     Returns:
@@ -317,9 +313,7 @@ def tv_frame_rate_get() -> tuple[float, float]:
     return project_fps, playback_fps
 
 
-def tv_frame_rate_set(
-    frame_rate: float, time_stretch: bool = False, preview: bool = False
-) -> None:
+def tv_frame_rate_set(frame_rate: float, time_stretch: bool = False, preview: bool = False) -> None:
     """Get the framerate of the current project."""
     args: list[Any] = []
     if time_stretch:
@@ -379,23 +373,17 @@ def tv_save_palette(palette_path: Path | str) -> None:
 
     if not palette_path.parent.exists():
         parent_path = palette_path.parent.as_posix()
-        raise NotADirectoryError(
-            f"Can't save palette because parent folder doesn't exist: {parent_path}"
-        )
+        raise NotADirectoryError(f"Can't save palette because parent folder doesn't exist: {parent_path}")
 
     send_cmd("tv_SavePalette", palette_path.as_posix())
 
 
-def tv_project_save_video_dependencies(
-    project_id: str, on_save: bool = True, now: bool = False
-) -> int:
+def tv_project_save_video_dependencies(project_id: str, on_save: bool = True, now: bool = False) -> int:
     """Saves current project video dependencies."""
     args: list[Any] = [project_id]
     if not now:
         args.append(int(on_save))
-    return int(
-        send_cmd("tv_ProjectSaveVideoDependencies", *args, error_values=[-1, -2])
-    )
+    return int(send_cmd("tv_ProjectSaveVideoDependencies", *args, error_values=[-1, -2]))
 
 
 def tv_project_save_audio_dependencies(project_id: str, on_save: bool = True) -> int:
@@ -412,9 +400,7 @@ def tv_project_save_audio_dependencies(project_id: str, on_save: bool = True) ->
 
 def tv_sound_project_info(project_id: str, track_index: int) -> TVPSound:
     """Get information about a project soundtrack."""
-    res = send_cmd(
-        "tv_SoundProjectInfo", project_id, track_index, error_values=[-1, -2, -3]
-    )
+    res = send_cmd("tv_SoundProjectInfo", project_id, track_index, error_values=[-1, -2, -3])
     res_parse = tv_parse_list(res, with_fields=TVPSound)
     return TVPSound(**res_parse)
 

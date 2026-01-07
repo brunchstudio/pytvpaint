@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import functools
 from collections.abc import Generator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, TypeVar, cast, overload
@@ -344,9 +344,7 @@ class SaveFormat(Enum):
         """Returns the correct tvpaint format value from a string extension."""
         extension = extension.replace(".", "").upper()
         if not hasattr(SaveFormat, extension):
-            raise ValueError(
-                f"Could not find format ({extension}) in accepted formats ({SaveFormat})"
-            )
+            raise ValueError(f"Could not find format ({extension}) in accepted formats ({SaveFormat})")
         return cast(SaveFormat, getattr(cls, extension.upper()))
 
     @classmethod
@@ -381,6 +379,13 @@ class RGBColor:
     r: int
     g: int
     b: int
+
+
+@dataclass(frozen=True)
+class RGBAColor(RGBColor):
+    """RGBA color with 0-255 range values."""
+
+    a: int
 
 
 @dataclass(frozen=True)
@@ -573,10 +578,10 @@ class TVPPenBrush:
     power: int
     opacity: int
     dry: bool
-    aaliasing: bool
+    anti_aliasing: bool = field(metadata={"alt_name": "aaliasing"})
     gradient: bool
-    csize: str
-    cpower: str
+    c_size: str
+    c_power: str
 
 
 @dataclass(frozen=True)
@@ -722,21 +727,7 @@ def tv_menu_hide() -> None:
     send_cmd("tv_MenuHide")
 
 
-def add_some_magic(
-    i_am_a_badass: bool = False, magic_number: int | None = None
-) -> None:
-    """Don't use this function ! It just might change your life forever..."""
-    if not i_am_a_badass:
-        log.warning("Sorry, you're not enough of a badass for this function...")
-
-    magic_number = magic_number or 14
-    send_cmd("tv_MagicNumber", magic_number)
-    log.info("Totally worth it, right ?! ^^")
-
-
-def tv_menu_show(
-    menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False
-) -> None:
+def tv_menu_show(menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False) -> None:
     """For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow."""
     cmd_args: list[str] = []
 
@@ -747,6 +738,16 @@ def tv_menu_show(
         cmd_args.append(menu_element.value)
 
     send_cmd("tv_MenuShow", *cmd_args, *menu_options)
+
+
+def add_some_magic(i_am_a_badass: bool = False, magic_number: int | None = None) -> None:
+    """Don't use this function ! It just might change your life forever..."""
+    if not i_am_a_badass:
+        log.warning("Sorry, you're not enough of a badass for this function...")
+
+    magic_number = magic_number if magic_number is not None else 14
+    send_cmd("tv_MagicNumber", magic_number)
+    log.info("Totally worth it, right ?! ^^")
 
 
 def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> bool:
@@ -763,9 +764,7 @@ def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> 
     return bool(int(send_cmd("tv_Request", msg, confirm_text, cancel_text)))
 
 
-def tv_req_num(
-    value: int, min: int, max: int, title: str = "Enter Value"
-) -> int | None:
+def tv_req_num(value: int, min: int, max: int, title: str = "Enter Value") -> int | None:
     """Open a prompt to request an integer (within a range).
 
     Args:
@@ -781,9 +780,7 @@ def tv_req_num(
     return None if res.lower() == "cancel" else int(res)
 
 
-def tv_req_angle(
-    value: float, min: float, max: float, title: str = "Enter Value"
-) -> float | None:
+def tv_req_angle(value: float, min: float, max: float, title: str = "Enter Value") -> float | None:
     """Open a prompt to request an angle (in degree).
 
     Args:
@@ -799,9 +796,7 @@ def tv_req_angle(
     return None if res.lower() == "cancel" else float(res)
 
 
-def tv_req_float(
-    value: float, min: float, max: float, title: str = "Enter value"
-) -> float | None:
+def tv_req_float(value: float, min: float, max: float, title: str = "Enter value") -> float | None:
     """Open a prompt to request a float.
 
     Args:
@@ -937,9 +932,7 @@ def tv_save_mode_get() -> tuple[SaveFormat, list[str]]:
     return save_format, res_split
 
 
-def tv_save_mode_set(
-    save_format: SaveFormat, *format_options: str | int | float
-) -> None:
+def tv_save_mode_set(save_format: SaveFormat, *format_options: str | int | float) -> None:
     """Set the saving alpha mode."""
     send_cmd("tv_SaveMode", save_format.value, *format_options)
 
@@ -989,9 +982,7 @@ def tv_mark_out_get(
     return _tv_mark(MarkType.MARKOUT, reference)
 
 
-def tv_mark_out_set(
-    reference: MarkReference, frame: int | None, action: MarkAction
-) -> tuple[int, MarkAction]:
+def tv_mark_out_set(reference: MarkReference, frame: int | None, action: MarkAction) -> tuple[int, MarkAction]:
     """Set markout of the project / clip."""
     return _tv_mark(MarkType.MARKOUT, reference, frame, action)
 
@@ -1086,9 +1077,7 @@ def _tv_set_ab_pen(
     res = send_cmd(f"tv_Set{pen.upper()}Pen", *args)
     fmt, r, g, b = res.split(" ")
 
-    color_type: type[RGBColor] | type[HSLColor] = (
-        RGBColor if a is not None or fmt == "rgb" else HSLColor
-    )
+    color_type: type[RGBColor] | type[HSLColor] = RGBColor if a is not None or fmt == "rgb" else HSLColor
     return color_type(int(r), int(g), int(b))
 
 
@@ -1272,3 +1261,16 @@ def tv_fast_line(
 ) -> None:
     """Draw a line (1 pixel size and not antialiased)."""
     send_cmd("tv_fastline", x1, y1, x2, y2, r, g, b, a)
+
+
+def tv_pick_color() -> tuple[int, RGBAColor]:
+    """Pick a color from the UI using the mouse.
+
+    Returns:
+        mouse_click: mouse click (-1: cancel, 0: left button mouse, 1: right button mouse)
+        color: the selected RGBA Color
+    """
+    result = send_cmd("tv_PicColor")
+    mouse_click, r, g, b, a = result.split()
+
+    return int(mouse_click), RGBAColor(*[int(c) for c in (r, g, b, a)])

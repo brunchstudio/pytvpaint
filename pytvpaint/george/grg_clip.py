@@ -605,7 +605,14 @@ def tv_sound_clip_info(clip_id: int, track_index: int) -> TVPSound:
 
 
 def tv_sound_clip_new(sound_path: Path | str) -> None:
-    """Add a new soundtrack."""
+    """Add a new soundtrack.
+
+    Args:
+        sound_path: sound path
+
+    Raises:
+        ValueError: if sound file not found
+    """
     path = Path(sound_path)
     if not path.exists():
         raise ValueError(f"Sound file not found at : {path.as_posix()}")

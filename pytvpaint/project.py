@@ -12,6 +12,7 @@ from fileseq.filesequence import FileSequence
 from pytvpaint import george, utils
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.sound import ProjectSound
+from pytvpaint import guideline
 from pytvpaint.utils import (
     Refreshable,
     Renderable,
@@ -237,9 +238,7 @@ class Project(Refreshable, Renderable):
     def current_frame(self, value: int) -> None:
         # when setting the current frame, if it is outside the current clip's range, TVP will switch to the clip but not
         # the required frame. So we need to set it twice, one to switch the clip, and once again to set the frame
-        set_twice = not (
-            self.current_clip.timeline_start <= value <= self.current_clip.timeline_end
-        )
+        set_twice = not (self.current_clip.timeline_start <= value <= self.current_clip.timeline_end)
 
         real_frame = value - self.start_frame
         george.tv_project_current_frame_set(real_frame)
@@ -336,8 +335,9 @@ class Project(Refreshable, Renderable):
             Project | None: the searched element or None if search was unsuccessful
         """
 
-        return utils.get_tvp_element(Project.open_projects(), by_id=by_id, by_name=by_name,
-                                     by_regex=by_regex, by_path=by_path)
+        return utils.get_tvp_element(
+            Project.open_projects(), by_id=by_id, by_name=by_name, by_regex=by_regex, by_path=by_path
+        )
 
     @staticmethod
     def current_scene_ids() -> Iterator[int]:
@@ -407,9 +407,7 @@ class Project(Refreshable, Renderable):
     def clip_names(self) -> Iterator[str]:
         """Optimized way to get the clip names. Useful for `get_unique_name`."""
         for scene_id in self.current_scene_ids():
-            clip_ids = utils.position_generator(
-                lambda pos: george.tv_clip_enum_id(scene_id, pos)
-            )
+            clip_ids = utils.position_generator(lambda pos: george.tv_clip_enum_id(scene_id, pos))
             for clip_id in clip_ids:
                 yield george.tv_clip_name_get(clip_id)
 
@@ -449,9 +447,7 @@ class Project(Refreshable, Renderable):
     @property
     def sounds(self) -> Iterator[ProjectSound]:
         """Iterator over the project sounds."""
-        sounds_data_iter = utils.position_generator(
-            lambda pos: george.tv_sound_project_info(self.id, pos)
-        )
+        sounds_data_iter = utils.position_generator(lambda pos: george.tv_sound_project_info(self.id, pos))
 
         for track_index, _ in enumerate(sounds_data_iter):
             yield ProjectSound(track_index, project=self)
@@ -459,6 +455,50 @@ class Project(Refreshable, Renderable):
     def add_sound(self, sound_path: Path | str) -> ProjectSound:
         """Add a new sound clip to the project."""
         return ProjectSound.new(sound_path, parent=self)
+
+    @set_as_current
+    def guidelines(self, guideline_type: george.GuidelineType | None = None) -> Iterator[guideline.Guideline]:
+        """Iterator for the `Guideline` objects of the project."""
+        guideline_classes = [
+            guideline.GuidelineImage,
+            guideline.GuidelineLine,
+            guideline.GuidelineSegment,
+            guideline.GuidelineCircle,
+            guideline.GuidelineEllipse,
+            guideline.GuidelineGrid,
+            guideline.GuidelineMarks,
+            guideline.GuidelineSafeArea,
+            guideline.GuidelineFieldChart,
+            guideline.GuidelineAnimatorField,
+            guideline.GuidelineVanishPoint1,
+            guideline.GuidelineVanishPoint2,
+            guideline.GuidelineVanishPoint3,
+        ]
+        guideline_classes = {c.TYPE: c for c in guideline_classes}
+        for g_type in george.GuidelineType:
+            if guideline_type and guideline_type != g_type:
+                continue
+            if not guideline_classes.get(g_type):
+                continue
+
+            guideline_class = guideline_classes[g_type]
+
+            positions = utils.position_generator(lambda pos: george.tv_guideline_enum(pos, g_type))
+            for position in positions:
+                yield guideline_class(position, project=self)
+
+    def add_guideline_image(
+        self,
+        img_path: Path | str | None = None,
+        x: float | None = None,
+        y: float | None = None,
+        rotation: float | None = None,
+        scale: float | None = None,
+        flip: george.FlipDirection | None = None,
+        alpha_mode: george.GuidelineAlphaMode | None = None,
+    ) -> guideline.GuidelineImage:
+        """Add a new image guideline to the project."""
+        return guideline.GuidelineImage.new(self, img_path, x, y, rotation, scale, flip, alpha_mode)
 
     def _validate_range(self, start: int, end: int) -> None:
         project_start_frame = self.start_frame
@@ -471,9 +511,7 @@ class Project(Refreshable, Renderable):
             max(project_mark_out or project_end_frame, project_end_frame),
         )
         if start < proj_full_range[0] or end > proj_full_range[1]:
-            raise ValueError(
-                f"Range ({start}-{end}) outside of project bounds ({proj_full_range})"
-            )
+            raise ValueError(f"Range ({start}-{end}) outside of project bounds ({proj_full_range})")
 
     def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
         project_start_frame = self.start_frame
@@ -583,9 +621,7 @@ class Project(Refreshable, Renderable):
     @set_as_current
     def mark_in(self) -> int | None:
         """Get the project mark in or None if no mark in set."""
-        frame, mark_action = george.tv_mark_in_get(
-            reference=george.MarkReference.PROJECT
-        )
+        frame, mark_action = george.tv_mark_in_get(reference=george.MarkReference.PROJECT)
         if mark_action == george.MarkAction.CLEAR:
             return None
         return frame + self.start_frame
@@ -601,17 +637,13 @@ class Project(Refreshable, Renderable):
             value = value
 
         frame = value - self.start_frame
-        george.tv_mark_in_set(
-            reference=george.MarkReference.PROJECT, frame=frame, action=action
-        )
+        george.tv_mark_in_set(reference=george.MarkReference.PROJECT, frame=frame, action=action)
 
     @property
     @set_as_current
     def mark_out(self) -> int | None:
         """Get the project mark out or None if no mark out set."""
-        frame, mark_action = george.tv_mark_out_get(
-            reference=george.MarkReference.PROJECT
-        )
+        frame, mark_action = george.tv_mark_out_get(reference=george.MarkReference.PROJECT)
         if mark_action == george.MarkAction.CLEAR:
             return None
         return frame

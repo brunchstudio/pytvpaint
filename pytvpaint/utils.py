@@ -150,9 +150,7 @@ class Renderable(ABC):
         origin_start = int(start)
         start, end = self._get_real_range(start, end)
         if not is_image and start == end:
-            raise ValueError(
-                "TVPaint will not render a movie that contains a single frame"
-            )
+            raise ValueError("TVPaint will not render a movie that contains a single frame")
 
         # get first frame, tvp doesn't understand vfx padding `#`
         if is_image or file_sequence.padding():
@@ -161,14 +159,10 @@ class Renderable(ABC):
             first_frame = Path(str(output_path))
         first_frame.parent.mkdir(exist_ok=True, parents=True)
 
-        save_format = george.SaveFormat.from_extension(
-            file_sequence.extension().lower()
-        )
+        save_format = george.SaveFormat.from_extension(file_sequence.extension().lower())
 
         # render to output
-        with render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             if start == end:
                 with restore_current_frame(self, origin_start):
                     george.tv_save_display(first_frame)
@@ -195,14 +189,11 @@ class Renderable(ABC):
                 # not all frames found
                 missing_frames = file_sequence_frame_set.difference(frame_set)
                 raise FileNotFoundError(
-                    f"Not all frames found, missing frames ({missing_frames}) "
-                    f"in sequence : {output_path}"
+                    f"Not all frames found, missing frames ({missing_frames}) " f"in sequence : {output_path}"
                 )
         else:
             if not first_frame.exists():
-                raise FileNotFoundError(
-                    f"Could not find output at : {first_frame.as_posix()}"
-                )
+                raise FileNotFoundError(f"Could not find output at : {first_frame.as_posix()}")
 
 
 def get_unique_name(names: Iterable[str], stub: str) -> str:
@@ -260,7 +251,7 @@ def position_generator(
         stop_when (Type[GeorgeError], optional): exception at which we stop. Defaults to GeorgeError.
 
     Yields:
-        Iterator[T]: an generator of the resulting values
+        Iterator[T]: a generator of the resulting values
     """
     pos = 0
 
@@ -385,9 +376,7 @@ class HasCurrentFrame(Protocol):
 
 
 @contextlib.contextmanager
-def restore_current_frame(
-    tvp_element: HasCurrentFrame, frame: int
-) -> Generator[None, None, None]:
+def restore_current_frame(tvp_element: HasCurrentFrame, frame: int) -> Generator[None, None, None]:
     """Context that temporarily changes the current frame to the one provided and restores it when done.
 
     Args:
@@ -510,12 +499,8 @@ def handle_output_range(
     range_is_seq = start is not None and end is not None and start != end
     range_is_single_image = start is not None and end is not None and start == end
 
-    is_single_image = bool(
-        is_image and (fseq_is_single_image or not frame_set) and range_is_single_image
-    )
-    is_sequence = bool(
-        is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq)
-    )
+    is_single_image = bool(is_image and (fseq_is_single_image or not frame_set) and range_is_single_image)
+    is_sequence = bool(is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq))
 
     # if no range provided, use clip mark in/out, if none, use clip start/end
     if start is None:

@@ -7,6 +7,7 @@ from pytvpaint.george.exceptions import *  # noqa: F403
 from pytvpaint.george.grg_base import *  # noqa: F403
 from pytvpaint.george.grg_camera import *  # noqa: F403
 from pytvpaint.george.grg_clip import *  # noqa: F403
+from pytvpaint.george.grg_guideline import *  # noqa: F403
 from pytvpaint.george.grg_layer import *  # noqa: F403
 from pytvpaint.george.grg_project import *  # noqa: F403
 from pytvpaint.george.grg_scene import *  # noqa: F403

@@ -179,26 +179,20 @@ class Camera(Refreshable):
             "results."
         )
 
-        points_data = utils.position_generator(
-            lambda pos: george.tv_camera_enum_points(pos)
-        )
+        points_data = utils.position_generator(lambda pos: george.tv_camera_enum_points(pos))
         for index, point_data in enumerate(points_data):
             yield CameraPoint(index, camera=self, data=point_data)
 
     @set_as_current
     def get_point_data_at(self, position: float) -> InterpolationCameraPoint:
         """Get the points data interpolated at that position (between 0 and 1)."""
-        return InterpolationCameraPoint(
-            position, self, InterpolationCameraPoint.get_point_data_at(position)
-        )
+        return InterpolationCameraPoint(position, self, InterpolationCameraPoint.get_point_data_at(position))
 
     @george.min_version_compatible(min_version="12")
     @set_as_current
     def get_point_data_at_frame(self, frame: int) -> FrameCameraPoint:
         """Get the points data interpolated at the specified frame in the clip."""
-        return FrameCameraPoint(
-            frame, self, FrameCameraPoint.get_point_data_at(self.clip, frame)
-        )
+        return FrameCameraPoint(frame, self, FrameCameraPoint.get_point_data_at(self.clip, frame))
 
     @set_as_current
     def remove_point(self, index: int) -> None:
@@ -246,7 +240,7 @@ class CameraPoint(Removable):
         other.refresh()
         return self._data == other._data
 
-    @property
+    @refreshed_property
     def data(self) -> george.TVPCameraPoint:
         """Returns the raw data of the point."""
         return self._data
@@ -402,8 +396,7 @@ class InterpolationCameraPoint(CameraPoint):
             the FrameCameraPoint instance is read-only and cannot be removed as  it doesn't really exist
         """
         log.warning(
-            "Read-Only InterpolationCameraPoint cannot be deleted as it doesn't really exist, "
-            "ignoring request."
+            "Read-Only InterpolationCameraPoint cannot be deleted as it doesn't really exist, " "ignoring request."
         )
         return
 
@@ -450,8 +443,5 @@ class FrameCameraPoint(CameraPoint):
         Warning:
             the FrameCameraPoint instance is read-only and cannot be removed as  it doesn't really exist
         """
-        log.warning(
-            "Read-Only FrameCameraPoint cannot be deleted as it doesn't really exist, "
-            "ignoring request."
-        )
+        log.warning("Read-Only FrameCameraPoint cannot be deleted as it doesn't really exist, " "ignoring request.")
         return

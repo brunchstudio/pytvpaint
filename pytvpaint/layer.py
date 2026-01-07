@@ -101,9 +101,7 @@ class LayerInstance:
     @end.setter
     def end(self, value: int) -> None:
         if value < self.start:
-            raise ValueError(
-                f"End must be equal to or superior to instance start ({self.start})"
-            )
+            raise ValueError(f"End must be equal to or superior to instance start ({self.start})")
 
         new_length = (value - self.start) + 1
         self.length = new_length
@@ -121,9 +119,7 @@ class LayerInstance:
             LayerInstance: the new layer instance
         """
         if at_frame > self.end:
-            raise ValueError(
-                f"`at_frame` must be in range of the instance's start-end ({self.start}-{self.end})"
-            )
+            raise ValueError(f"`at_frame` must be in range of the instance's start-end ({self.start}-{self.end})")
 
         self.layer.make_current()
         real_frame = at_frame - self.layer.project.start_frame
@@ -131,9 +127,7 @@ class LayerInstance:
 
         return LayerInstance(self.layer, at_frame)
 
-    def duplicate(
-        self, direction: george.InsertDirection = george.InsertDirection.AFTER
-    ) -> None:
+    def duplicate(self, direction: george.InsertDirection = george.InsertDirection.AFTER) -> None:
         """Duplicate the instance and insert it in the given direction."""
         self.layer.make_current()
 
@@ -146,9 +140,7 @@ class LayerInstance:
 
         with utils.restore_current_frame(self.layer.clip, move_frame):
             self.copy()
-            at_frame = (
-                self.end if direction == george.InsertDirection.AFTER else self.start
-            )
+            at_frame = self.end if direction == george.InsertDirection.AFTER else self.start
             self.paste(at_frame=at_frame)
 
     def cut(self) -> None:
@@ -271,8 +263,9 @@ class LayerColor(Refreshable):
     @name.setter
     def name(self, value: str) -> None:
         """Set the name of the color."""
-        clip_layer_color_names = (color.name for color in self.clip.layer_colors)
+        clip_layer_color_names = (color.name for color in self.clip.layer_colors if color != self)
         value = utils.get_unique_name(clip_layer_color_names, value)
+
         george.tv_layer_color_set_color(self.clip.id, self.index, self.color, value)
 
     @refreshed_property
@@ -447,9 +440,7 @@ class Layer(Removable):
         Raises:
             NotImplementedError: as there is currently no way to get the parent folder from a Layer.
         """
-        raise NotImplementedError(
-            "There is currently no way to get the parent folder from a Layer."
-        )
+        raise NotImplementedError("There is currently no way to get the parent folder from a Layer.")
 
     @folder.setter
     @george.min_version_compatible(min_version="12")
@@ -472,7 +463,9 @@ class Layer(Removable):
         """
         if value == self.name:
             return
-        value = utils.get_unique_name(self.clip.layer_names, value)
+
+        layer_names = (layer.name for layer in self.clip.layers if layer != self)
+        value = utils.get_unique_name(layer_names, value)
         george.tv_layer_rename(self.id, value)
 
     @refreshed_property
@@ -994,9 +987,7 @@ class Layer(Removable):
             george.tv_save_image(export_path)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find rendered image ({frame}) at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find rendered image ({frame}) at : {export_path.as_posix()}")
 
         return export_path
 
@@ -1033,31 +1024,23 @@ class Layer(Removable):
         )
 
         if start < self.start or end > self.end:
-            raise ValueError(
-                f"Render ({start}-{end}) not in clip range ({(self.start, self.end)})"
-            )
+            raise ValueError(f"Render ({start}-{end}) not in clip range ({(self.start, self.end)})")
         if not is_image:
-            raise ValueError(
-                f"Video formats ({file_sequence.extension()}) are not supported for instance rendering !"
-            )
+            raise ValueError(f"Video formats ({file_sequence.extension()}) are not supported for instance rendering !")
 
         # render to output
         frames = []
         for layer_instance in self.instances:
             cur_frame = layer_instance.start
             instance_output = Path(file_sequence.frame(cur_frame))
-            self.render_frame(
-                instance_output, cur_frame, alpha_mode, background_mode, format_opts
-            )
+            self.render_frame(instance_output, cur_frame, alpha_mode, background_mode, format_opts)
             frames.append(str(cur_frame))
 
         file_sequence.setFrameSet(FrameSet(",".join(frames)))
         return file_sequence
 
     @set_as_current
-    def load_image(
-        self, image_path: str | Path, frame: int | None = None, stretch: bool = False
-    ) -> None:
+    def load_image(self, image_path: str | Path, frame: int | None = None, stretch: bool = False) -> None:
         """Load an image in the current layer at a given frame.
 
         Args:
@@ -1107,9 +1090,7 @@ class Layer(Removable):
             TypeError: if the layer is not an animation layer
         """
         if not self.is_anim_layer:
-            raise TypeError(
-                f"Can't add a mark because this is not an animation layer ({self})"
-            )
+            raise TypeError(f"Can't add a mark because this is not an animation layer ({self})")
         frame = frame - self.project.start_frame
         george.tv_layer_mark_set(self.id, frame, color.index)
 
@@ -1161,9 +1142,7 @@ class Layer(Removable):
             end: the selected end frame
         """
         if not self.is_anim_layer:
-            log.warning(
-                "Selection may display weird behaviour when applied to a non animation layer"
-            )
+            log.warning("Selection may display weird behaviour when applied to a non animation layer")
         frame_count = (end - start) + 1
         george.tv_layer_select(start - self.clip.start, frame_count)
 
@@ -1443,9 +1422,7 @@ class CTGLayer(Layer):
 
         sources = sources or []
         name = utils.get_unique_name(clip.layer_names, name)
-        layer_id = george.tv_ctg_layer_create(
-            name, sources=[layer.name for layer in sources]
-        )
+        layer_id = george.tv_ctg_layer_create(name, sources=[layer.name for layer in sources])
 
         layer = cls(layer_id=layer_id, clip=clip)
         if color:
@@ -1512,9 +1489,7 @@ class CTGLayer(Layer):
 
     def remove_sources(self, sources: list[Layer]) -> None:
         """Remove a list of Layers from the sources for this CTG layer."""
-        george.tv_ctg_source_remove(
-            self.id, [layer.id for layer in sources if self in layer.sourced_ctg_layers]
-        )
+        george.tv_ctg_source_remove(self.id, [layer.id for layer in sources if self in layer.sourced_ctg_layers])
 
     @set_as_current
     def load_structure(self) -> None:

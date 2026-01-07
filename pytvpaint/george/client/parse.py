@@ -84,7 +84,7 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
     if issubclass(cast_type, Enum):
         value = value.strip().strip('"')
 
-        # Find all enum members that matches the value (lower case)
+        # Find all enum members that matche the value (lower case)
         matches = [m for m in cast_type if value.lower() == m.value.lower()]
         try:
             # If the unmodified value is in the enum, return that first
@@ -94,22 +94,18 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
             if matches:
                 return cast(T, matches[0])
 
-        # It didn't work, it can be the enum index
+        # if the above fails, then maybe the value is the index in the enum
         try:
             index = int(value)
         except ValueError:
-            raise ValueError(
-                f"{value} is not a valid Enum index since it can't be parsed as int"
-            )
+            raise ValueError(f"{value} is not a valid Enum index since it can't be parsed as int")
 
-        # We get the enum member at that index
+        # get the enum member at the index
         enum_members = list(cast_type)
         if index < len(enum_members):
             return cast(T, enum_members[index])
 
-        raise ValueError(
-            f"Enum index {index} is out of bounds (max {len(enum_members) - 1})"
-        )
+        raise ValueError(f"Enum index {index} is out of bounds (max {len(enum_members) - 1})")
 
     if get_origin(cast_type) in (tuple, list):
         # Split by space and convert each member to the right type
@@ -132,7 +128,7 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:
     return cast(T, cast_type(value))
 
 
-FieldTypes: TypeAlias = list[tuple[str, Any]]
+FieldTypes: TypeAlias = list[tuple[tuple[str, str], Any]]
 
 
 def get_dataclass_fields(
@@ -148,7 +144,7 @@ def get_dataclass_fields(
     """
     type_hints = get_type_hints(datacls)
     return [
-        (f.name, type_hints[f.name])
+        ((f.name, f.metadata.get("alt_name", f.name)), type_hints[f.name])
         for f in fields(datacls)
         if f.metadata.get("parsed", True)
     ]
@@ -180,7 +176,11 @@ def tv_parse_dict(
     search_start = 0
 
     for i, (field_name, field_type) in enumerate(with_fields):
-        current_key_pascal = camel_to_pascal(field_name)
+        # handle different naming schemes
+        alt_field_name = field_name
+        if isinstance(field_name, tuple):
+            field_name, alt_field_name = field_name
+        current_key_pascal = camel_to_pascal(alt_field_name)
 
         # Search for the key from the end
         search_text = input_text.lower()
@@ -191,7 +191,10 @@ def tv_parse_dict(
 
         if i < (len(with_fields) - 1):
             # Search for the next key also from the end
-            next_key_pascal = camel_to_pascal(with_fields[i + 1][0])
+            next_key = with_fields[i + 1][0]
+            if isinstance(next_key, tuple):
+                next_key = next_key[1]
+            next_key_pascal = camel_to_pascal(next_key)
             end = search_text.rfind(" " + next_key_pascal.lower(), search_start)
         else:
             end = len(input_text)
@@ -272,6 +275,10 @@ def tv_parse_list(
     # Cast each token to a type and construct the dict
     tokens_dict: dict[str, Any] = {}
     for token, (field_name, field_type) in zip(tokens, with_fields):
+        # handle different naming schemes
+        if isinstance(field_name, tuple):
+            field_name, _ = field_name
+
         token = tv_cast_to_type(token, field_type)
         tokens_dict[field_name] = token
 

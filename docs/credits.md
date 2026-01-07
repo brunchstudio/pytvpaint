@@ -3,7 +3,7 @@
 ## :computer: Brunch Dev Team
 
 - [:simple-github:](https://github.com/rlahmidi) Radouane Lahmidi
-- [:simple-github:](https://github.com/jhenrybrunch) Joseph Henry
+- [:simple-github:](https://github.com/johhnry) Joseph Henry
 - [:simple-firefoxbrowser:](https://www.chloeoternaud.com/about) Chloe Oternaud
 - [:simple-github:](https://github.com/aprayez) Alexis Prayez
 

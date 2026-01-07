@@ -13,7 +13,6 @@ from pytvpaint.george.client.parse import (
     validate_args_list,
 )
 from pytvpaint.george.grg_base import FieldOrder, GrgErrorValue, is_tvp_version_below_12
-from pytvpaint.george.grg_project import tv_frame_rate_get
 
 
 @dataclass(frozen=True)
