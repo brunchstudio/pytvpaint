@@ -699,7 +699,7 @@ def deprecated_warning(msg: str) -> Callable[[T], T]:
     def decorate(func: T) -> T:
         @functools.wraps(func)
         def applicator(*args: Any, **kwargs: Any) -> Any:
-            log.warning(msg)
+            log.warning(f"DEPRECTED: {msg}")
             return func(*args, **kwargs)
 
         return cast(T, applicator)
@@ -1102,8 +1102,8 @@ def tv_set_b_pen_hsl(color: HSLColor) -> HSLColor:
 
 
 @deprecated_warning(
-    msg="DEPRECATED: Function `tv_pen` is most likely deprecated it is undocumented in the George reference but still "
-    "works, We advise using `tv_penbrush` instead."
+    msg="Function `tv_pen` is most likely deprecated, it is undocumented in the George reference but still "
+    "works. We advise using `tv_penbrush` instead."
 )
 def tv_pen(size: float) -> float:
     """Change current pen tool size.

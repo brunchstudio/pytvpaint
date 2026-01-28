@@ -148,7 +148,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
     @refreshed_property
     def path(self) -> Path:
-        """The x coordinate of the point."""
+        """The image path."""
         return self._data.path
 
     @path.setter
@@ -157,7 +157,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
     @refreshed_property
     def x(self) -> float:
-        """The x coordinate of the point."""
+        """The x coordinate of the image."""
         return self._data.x
 
     @x.setter
@@ -166,7 +166,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
     @refreshed_property
     def y(self) -> float:
-        """The y coordinate of the point."""
+        """The y coordinate of the image."""
         return self._data.y
 
     @y.setter
@@ -175,7 +175,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
     @refreshed_property
     def rotation(self) -> float:
-        """The angle of the camera at that point."""
+        """The rotation of the image."""
         return self._data.rotation
 
     @rotation.setter
@@ -184,7 +184,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
     @refreshed_property
     def scale(self) -> float:
-        """The scale of the camera at that point."""
+        """The scale of the image."""
         return self._data.scale
 
     @scale.setter
@@ -193,7 +193,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
     @refreshed_property
     def flip(self) -> george.FlipDirection:
-        """The scale of the camera at that point."""
+        """The orientation of the image."""
         return self._data.flip
 
     @flip.setter
@@ -212,7 +212,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
         flip: george.FlipDirection | None = None,
         alpha_mode: george.GuidelineAlphaMode | None = None,
     ) -> GuidelineImage:
-        """Create a new point and add it to the camera path at that index."""
+        """Create a new guideline in the project."""
         project.make_current()
 
         position = george.tv_guideline_add_image(img_path, x, y, rotation, scale, flip, alpha_mode)

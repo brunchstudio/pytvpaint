@@ -74,17 +74,22 @@ class Camera(Refreshable):
     @refreshed_property
     @set_as_current
     @george.deprecated_warning(
-        msg="DEPRECATED: Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead. "
+        msg="Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead. "
         "For now, in TVP 12, it always returns 1.0 but will be removed in future versions."
     )
     def fps(self) -> float:
-        """The framerate of the camera."""
+        """The framerate of the camera.
+
+        Warning:
+            DEPRECATED: Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead.
+            For now, in TVP 12, it always returns 1.0 but will be removed in future versions.
+        """
         return self._data.frame_rate
 
     @fps.setter
     @set_as_current
     @george.deprecated_warning(
-        msg="DEPRECATED: Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead. "
+        msg="Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead. "
         "For now, in TVP 12, it always sets 1.0 but will be removed in future versions."
     )
     def fps(self, value: float) -> None:
@@ -115,15 +120,15 @@ class Camera(Refreshable):
     @refreshed_property
     @set_as_current
     @george.deprecated_warning(
-        msg="DEPRECATED: Property `Camera.anti_aliasing` not longer exists in TVP 12, "
+        msg="Property `Camera.anti_aliasing` not longer exists in TVP 12, "
         "for now, in TVP 12, it always returns 1 but will be removed in future versions."
     )
     def anti_aliasing(self) -> int:
         """The antialiasing value of the camera.
 
         Warning:
-            DEPRECATED: This property has been removed from in TVP 12 and for now always returns 1 but will be removed
-                        in future versions.
+            DEPRECATED: Property `Camera.anti_aliasing` not longer exists in TVP 12.
+            For now, in TVP 12, it always returns 1 but will be removed in future versions.
         """
         return self._data.anti_aliasing
 

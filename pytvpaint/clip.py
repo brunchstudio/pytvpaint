@@ -10,9 +10,10 @@ from typing import TYPE_CHECKING, cast
 from fileseq.filesequence import FileSequence
 
 from pytvpaint import george, utils
+from pytvpaint.george.client import parse
+from pytvpaint.sound import ClipSound
 from pytvpaint.camera import Camera
 from pytvpaint.layer import CameraLayer, CTGLayer, Layer, LayerColor, LayerFolder
-from pytvpaint.sound import ClipSound
 from pytvpaint.utils import (
     Removable,
     Renderable,
@@ -247,7 +248,7 @@ class Clip(Removable, Renderable):
     @property
     def action_text(self) -> str:
         """Get the action text of the clip."""
-        return george.tv_clip_action_get(self.id)
+        return parse.unescape_everything_safely(george.tv_clip_action_get(self.id))
 
     @action_text.setter
     def action_text(self, value: str) -> None:
@@ -257,7 +258,7 @@ class Clip(Removable, Renderable):
     @property
     def dialog_text(self) -> str:
         """Get the dialog text of the clip."""
-        return george.tv_clip_dialog_get(self.id)
+        return parse.unescape_everything_safely(george.tv_clip_dialog_get(self.id))
 
     @dialog_text.setter
     def dialog_text(self, value: str) -> None:
@@ -267,7 +268,7 @@ class Clip(Removable, Renderable):
     @property
     def note_text(self) -> str:
         """Get the note text of the clip."""
-        return george.tv_clip_note_get(self.id)
+        return parse.unescape_everything_safely(george.tv_clip_note_get(self.id))
 
     @note_text.setter
     def note_text(self, value: str) -> None:
@@ -345,7 +346,7 @@ class Clip(Removable, Renderable):
             ignore_types: list of layer types to ignore, default is None, meaning all.
 
         Note:
-            This function is mainly here for TVPaint 12 and above, when using previous versions, prefer Clip.layers.
+            Since TVP12 have introduced multiple layer types, this function is will replace Clip.layers.
         """
         for layer_id in self.layer_ids:
             layer_data = george.tv_layer_info(layer_id)
@@ -367,7 +368,17 @@ class Clip(Removable, Renderable):
             yield layer_class(layer_id, clip=self, data=layer_data)
 
     @property
+    @george.deprecated_warning(msg="use `Clip.get_layers()` instead.")
     def layers(self) -> Iterator[Layer]:
+        """Iterator over the clip's animation layers, ignores all Folder, Camera and CTG layers.
+
+        Warning:
+            DEPRECATED: use `Clip.get_layers()` instead.
+        """
+        yield from self.get_layers(ignore_types=(LayerFolder, CameraLayer, CTGLayer))
+
+    @property
+    def anim_layers(self) -> Iterator[Layer]:
         """Iterator over the clip's animation layers, ignores all Folder, Camera and CTG layers."""
         yield from self.get_layers(ignore_types=(LayerFolder, CameraLayer, CTGLayer))
 
@@ -479,12 +490,12 @@ class Clip(Removable, Renderable):
     @property
     def selected_layers(self) -> Iterator[Layer]:
         """Iterator over the selected layers."""
-        yield from (layer for layer in self.layers if layer.is_selected)
+        yield from (layer for layer in self.get_layers() if layer.is_selected)
 
     @property
     def visible_layers(self) -> Iterator[Layer]:
         """Iterator over the visible layers."""
-        yield from (layer for layer in self.layers if layer.is_visible)
+        yield from (layer for layer in self.get_layers() if layer.is_visible)
 
     @set_as_current
     @george.undoable

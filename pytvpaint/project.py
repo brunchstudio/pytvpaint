@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from fileseq.filesequence import FileSequence
 
 from pytvpaint import george, utils
+from pytvpaint.george.client import parse
 from pytvpaint.george.exceptions import GeorgeError
 from pytvpaint.sound import ProjectSound
 from pytvpaint import guideline
@@ -288,7 +289,7 @@ class Project(Refreshable, Renderable):
     @property
     def header_info(self) -> str:
         """The project's header info."""
-        return george.tv_project_header_info_get(self.id)
+        return parse.unescape_everything_safely(george.tv_project_header_info_get(self.id))
 
     @header_info.setter
     def header_info(self, value: str) -> None:
@@ -297,7 +298,7 @@ class Project(Refreshable, Renderable):
     @property
     def author(self) -> str:
         """The project's author info."""
-        return george.tv_project_header_author_get(self.id)
+        return parse.unescape_everything_safely(george.tv_project_header_author_get(self.id))
 
     @author.setter
     def author(self, value: str) -> None:
@@ -306,7 +307,7 @@ class Project(Refreshable, Renderable):
     @property
     def notes(self) -> str:
         """The project's notes text."""
-        return george.tv_project_header_notes_get(self.id)
+        return parse.unescape_everything_safely(george.tv_project_header_notes_get(self.id))
 
     @notes.setter
     def notes(self, value: str) -> None:

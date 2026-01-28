@@ -5,10 +5,10 @@ It also has crucial functions like `send_cmd` that send George commands and get 
 
 from __future__ import annotations
 
-import contextlib
-import functools
 import os
 import re
+import functools
+import contextlib
 from pathlib import Path
 from time import sleep, time
 from typing import Any, Callable, TypeVar, cast
@@ -19,9 +19,7 @@ from pytvpaint.george.client.rpc import JSONRPCClient
 from pytvpaint.george.exceptions import GeorgeError
 
 
-def _connect_client(
-    host: str = "ws://localhost", port: int = 3000, timeout: int = 60
-) -> JSONRPCClient:
+def _connect_client(host: str = "ws://localhost", port: int = 3000, timeout: int = 60) -> JSONRPCClient:
     host = os.getenv("PYTVPAINT_WS_HOST", host)
     port = int(os.getenv("PYTVPAINT_WS_PORT", port))
     startup_connect = bool(int(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1)))
@@ -30,6 +28,7 @@ def _connect_client(
     rpc_client = JSONRPCClient(f"{host}:{port}", timeout)
 
     if not startup_connect:
+        log.debug(f"Auto Connect Disabled, RPC client is not connected")
         return rpc_client
 
     start_time = time()
@@ -52,9 +51,7 @@ def _connect_client(
         if rpc_client.is_connected:
             rpc_client.disconnect()
 
-        raise ConnectionRefusedError(
-            "Could not establish connection with a tvpaint instance before timeout !"
-        )
+        raise ConnectionRefusedError("Could not establish connection with a tvpaint instance before timeout !")
 
     if connection_successful:
         log.info(f"Connected to TVPaint on port {port}")
@@ -120,10 +117,7 @@ def send_cmd(
     Returns:
         the George return string
     """
-    tv_args = [
-        tv_handle_string(arg) if handle_string and isinstance(arg, str) else arg
-        for arg in args
-    ]
+    tv_args = [tv_handle_string(arg) if handle_string and isinstance(arg, str) else arg for arg in args]
     cmd_str = " ".join([str(arg) for arg in [command, *tv_args]])
 
     is_undo_stack = command in [

@@ -207,7 +207,7 @@
 #
 #
 # def test_clip_layers(test_clip_obj: Clip, create_some_layers: list[Layer]) -> None:
-#     assert list(test_clip_obj.layers) == create_some_layers
+#     assert list(test_clip_obj.get_layers()) == create_some_layers
 #
 #
 # @pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")

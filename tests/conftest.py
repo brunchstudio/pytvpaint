@@ -67,7 +67,7 @@ def _fix_tvp_12_selection() -> None:
         if current_layer.layer_type == george.LayerType.CAMERA:
             # switch to first layer in real/non-camera layers
             first_layer = None
-            for layer in current_clip.layers:
+            for layer in current_clip.get_layers():
                 if layer.layer_type == george.LayerType.CAMERA:
                     continue
 
@@ -191,9 +191,7 @@ def count_up_generate(test_clip_obj: Clip) -> None:
         george.tv_set_a_pen_rgba(george.RGBColor(0, 0, 0), 255)  # set the pen color
         send_cmd("tv_TextTool2", "size", 200)  # set text size
         george.tv_text_brush(str(i))  # set the brush text
-        george.tv_set_active_shape(
-            george.TVPShape.FREE_HAND_LINE, size=200
-        )  # set the shape and it's size
+        george.tv_set_active_shape(george.TVPShape.FREE_HAND_LINE, size=200)  # set the shape and it's size
         # write a line with the text brush, having the start-end pos being the same will fake a single click
         george.tv_line(text_pos, text_pos)
         # update undo stack otherwise edits to last image are not saved (-_-)"
@@ -354,9 +352,7 @@ def create_some_layer_folders(
 
 
 @pytest.fixture
-def test_project_sound(
-    test_project_obj: Project, wav_file: Path
-) -> FixtureYield[ProjectSound]:
+def test_project_sound(test_project_obj: Project, wav_file: Path) -> FixtureYield[ProjectSound]:
     tv_sound_project_new(wav_file)
     yield ProjectSound(0, test_project_obj)
 
@@ -368,9 +364,7 @@ def test_clip_sound(test_clip_obj: Clip, wav_file: Path) -> FixtureYield[ClipSou
 
 
 @pytest.fixture
-def create_some_project_sounds(
-    test_project_obj: Project, wav_file: Path
-) -> FixtureYield[list[ProjectSound]]:
+def create_some_project_sounds(test_project_obj: Project, wav_file: Path) -> FixtureYield[list[ProjectSound]]:
     sounds: list[ProjectSound] = []
 
     for i in range(5):
@@ -381,9 +375,7 @@ def create_some_project_sounds(
 
 
 @pytest.fixture
-def with_loaded_sequence(
-    test_clip_obj: Clip, ppm_sequence: list[Path]
-) -> FixtureYield[Layer]:
+def with_loaded_sequence(test_clip_obj: Clip, ppm_sequence: list[Path]) -> FixtureYield[Layer]:
     yield test_clip_obj.load_media(
         ppm_sequence[0],
         with_name="images",

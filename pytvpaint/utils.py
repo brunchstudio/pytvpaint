@@ -340,7 +340,7 @@ def render_context(
     layers_visibility = []
     if layer_selection:
         clip = layer_selection[0].clip
-        layers_visibility = [(layer, layer.is_visible) for layer in clip.layers]
+        layers_visibility = [(layer, layer.is_visible) for layer in clip.get_layers()]
         # Show and hide the clip layers to render
         for layer, _ in layers_visibility:
             should_be_visible = not layer_selection or layer in layer_selection
@@ -443,7 +443,7 @@ def get_tvp_element(
             continue
         if by_name is not None and element.name.lower() != by_name.lower():
             continue
-        if by_regex is not None and element.name != by_regex.search(element.name):
+        if by_regex is not None and not by_regex.search(element.name):
             continue
         if by_path is not None and getattr(element, "path") != Path(by_path):
             continue

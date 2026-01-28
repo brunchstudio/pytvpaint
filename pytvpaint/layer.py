@@ -366,7 +366,7 @@ class Layer(Removable):
         """The layers unique identifier.
 
         Warning:
-            layer ids are not persistent across project load/close
+            layer ids are not persistent and are reset every time the project is opened
         """
         return self._id
 
@@ -464,7 +464,7 @@ class Layer(Removable):
         if value == self.name:
             return
 
-        layer_names = (layer.name for layer in self.clip.layers if layer != self)
+        layer_names = (layer.name for layer in self.clip.get_layers() if layer != self)
         value = utils.get_unique_name(layer_names, value)
         george.tv_layer_rename(self.id, value)
 
@@ -1464,14 +1464,6 @@ class CTGLayer(Layer):
     def sources(self) -> list[Layer]:
         """Get this CTG layer's source layers."""
         sources = []
-
-        # TODO commenting this since it was used when tv_CTGGetSources "wasn't" working
-        # for layer in self.clip.layers:
-        #     if not layer.is_ctg_source:
-        #         continue # noqa: ERA001
-        #     if self.id not in [ctg_layer.id for ctg_layer in layer.sourced_ctg_layers]:
-        #         continue # noqa: ERA001
-        #     sources.append(layer) # noqa: ERA001
 
         for layer_id in george.tv_ctg_get_source(self.id):
             layer = self.clip.get_layer(by_id=layer_id)
