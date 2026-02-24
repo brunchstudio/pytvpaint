@@ -67,6 +67,8 @@ class Removable(Refreshable):
     def __getattribute__(self, name: str) -> Any:
         """For each attribute access, we check if the object was marked removed."""
         if not name.startswith("_") and self._is_removed:
+            if name in ["_is_removed", "is_removed"]:
+                return self._is_removed
             raise ValueError(f"{self.__class__.__name__} has been removed!")
 
         return super().__getattribute__(name)
@@ -87,10 +89,11 @@ class Removable(Refreshable):
         Returns:
             bool: whether if it was removed or not
         """
-        self._is_removed = False
+        is_removed = True
         with contextlib.suppress(Exception):
             self.refresh()
-            self._is_removed = True
+            is_removed = False
+        self._is_removed = is_removed
         return self._is_removed
 
     @abstractmethod

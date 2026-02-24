@@ -343,6 +343,7 @@ class Layer(Removable):
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
+
         try:
             self._data = george.tv_layer_info(self._id)
         except GeorgeError:

@@ -557,8 +557,32 @@ def tv_guideline_modify_image_set(
     return TVPGuidelineImage(**guideline)
 
 
+def tv_guideline_add_line(
+    x: float | None = None,
+    y: float | None = None,
+    angle: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x": x,
+            "y": y,
+            "angle": angle,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "line",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_line_get(position: int) -> TVPGuidelineLine:
-    """Get info for the image guideline at the given position."""
+    """Get info for the line guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -571,8 +595,62 @@ def tv_guideline_modify_line_get(position: int) -> TVPGuidelineLine:
     return TVPGuidelineLine(**guideline)
 
 
+def tv_guideline_modify_line_set(
+    position: int,
+    x: float | None = None,
+    y: float | None = None,
+    angle: float | None = None,
+) -> TVPGuidelineLine:
+    """Set info for the line guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x": x,
+            "y": y,
+            "angle": angle,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    fields = get_dataclass_fields(cast(DataclassInstance, TVPGuidelineLine))
+    guideline = tv_parse_dict(result, with_fields=fields)
+    guideline["position"] = position
+    return TVPGuidelineLine(**guideline)
+
+
+def tv_guideline_add_segment(
+    x1: float | None = None,
+    y1: float | None = None,
+    x2: float | None = None,
+    y2: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "segment",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_segment_get(position: int) -> TVPGuidelineSegment:
-    """Get info for the image guideline at the given position."""
+    """Get info for the segment guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -585,8 +663,61 @@ def tv_guideline_modify_segment_get(position: int) -> TVPGuidelineSegment:
     return TVPGuidelineSegment(**guideline)
 
 
+def tv_guideline_modify_segment_set(
+    x1: float | None = None,
+    y1: float | None = None,
+    x2: float | None = None,
+    y2: float | None = None,
+) -> TVPGuidelineSegment:
+    """Set info for the segment guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    fields = get_dataclass_fields(cast(DataclassInstance, TVPGuidelineSegment))
+    guideline = tv_parse_dict(result, with_fields=fields)
+    guideline["position"] = position
+    return TVPGuidelineSegment(**guideline)
+
+
+def tv_guideline_add_circle(
+    x: float | None = None,
+    y: float | None = None,
+    radius: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x": x,
+            "y": y,
+            "radius": radius,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "circle",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_circle_get(position: int) -> TVPGuidelineCircle:
-    """Get info for the image guideline at the given position."""
+    """Get info for the circle guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -599,8 +730,61 @@ def tv_guideline_modify_circle_get(position: int) -> TVPGuidelineCircle:
     return TVPGuidelineCircle(**guideline)
 
 
+def tv_guideline_modify_circle_set(
+    position: int,
+    x: float | None = None,
+    y: float | None = None,
+    radius: float | None = None,
+) -> TVPGuidelineCircle:
+    """Set info for the circle guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x": x,
+            "y": y,
+            "radius": radius,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineCircle)
+    guideline["position"] = position
+    return TVPGuidelineCircle(**guideline)
+
+
+def tv_guideline_add_ellipse(
+    x: float | None = None,
+    y: float | None = None,
+    radius_a: float | None = None,
+    radius_b: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x": x,
+            "y": y,
+            "radiusa": radius_a,
+            "radiusb": radius_b,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "ellipse",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_ellipse_get(position: int) -> TVPGuidelineEllipse:
-    """Get info for the image guideline at the given position."""
+    """Get info for the ellipse guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -613,8 +797,63 @@ def tv_guideline_modify_ellipse_get(position: int) -> TVPGuidelineEllipse:
     return TVPGuidelineEllipse(**guideline)
 
 
+def tv_guideline_modify_ellipse_set(
+    position: int,
+    x: float | None = None,
+    y: float | None = None,
+    radius_a: float | None = None,
+    radius_b: float | None = None,
+) -> TVPGuidelineEllipse:
+    """Set info for the ellipse guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x": x,
+            "y": y,
+            "radiusa": radius_a,
+            "radiusb": radius_b,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineEllipse)
+    guideline["position"] = position
+    return TVPGuidelineEllipse(**guideline)
+
+
+def tv_guideline_add_grid(
+    x: float | None = None,
+    y: float | None = None,
+    width: float | None = None,
+    height: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x": x,
+            "y": y,
+            "w": width,
+            "h": height,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "grid",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_grid_get(position: int) -> TVPGuidelineGrid:
-    """Get info for the image guideline at the given position."""
+    """Get info for the grid guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -627,8 +866,59 @@ def tv_guideline_modify_grid_get(position: int) -> TVPGuidelineGrid:
     return TVPGuidelineGrid(**guideline)
 
 
+def tv_guideline_modify_grid_set(
+    position: int,
+    x: float | None = None,
+    y: float | None = None,
+    width: float | None = None,
+    height: float | None = None,
+) -> TVPGuidelineGrid:
+    """Set info for the grid guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x": x,
+            "y": y,
+            "w": width,
+            "h": height,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineGrid)
+    guideline["position"] = position
+    return TVPGuidelineGrid(**guideline)
+
+
+def tv_guideline_add_marks(
+    count_x: int | None = None,
+    count_y: int | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "count_x": count_x,
+            "count_y": count_y,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "marks",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_marks_get(position: int) -> TVPGuidelineMarks:
-    """Get info for the image guideline at the given position."""
+    """Get info for the marks guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -641,8 +931,55 @@ def tv_guideline_modify_marks_get(position: int) -> TVPGuidelineMarks:
     return TVPGuidelineMarks(**guideline)
 
 
+def tv_guideline_modify_marks_set(
+    position: int,
+    count_x: int | None = None,
+    count_y: int | None = None,
+) -> TVPGuidelineMarks:
+    """Set info for the marks guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "count_x": count_x,
+            "count_y": count_y,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineMarks)
+    guideline["position"] = position
+    return TVPGuidelineMarks(**guideline)
+
+
+def tv_guideline_add_safe_area(
+    sf_out: int | None = None,
+    sf_in: int | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "out": sf_out,
+            "in": sf_in,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "safearea",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_safe_area_get(position: int) -> TVPGuidelineSafeArea:
-    """Get info for the image guideline at the given position."""
+    """Get info for the safe area guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -655,8 +992,57 @@ def tv_guideline_modify_safe_area_get(position: int) -> TVPGuidelineSafeArea:
     return TVPGuidelineSafeArea(**guideline)
 
 
+def tv_guideline_modify_safe_area_set(
+    position: int,
+    sf_out: int | None = None,
+    sf_in: int | None = None,
+) -> TVPGuidelineSafeArea:
+    """Set info for the safe area guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "out": sf_out,
+            "in": sf_in,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineSafeArea)
+    guideline["position"] = position
+    return TVPGuidelineSafeArea(**guideline)
+
+
+def tv_guideline_add_vanish_point_1(
+    x: float | None = None,
+    y: float | None = None,
+    grid: bool | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x": x,
+            "y": y,
+            "grid": grid,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "vanishpoint1",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_vanish_point_1_get(position: int) -> TVPGuidelineVanishPoint1:
-    """Get info for the image guideline at the given position."""
+    """Get info for the vanish point 1 guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -669,8 +1055,63 @@ def tv_guideline_modify_vanish_point_1_get(position: int) -> TVPGuidelineVanishP
     return TVPGuidelineVanishPoint1(**guideline)
 
 
+def tv_guideline_modify_vanish_point_1_set(
+    position: int,
+    x: float | None = None,
+    y: float | None = None,
+    ray: int | None = None,
+    grid: bool | None = None,
+) -> TVPGuidelineVanishPoint1:
+    """Set info for the vanish point 1 guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x": x,
+            "y": y,
+            "ray": ray,
+            "grid": grid,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineVanishPoint1)
+    guideline["position"] = position
+    return TVPGuidelineVanishPoint1(**guideline)
+
+
+def tv_guideline_add_vanish_point_2(
+    x1: float | None = None,
+    y1: float | None = None,
+    x2: float | None = None,
+    y2: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "vanishpoint2",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_vanish_point_2_get(position: int) -> TVPGuidelineVanishPoint2:
-    """Get info for the image guideline at the given position."""
+    """Get info for the vanish point 2 guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -683,8 +1124,69 @@ def tv_guideline_modify_vanish_point_2_get(position: int) -> TVPGuidelineVanishP
     return TVPGuidelineVanishPoint2(**guideline)
 
 
+def tv_guideline_modify_vanish_point_2_set(
+    position: int,
+    x1: float | None = None,
+    y1: float | None = None,
+    x2: float | None = None,
+    y2: float | None = None,
+    ray: int | None = None,
+) -> TVPGuidelineVanishPoint2:
+    """Set info for the vanish point 2 guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+            "ray": ray,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineVanishPoint2)
+    guideline["position"] = position
+    return TVPGuidelineVanishPoint2(**guideline)
+
+
+def tv_guideline_add_vanish_point_3(
+    x1: float | None = None,
+    y1: float | None = None,
+    x2: float | None = None,
+    y2: float | None = None,
+    x3: float | None = None,
+    y3: float | None = None,
+) -> int:
+    """Set info for the image guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+            "x3": x3,
+            "y3": y3,
+        }
+    )
+
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "vanishpoint3",
+            *args,
+            error_values=[-1, -2],
+        )
+    )
+
+
 def tv_guideline_modify_vanish_point_3_get(position: int) -> TVPGuidelineVanishPoint3:
-    """Get info for the image guideline at the given position."""
+    """Get info for the vanish point 3 guideline at the given position."""
 
     result = send_cmd(
         "tv_GuidelineModify",
@@ -695,3 +1197,60 @@ def tv_guideline_modify_vanish_point_3_get(position: int) -> TVPGuidelineVanishP
     guideline = tv_parse_dict(result, with_fields=TVPGuidelineVanishPoint3)
     guideline["position"] = position
     return TVPGuidelineVanishPoint3(**guideline)
+
+
+def tv_guideline_modify_vanish_point_3_set(
+    position: int,
+    x1: float | None = None,
+    y1: float | None = None,
+    x2: float | None = None,
+    y2: float | None = None,
+    x3: float | None = None,
+    y3: float | None = None,
+    ray: int | None = None,
+) -> TVPGuidelineVanishPoint3:
+    """Set info for the vanish point 3 guideline at the given position."""
+    args = args_dict_to_list(
+        {
+            "position": position,
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+            "x3": x3,
+            "y3": y3,
+            "ray": ray,
+        }
+    )
+
+    result = send_cmd(
+        "tv_GuidelineModify",
+        *args,
+        error_values=[-1, -2],
+    )
+
+    guideline = tv_parse_dict(result, with_fields=TVPGuidelineVanishPoint3)
+    guideline["position"] = position
+    return TVPGuidelineVanishPoint3(**guideline)
+
+
+def tv_guideline_add_field_chart() -> int:
+    """Set info for the image guideline at the given position."""
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "fieldchart",
+            error_values=[-1, -2],
+        )
+    )
+
+
+def tv_guideline_add_animator_chart() -> int:
+    """Set info for the image guideline at the given position."""
+    return int(
+        send_cmd(
+            "tv_GuidelineAdd",
+            "animatorfield",
+            error_values=[-1, -2],
+        )
+    )
