@@ -848,7 +848,7 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
         return cls(position, project)
 
 
-class GuidelineVanishPoint3(GuidelineVanishPoint2[george.TVPGuidelineVanishPoint3, george.GuidelineType]):
+class GuidelineVanishPoint3(GuidelineVanishPoint2):
 
     TYPE = george.GuidelineType.VANISH_POINT_3
 
