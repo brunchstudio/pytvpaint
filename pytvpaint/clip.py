@@ -331,7 +331,7 @@ class Clip(Removable, Renderable):
     @property
     @set_as_current
     def layer_ids(self) -> Iterator[int]:
-        """Iterator over the layer ids."""
+        """Returns an iterator over the layer ids."""
         return utils.position_generator(lambda pos: george.tv_layer_get_id(pos))
 
     def get_layers(
@@ -339,7 +339,7 @@ class Clip(Removable, Renderable):
         filter_types: tuple[type, ...] | None = None,
         ignore_types: tuple[type, ...] | None = None,
     ) -> Iterator[Layer]:
-        """Iterator over the clip's layers.
+        """Returns an iterator over the clip's layers.
 
         Args:
             filter_types: list of layer types to return, default is None, meaning all.
@@ -370,7 +370,7 @@ class Clip(Removable, Renderable):
     @property
     @george.deprecated_warning(msg="use `Clip.get_layers()` instead.")
     def layers(self) -> Iterator[Layer]:
-        """Iterator over the clip's animation layers, ignores all Folder, Camera and CTG layers.
+        """Returns an iterator over the clip's animation layers, excluding all Folder, Camera and CTG layers.
 
         Warning:
             DEPRECATED: use `Clip.get_layers()` instead.
@@ -379,13 +379,13 @@ class Clip(Removable, Renderable):
 
     @property
     def anim_layers(self) -> Iterator[Layer]:
-        """Iterator over the clip's animation layers, ignores all Folder, Camera and CTG layers."""
+        """Returns an iterator over the clip's animation layers, excluding all Folder, Camera and CTG layers."""
         yield from self.get_layers(ignore_types=(LayerFolder, CameraLayer, CTGLayer))
 
     @property
     @george.min_version_compatible(min_version="12")
     def ctg_layers(self) -> Iterator[CTGLayer]:
-        """Iterator over the clip's CTG layers.
+        """Returns an iterator over the clip's CTG layers.
 
         Note:
             This function is only available in TVPaint version 12 and above.
@@ -399,7 +399,7 @@ class Clip(Removable, Renderable):
     @property
     @george.min_version_compatible(min_version="12")
     def folders(self) -> Iterator[LayerFolder]:
-        """Iterator over the clip's Folder layers.
+        """Returns an iterator over the clip's Folder layers.
 
         Note:
             This function is only available in TVPaint version 12 and above.
@@ -413,7 +413,7 @@ class Clip(Removable, Renderable):
     @property
     @george.min_version_compatible(min_version="12")
     def camera_layer(self) -> CameraLayer | None:
-        """Iterator over the clip's Folder layers.
+        """Returns the clip's Camera layer.
 
         Note:
             This function is only available in TVPaint version 12 and above.
@@ -432,7 +432,7 @@ class Clip(Removable, Renderable):
     @property
     @set_as_current
     def layer_names(self) -> Iterator[str]:
-        """Iterator over the clip's layer names."""
+        """Returns an iterator over the clip's layer names."""
         for layer in self.get_layers():
             yield layer.name
 
@@ -489,12 +489,12 @@ class Clip(Removable, Renderable):
 
     @property
     def selected_layers(self) -> Iterator[Layer]:
-        """Iterator over the selected layers."""
+        """Returns an iterator over the selected layers."""
         yield from (layer for layer in self.get_layers() if layer.is_selected)
 
     @property
     def visible_layers(self) -> Iterator[Layer]:
-        """Iterator over the visible layers."""
+        """Returns an iterator over the visible layers."""
         yield from (layer for layer in self.get_layers() if layer.is_visible)
 
     @set_as_current
@@ -931,7 +931,7 @@ class Clip(Removable, Renderable):
 
     @property
     def layer_colors(self) -> Iterator[LayerColor]:
-        """Iterator over the layer colors."""
+        """Returns an iterator over the layer colors."""
         for color_index in range(26):
             yield LayerColor(color_index=color_index, clip=self)
 
@@ -982,7 +982,7 @@ class Clip(Removable, Renderable):
 
     @property
     def bookmarks(self) -> Iterator[int]:
-        """Iterator over the clip bookmarks."""
+        """Returns an iterator over the clip bookmarks."""
         bookmarks_iter = utils.position_generator(lambda pos: george.tv_bookmarks_enum(pos))
         project_start_frame = self.project.start_frame
         return (frame + project_start_frame for frame in bookmarks_iter)

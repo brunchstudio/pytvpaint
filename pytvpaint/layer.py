@@ -978,18 +978,16 @@ class Layer(Removable):
         frame = frame or self.clip.current_frame
         self.clip.current_frame = frame
 
-        with utils.render_context(
-            alpha_mode,
-            background_mode,
-            save_format,
-            format_opts,
+        self.clip.render(
+            output_path=output_path,
+            start=frame,
+            end=frame,
+            use_camera=use_camera,
             layer_selection=[self],
-        ):
-            george.tv_save_image(export_path)
-
-        if not export_path.exists():
-            raise FileNotFoundError(f"Could not find rendered image ({frame}) at : {export_path.as_posix()}")
-
+            alpha_mode=alpha_mode,
+            background_mode=background_mode,
+            format_opts=format_opts,
+        )
         return export_path
 
     @set_as_current
@@ -1106,7 +1104,7 @@ class Layer(Removable):
 
     @property
     def marks(self) -> Iterator[tuple[int, LayerColor]]:
-        """Iterator over the layer marks including the frame and the color.
+        """Returns an iterator over the layer marks including the frame and the color.
 
         Yields:
             frame (int): the mark frame

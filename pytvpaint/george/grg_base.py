@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, TypeVar, cast, overload
+import warnings
 
 from packaging import version
 from typing_extensions import Literal, TypeAlias
@@ -699,6 +700,7 @@ def deprecated_warning(msg: str) -> Callable[[T], T]:
     def decorate(func: T) -> T:
         @functools.wraps(func)
         def applicator(*args: Any, **kwargs: Any) -> Any:
+            warnings.warn(msg, DeprecationWarning)
             log.warning(f"DEPRECTED: {msg}")
             return func(*args, **kwargs)
 

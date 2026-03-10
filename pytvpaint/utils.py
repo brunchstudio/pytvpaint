@@ -139,6 +139,7 @@ class Renderable(ABC):
         default_end: int,
         start: int | None = None,
         end: int | None = None,
+        frameset: FrameSet | None = None,
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,

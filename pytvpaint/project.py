@@ -447,7 +447,7 @@ class Project(Refreshable, Renderable):
 
     @property
     def sounds(self) -> Iterator[ProjectSound]:
-        """Iterator over the project sounds."""
+        """Returns an iterator over the project sounds."""
         sounds_data_iter = utils.position_generator(lambda pos: george.tv_sound_project_info(self.id, pos))
 
         for track_index, _ in enumerate(sounds_data_iter):
@@ -614,7 +614,7 @@ class Project(Refreshable, Renderable):
 
     @classmethod
     def open_projects(cls) -> Iterator[Project]:
-        """Iterator over the currently open projects."""
+        """Returns an iterator over the currently open projects."""
         for project_id in Project.open_projects_ids():
             yield Project(project_id)
 

@@ -46,9 +46,7 @@ class Scene(Removable):
         )
 
     @classmethod
-    def new(
-        cls, project: Project | None = None, clips: list[str] | None = None
-    ) -> Scene:
+    def new(cls, project: Project | None = None, clips: list[str] | None = None) -> Scene:
         """Creates a new scene in the provided project.
 
         Args:
@@ -129,10 +127,8 @@ class Scene(Removable):
     @property
     @set_as_current
     def clip_ids(self) -> Iterator[int]:
-        """Returns an iterator over the clip ids."""
-        return utils.position_generator(
-            lambda pos: george.tv_clip_enum_id(self.id, pos)
-        )
+        """Returns an Returns an iterator over the clip ids."""
+        return utils.position_generator(lambda pos: george.tv_clip_enum_id(self.id, pos))
 
     @property
     def clips(self) -> Iterator[Clip]:
