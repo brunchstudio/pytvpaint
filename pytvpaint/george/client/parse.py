@@ -180,45 +180,45 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:  # noqa: C901
 
     clean_val = clean_val.strip("\"'")
     # Basic Primitives
-    if cast_type is str:
-        return cast(T, clean_val)
-    if cast_type is int:
-        return cast(T, int(float(clean_val)))
-    if cast_type is float:
-        return cast(T, float(clean_val))
-    if cast_type is Path:
-        return cast(T, Path(clean_val))
-    if cast_type is bool:
-        return cast(T, clean_val.lower() in ("true", "1", "yes", "on"))
+    if isinstance(cast_type, str):
+        return clean_val
+    if isinstance(cast_type, int):
+        return int(float(clean_val))
+    if isinstance(cast_type, float):
+        return float(clean_val)
+    if isinstance(cast_type, Path):
+        return Path(clean_val)
+    if isinstance(cast_type, bool):
+        return clean_val.lower() in ("true", "1", "yes", "on")
 
     # Enums
     if isinstance(cast_type, type) and issubclass(cast_type, Enum):
         # By Name
         with suppress(KeyError):
-            return cast(T, cast_type[clean_val])
+            return cast_type[clean_val]
         with suppress(KeyError):
-            return cast(T, cast_type[clean_val.lower()])
+            return cast_type[clean_val.lower()]
         # By value
         with suppress(ValueError):
-            return cast(T, cast_type(clean_val))
+            return cast_type(clean_val)
         with suppress(ValueError):
-            return cast(T, cast_type(clean_val.lower()))
+            return cast_type(clean_val.lower())
 
         # Exhaustive case-insensitive search for names and string values
         clean_lower = clean_val.lower()
         for member in cast_type:
             if member.name.lower() == clean_lower:
-                return cast(T, member)
+                return member
             if isinstance(member.value, str) and member.value.lower() == clean_lower:
-                return cast(T, member)
+                return member
 
         # By int value (for "1" -> 1)
         with suppress(ValueError):
-            return cast(T, cast_type(int(float(clean_val))))
+            return cast_type(int(float(clean_val)))
         # By Index (Position in definition)
         if clean_val.isdigit():
             with suppress(IndexError):
-                return cast(T, list(cast_type)[int(clean_val)])
+                return list(cast_type)[int(clean_val)]
 
         raise ValueError(f"'{clean_val}' is not a valid {cast_type.__name__}")
 

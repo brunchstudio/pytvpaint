@@ -245,17 +245,15 @@ def wav_file(tmp_path_factory: pytest.TempPathFactory) -> Path:
     n_frames = framerate * duration
     max_amp = 2 ** (amp_width * 8 - 1) - 1
 
-    wav = wave.open(str(wav_path), "wb")
-    wav.setnchannels(1)
-    wav.setsampwidth(amp_width)
-    wav.setframerate(framerate)
+    with wave.open(str(wav_path), "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(amp_width)
+        wav.setframerate(framerate)
 
-    for _ in range(n_frames):
-        value = randint(-max_amp, max_amp)
-        data = struct.pack("<h", value)
-        wav.writeframesraw(data)
-
-    wav.close()
+        for _ in range(n_frames):
+            value = randint(-max_amp, max_amp)
+            data = struct.pack("<h", value)
+            wav.writeframesraw(data)
 
     return wav_path
 

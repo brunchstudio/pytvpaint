@@ -7,13 +7,7 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast, runtime_checkable
 
 from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
@@ -146,14 +140,14 @@ class Renderable(ABC):
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
-        if start or end and not frame_set:
+        if (start or end) and not frame_set:
             log.warning("Use of `start` and `end` is deprecated, prefer using `fileseq.FrameSet()` instead.")
         if start and end and frame_set and any(f not in frame_set for f in (start, end)):
             log.warning("`start` and/or `end` outside of `frame_set` range, will prioritize FrameSet.")
 
         if frame_set is not None and not (start and end):
-            start = start if start is not None else frame_set.start()
-            end = end if end is not None else frame_set.end()
+            start = start if start is not None else int(frame_set.start())
+            end = end if end is not None else int(frame_set.end())
 
         # finds range if none provided or in path and clamps it to the correct context
         file_sequence, start, end, is_sequence, is_image = handle_output_range(
@@ -419,31 +413,25 @@ def restore_current_frame(tvp_element: HasCurrentFrame, frame: int) -> Generator
         tvp_element.current_frame = previous_frame
 
 
+@runtime_checkable
 class _TVPElement(Protocol):
     @property
     def id(self) -> int | str: ...
-
     @property
     def name(self) -> str: ...
 
 
-class _TVPElementWithPath(_TVPElement, Protocol):
-
-    @property
-    def path(self) -> Path: ...
-
-
-_TVPElementType = TypeVar("_TVPElementType", bound=_TVPElement)
-_TVPElementWithPathType = TypeVar("_TVPElementWithPathType", bound=_TVPElementWithPath)
+# We define a single TypeVar bound to the base protocol
+TVPElementType = TypeVar("TVPElementType", bound=_TVPElement)
 
 
 def get_tvp_element(
-    tvp_elements: Iterator[_TVPElementType | _TVPElementWithPathType],
+    tvp_elements: Iterator[TVPElementType],
     by_id: int | str | None = None,
     by_name: str | None = None,
     by_regex: re.Pattern[str] | None = None,
     by_path: str | Path | None = None,
-) -> _TVPElementType | _TVPElementWithPathType | None:
+) -> TVPElementType | None:
     """Search for a TVPaint element by attributes.
 
     Args:
@@ -514,8 +502,8 @@ def handle_output_range(
 
     # if the provided sequence has a range, and we don't, use the sequence range
     if frame_set and len(frame_set) >= 1 and is_image:
-        start = start or file_sequence.start()
-        end = end or file_sequence.end()
+        start = start or int(file_sequence.start())
+        end = end or int(file_sequence.end())
 
     # check characteristics of file sequence
     fseq_has_range = frame_set and len(frame_set) > 1
