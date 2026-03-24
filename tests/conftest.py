@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import struct
 import wave
+import zlib
 from collections.abc import Generator
 from pathlib import Path
 from random import randint
@@ -12,39 +13,7 @@ import pytest
 from pytvpaint import george
 from pytvpaint.clip import Clip
 from pytvpaint.george.client import send_cmd
-from pytvpaint.george.grg_base import tv_pen_brush_set
-from pytvpaint.george.grg_clip import (
-    TVPClip,
-    tv_clip_close,
-    tv_clip_current_id,
-    tv_clip_enum_id,
-    tv_clip_info,
-    tv_clip_new,
-    tv_sound_clip_new,
-)
-from pytvpaint.george.grg_layer import (
-    TVPLayer,
-    tv_layer_anim,
-    tv_layer_create,
-    tv_layer_get_id,
-    tv_layer_info,
-    tv_layer_kill,
-)
-from pytvpaint.george.grg_project import (
-    TVPProject,
-    tv_project_close,
-    tv_project_current_id,
-    tv_project_enum_id,
-    tv_project_info,
-    tv_project_new,
-    tv_sound_project_new,
-)
-from pytvpaint.george.grg_scene import (
-    tv_scene_close,
-    tv_scene_current_id,
-    tv_scene_enum_id,
-    tv_scene_new,
-)
+from pytvpaint.guideline import GuidelineLine
 from pytvpaint.layer import Layer
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
@@ -54,74 +23,77 @@ T = TypeVar("T")
 FixtureYield = Generator[T, None, None]
 
 
-def _fix_tvp_12_selection() -> None:
-    from packaging import version
+IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
 
-    _, tvp_version, _ = george.tv_version()
-    current_version = version.parse(tvp_version)
+
+def _fix_tvp_12_selection() -> None:
+    if IS_NOT_TVP12:
+        return
 
     # if tvp_version >= 12 and current_layer is Camera, then select first real layer instead:
-    if current_version.major >= 12:
-        current_clip = Project.current_project().current_clip
-        current_layer = current_clip.current_layer
-        if current_layer.layer_type == george.LayerType.CAMERA:
-            # switch to first layer in real/non-camera layers
-            first_layer = None
-            for layer in current_clip.get_layers():
-                if layer.layer_type == george.LayerType.CAMERA:
-                    continue
+    current_clip = Project.current_project().current_clip
+    current_layer = current_clip.current_layer
+    if current_layer.layer_type == george.LayerType.CAMERA:
+        # switch to first layer in real/non-camera layers
+        first_layer = None
+        for layer in current_clip.get_layers():
+            if layer.layer_type == george.LayerType.CAMERA:
+                continue
 
-                first_layer = layer
-                break
+            first_layer = layer
+            break
 
-            if first_layer:
-                first_layer.make_current()
+        if first_layer:
+            first_layer.make_current()
 
 
 @pytest.fixture(scope="function")
 def pen_brush_reset() -> FixtureYield[None]:
     """Resets the pen brush after the test"""
     yield
-    tv_pen_brush_set(reset=True)
+    george.tv_pen_brush_set(reset=True)
 
 
 @pytest.fixture
-def test_project(tmp_path: Path) -> FixtureYield[TVPProject]:
+def test_project(tmp_path: Path) -> FixtureYield[george.TVPProject]:
     """
     Fixture to create an empty project and remove it after
     Useful when you want to isolate a test
     """
-    project_id = tv_project_new(tmp_path / "project.tvpp")
+    project_id = george.tv_project_new(tmp_path / "project.tvpp")
+    for p_id in Project.open_projects_ids():
+        if p_id == project_id:
+            continue
+        george.tv_project_close(p_id)
 
     _fix_tvp_12_selection()
 
-    yield tv_project_info(project_id)
-    tv_project_close(project_id)
+    yield george.tv_project_info(project_id)
+    george.tv_project_close(project_id)
 
 
 @pytest.fixture
-def test_project_obj(test_project: TVPProject) -> FixtureYield[Project]:
+def test_project_obj(test_project: george.TVPProject) -> FixtureYield[Project]:
     p = Project(test_project.id)
-    _fix_tvp_12_selection()
     yield p
 
 
 @pytest.fixture
 def cleanup_current_project() -> FixtureYield[None]:
     yield
-    tv_project_close(tv_project_current_id())
+    george.tv_project_close(george.tv_project_current_id())
 
 
 @pytest.fixture
-def test_layer() -> FixtureYield[TVPLayer]:
+def test_layer() -> FixtureYield[george.TVPLayer]:
     """Temporary layer for testing"""
-    layer = tv_layer_create("test")
-    yield tv_layer_info(layer)
-    tv_layer_kill(layer)
+    layer = george.tv_layer_create("test")
+    yield george.tv_layer_info(layer)
+    george.tv_layer_kill(layer)
 
 
 @pytest.fixture
-def test_layer_obj(test_clip_obj: Clip, test_layer: TVPLayer) -> FixtureYield[Layer]:
+def test_layer_obj(test_clip_obj: Clip, test_layer: george.TVPLayer) -> FixtureYield[Layer]:
     """Temporary layer object for testing"""
     yield Layer(test_layer.id, test_clip_obj)
 
@@ -134,23 +106,23 @@ def test_anim_layer_obj(test_layer_obj: Layer) -> FixtureYield[Layer]:
 
 
 @pytest.fixture
-def test_anim_layer(test_layer: TVPLayer) -> FixtureYield[TVPLayer]:
+def test_anim_layer(test_layer: george.TVPLayer) -> FixtureYield[george.TVPLayer]:
     """Temporary anim layer for testing"""
-    tv_layer_anim(test_layer.id)
+    george.tv_layer_anim(test_layer.id)
     yield test_layer
 
 
 @pytest.fixture
-def test_clip() -> FixtureYield[TVPClip]:
+def test_clip() -> FixtureYield[george.TVPClip]:
     """Temporary clip for testing"""
-    tv_clip_new("test")
-    clip = tv_clip_current_id()
-    yield tv_clip_info(clip)
-    tv_clip_close(clip)
+    george.tv_clip_new("test")
+    clip = george.tv_clip_current_id()
+    yield george.tv_clip_info(clip)
+    george.tv_clip_close(clip)
 
 
 @pytest.fixture
-def test_clip_obj(test_project_obj: Project, test_clip: TVPClip) -> FixtureYield[Clip]:
+def test_clip_obj(test_project_obj: Project, test_clip: george.TVPClip) -> FixtureYield[Clip]:
     """Temporary clip object for testing"""
     yield Clip(test_clip.id, test_project_obj)
 
@@ -158,16 +130,28 @@ def test_clip_obj(test_project_obj: Project, test_clip: TVPClip) -> FixtureYield
 @pytest.fixture
 def test_scene() -> FixtureYield[int]:
     """Temporary scene for testing"""
-    tv_scene_new()
-    scene = tv_scene_current_id()
+    george.tv_scene_new()
+    scene = george.tv_scene_current_id()
     yield scene
-    tv_scene_close(scene)
+    george.tv_scene_close(scene)
 
 
 @pytest.fixture
 def test_scene_obj(test_project_obj: Project, test_scene: int) -> FixtureYield[Scene]:
     """Temporary scene object for testing"""
     yield Scene(test_scene, test_project_obj)
+
+
+@pytest.fixture(name="guideline_pos")
+def test_guideline(test_project: george.TVPProject) -> FixtureYield[int]:
+    pos = george.tv_guideline_add_line(x=10, y=10, angle=45)
+    yield pos
+
+
+@pytest.fixture
+def test_guideline_obj(test_project_obj: Project) -> FixtureYield[GuidelineLine]:
+    guideline_obj = GuidelineLine.new(test_project_obj, x=10, y=10, angle=45)
+    yield guideline_obj
 
 
 @pytest.fixture
@@ -198,32 +182,51 @@ def count_up_generate(test_clip_obj: Clip) -> None:
         george.tv_update_undo()
 
 
-def ppm_generate(path: Path, width: int, height: int, levels: int = 255) -> None:
+def png_generate(path: Path, width: int, height: int) -> None:
     """
-    Generates an ASCII PPM image file with random gray level pixels
-    See: https://fr.wikipedia.org/wiki/Portable_pixmap
+    Generates a valid grayscale PNG image file using pure Python.
+    No external dependencies required.
     """
+    signature = b"\x89PNG\r\n\x1a\n"
 
-    with path.open("w") as ppm:
-        ppm.writelines(["P2\n", f"{width} {height}\n", f"{levels}\n"])
-        for _ in range(height):
-            pixels = (randint(0, levels) for _ in range(width))
-            row = " ".join(map(str, pixels))
-            ppm.write(f"{row}\n")
+    def make_chunk(chunk_type: bytes, data: bytes) -> bytes:
+        """Helper to create a standard PNG chunk with length and CRC32."""
+        length = struct.pack(">I", len(data))
+        crc = struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
+        return length + chunk_type + data + crc
+
+    ihdr_data = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
+    ihdr = make_chunk(b"IHDR", ihdr_data)
+
+    raw_data = bytearray()
+    for _ in range(height):
+        raw_data.append(0)  # Filter type 0
+        for _ in range(width):
+            raw_data.append(randint(0, 255))
+
+    idat_data = zlib.compress(raw_data)
+    idat = make_chunk(b"IDAT", idat_data)
+    iend = make_chunk(b"IEND", b"")
+
+    with path.open("wb") as f:
+        f.write(signature)
+        f.write(ihdr)
+        f.write(idat)
+        f.write(iend)
 
 
 @pytest.fixture(scope="session")
-def ppm_sequence(tmp_path_factory: pytest.TempPathFactory) -> FixtureYield[list[Path]]:
+def png_sequence(tmp_path_factory: pytest.TempPathFactory) -> Generator[list[Path], None, None]:
     """
-    Session scoped fixture to get a sequence of generated PPM images
+    Session scoped fixture to get a sequence of generated PNG images.
     """
     images_dir = tmp_path_factory.mktemp("images")
     images: list[Path] = []
 
     for i in range(5):
-        ppm = images_dir / f"image.{(i + 1):03d}.ppm"
-        ppm_generate(ppm, 200, 200)
-        images.append(ppm)
+        png_path = images_dir / f"image.{(i + 1):03d}.png"
+        png_generate(png_path, 200, 200)
+        images.append(png_path)
 
     yield images
 
@@ -265,17 +268,17 @@ def create_some_projects(tmp_path: Path) -> FixtureYield[list[Project]]:
     projects: list[Project] = []
 
     for i in range(5):
-        p_id = tv_project_new(tmp_path / f"project_{i}.tvpp")
+        p_id = george.tv_project_new(tmp_path / f"project_{i}.tvpp")
         projects.append(Project(p_id))
 
     # Remove the default project
-    tv_project_close(tv_project_enum_id(0))
+    george.tv_project_close(george.tv_project_enum_id(0))
 
     yield projects
 
     for project in projects:
         if not project.is_closed:
-            tv_project_close(project.id)
+            george.tv_project_close(project.id)
 
 
 @pytest.fixture
@@ -284,12 +287,12 @@ def create_some_scenes(test_project_obj: Project) -> FixtureYield[list[Scene]]:
     scenes: list[Scene] = []
 
     for i in range(5):
-        tv_scene_new()
-        scene_id = tv_scene_enum_id(i + 1)
+        george.tv_scene_new()
+        scene_id = george.tv_scene_enum_id(i + 1)
         scenes.append(Scene(scene_id, test_project_obj))
 
     # Remove the default scene
-    tv_scene_close(tv_scene_enum_id(0))
+    george.tv_scene_close(george.tv_scene_enum_id(0))
 
     yield scenes
 
@@ -303,12 +306,12 @@ def create_some_clips(
     clips: list[Clip] = []
 
     for i in range(5):
-        tv_clip_new(f"clip_{i}")
-        clip_id = tv_clip_enum_id(scene.id, i + 1)
+        george.tv_clip_new(f"clip_{i}")
+        clip_id = george.tv_clip_enum_id(scene.id, i + 1)
         clips.append(Clip(clip_id, test_project_obj))
 
     # Remove the default clip
-    tv_clip_close(tv_clip_enum_id(scene.id, 0))
+    george.tv_clip_close(george.tv_clip_enum_id(scene.id, 0))
 
     yield clips
 
@@ -322,12 +325,12 @@ def create_some_layers(
     layers: list[Layer] = []
 
     for i in range(5):
-        tv_layer_create(f"layer_{i}")
-        layer_id = tv_layer_get_id(i + 1)
+        george.tv_layer_create(f"layer_{i}")
+        layer_id = george.tv_layer_get_id(i + 1)
         layers.append(Layer(layer_id, test_clip_obj))
 
     # Remove the default layer
-    tv_layer_kill(tv_layer_get_id(0))
+    george.tv_layer_kill(george.tv_layer_get_id(0))
 
     yield layers
 
@@ -341,25 +344,25 @@ def create_some_layer_folders(
     layers: list[Layer] = []
 
     for i in range(5):
-        tv_layer_create(f"layer_{i}", layer_type=0)
-        layer_id = tv_layer_get_id(i + 1)
+        george.tv_layer_create(f"layer_{i}", layer_type=0)
+        layer_id = george.tv_layer_get_id(i + 1)
         layers.append(Layer(layer_id, test_clip_obj))
 
     # Remove the default layer
-    tv_layer_kill(tv_layer_get_id(0))
+    george.tv_layer_kill(george.tv_layer_get_id(0))
 
     yield layers
 
 
 @pytest.fixture
 def test_project_sound(test_project_obj: Project, wav_file: Path) -> FixtureYield[ProjectSound]:
-    tv_sound_project_new(wav_file)
+    george.tv_sound_project_new(wav_file)
     yield ProjectSound(0, test_project_obj)
 
 
 @pytest.fixture
 def test_clip_sound(test_clip_obj: Clip, wav_file: Path) -> FixtureYield[ClipSound]:
-    tv_sound_clip_new(wav_file)
+    george.tv_sound_clip_new(wav_file)
     yield ClipSound(0, test_clip_obj)
 
 
@@ -368,16 +371,16 @@ def create_some_project_sounds(test_project_obj: Project, wav_file: Path) -> Fix
     sounds: list[ProjectSound] = []
 
     for i in range(5):
-        tv_sound_project_new(wav_file)
+        george.tv_sound_project_new(wav_file)
         sounds.append(ProjectSound(i, test_project_obj))
 
     yield sounds
 
 
 @pytest.fixture
-def with_loaded_sequence(test_clip_obj: Clip, ppm_sequence: list[Path]) -> FixtureYield[Layer]:
+def with_loaded_sequence(test_clip_obj: Clip, png_sequence: list[Path]) -> FixtureYield[Layer]:
     yield test_clip_obj.load_media(
-        ppm_sequence[0],
+        png_sequence[0],
         with_name="images",
         stretch=False,
         preload=True,
@@ -387,3 +390,11 @@ def with_loaded_sequence(test_clip_obj: Clip, ppm_sequence: list[Path]) -> Fixtu
 @pytest.fixture(scope="function", autouse=True)
 def fix_tvp_12_selection() -> None:
     _fix_tvp_12_selection()
+
+
+def load_sequence_with_name(first_frame: Path, name: str, count: int) -> int:
+    """Load an image sequence and rename the layer"""
+    george.tv_load_sequence(first_frame, offset_count=(0, count))
+    layer_id = george.tv_layer_current_id()
+    george.tv_layer_rename(layer_id, name)
+    return layer_id

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
 import contextlib
+import re
 from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from pathlib import Path
@@ -19,7 +19,7 @@ from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
 from typing_extensions import ParamSpec, Protocol
 
-from pytvpaint import george
+from pytvpaint import george, log
 from pytvpaint.george.exceptions import GeorgeError
 
 if TYPE_CHECKING:
@@ -124,7 +124,7 @@ class Renderable(ABC):
         """Set the current frame."""
         pass
 
-    def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
+    def _get_real_range(self, start: int, end: int, frame_set: FrameSet | None = None) -> tuple[int, int, FrameSet]:
         """Removes the object in TVPaint."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
@@ -132,27 +132,42 @@ class Renderable(ABC):
         """Raises an exception if given range is invalid."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
-    def _render(
+    def _render(  # noqa: C901
         self,
         output_path: Path | str | FileSequence,
         default_start: int,
         default_end: int,
         start: int | None = None,
         end: int | None = None,
-        frameset: FrameSet | None = None,
+        frame_set: FrameSet | None = None,
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
     ) -> None:
+        if start or end and not frame_set:
+            log.warning("Use of `start` and `end` is deprecated, prefer using `fileseq.FrameSet()` instead.")
+        if start and end and frame_set and any(f not in frame_set for f in (start, end)):
+            log.warning("`start` and/or `end` outside of `frame_set` range, will prioritize FrameSet.")
+
+        if frame_set is not None and not (start and end):
+            start = start if start is not None else frame_set.start()
+            end = end if end is not None else frame_set.end()
+
+        # finds range if none provided or in path and clamps it to the correct context
         file_sequence, start, end, is_sequence, is_image = handle_output_range(
             output_path, default_start, default_end, start, end
         )
         self._validate_range(start, end)
 
-        origin_start = int(start)
-        start, end = self._get_real_range(start, end)
+        # we should have a range by now, let's apply/save it
+        if frame_set is not None:
+            file_sequence.setFrameSet(frame_set)
+        else:
+            frame_set = file_sequence.frameSet()
+
+        start, end, frame_set = self._get_real_range(start, end, frame_set)
         if not is_image and start == end:
             raise ValueError("TVPaint will not render a movie that contains a single frame")
 
@@ -166,18 +181,25 @@ class Renderable(ABC):
         save_format = george.SaveFormat.from_extension(file_sequence.extension().lower())
 
         # render to output
+        # not using tv_save_sequence since it doesn't handle camera and would require different range math
         with render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
-            if start == end:
-                with restore_current_frame(self, origin_start):
-                    george.tv_save_display(first_frame)
-            else:
-                # not using tv_save_sequence since it doesn't handle camera and would require different range math
+            if frame_set.isConsecutive():
                 george.tv_project_save_sequence(
                     first_frame,
                     start=start,
                     end=end,
                     use_camera=use_camera,
                 )
+            else:
+                for i, real_frame_nb in enumerate(frame_set.items):
+                    frame_nb = list(file_sequence.frameSet().items)[i]  # type: ignore[union-attr]
+                    frame_path = Path(file_sequence.frame(frame_nb))
+                    george.tv_project_save_sequence(
+                        frame_path,
+                        start=frame_nb,
+                        end=frame_nb,
+                        use_camera=use_camera,
+                    )
 
         # make sure the output exists otherwise raise an error
         if is_sequence:
@@ -327,7 +349,6 @@ def render_context(
         format_opts: the custom format options as strings. Defaults to None.
         layer_selection: the layers to render. Defaults to None.
     """
-
     # Save the current state
     pre_alpha_save_mode = george.tv_alpha_save_mode_get()
     pre_save_format, pre_save_args = george.tv_save_mode_get()
@@ -406,7 +427,7 @@ class _TVPElement(Protocol):
     def name(self) -> str: ...
 
 
-class _TVPElementWithPath(_TVPElement):
+class _TVPElementWithPath(_TVPElement, Protocol):
 
     @property
     def path(self) -> Path: ...
@@ -440,7 +461,7 @@ def get_tvp_element(
     """
     values = (by_id, by_name, by_regex, by_path)
     if not any(v is not None for v in values):
-        raise ValueError(f"At least one value ({' or '.join(values)} must be provided")
+        raise ValueError(f"At least one value ({' or '.join(str(v) for v in values)} must be provided")
 
     for element in tvp_elements:
         if by_id is not None and element.id != by_id:

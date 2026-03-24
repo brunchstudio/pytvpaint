@@ -5,10 +5,10 @@ It also has crucial functions like `send_cmd` that send George commands and get 
 
 from __future__ import annotations
 
+import contextlib
+import functools
 import os
 import re
-import functools
-import contextlib
 from pathlib import Path
 from time import sleep, time
 from typing import Any, Callable, TypeVar, cast
@@ -28,7 +28,7 @@ def _connect_client(host: str = "ws://localhost", port: int = 3000, timeout: int
     rpc_client = JSONRPCClient(f"{host}:{port}", timeout)
 
     if not startup_connect:
-        log.debug(f"Auto Connect Disabled, RPC client is not connected")
+        log.debug("Auto Connect Disabled, RPC client is not connected")
         return rpc_client
 
     start_time = time()

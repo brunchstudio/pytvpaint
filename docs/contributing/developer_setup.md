@@ -6,29 +6,34 @@ This guide will explain how to set up your environment in order to contribute to
 
 - [Python](https://www.python.org/) 3.9 or greater are the supported versions for PyTVPaint.
 
-- We use [Poetry](https://python-poetry.org/) which is the packaging and dependency management tool. It handles your dev virtualenv with your working dependencies.
+- We use [Hatch](https://hatch.pypa.io/) which is the packaging and dependency management tool. It handles your dev virtualenv with your working dependencies.
 
 ## PyTVPaint
 
 First clone the repository:
 
 ```shell
-❯ git clone https://github.com/brunchstudio/pytvpaint.git
+❯ git clone [https://github.com/brunchstudio/pytvpaint.git](https://github.com/brunchstudio/pytvpaint.git)
 
 # or if you use SSH auth
 ❯ git clone git@github.com:brunchstudio/pytvpaint.git
 ```
 
-Then install the dependencies in a virtualenv with Poetry:
-
+Install Hatch if needed:
 ```shell
-❯ poetry install
+❯ pip install hatch
 ```
 
-Note that this will only install the library dependency. To install optional [dependency groups](https://python-poetry.org/docs/managing-dependencies/#dependency-groups) (to build the documentation, run tests, etc...) you can use the `--with` parameter:
+Then install the dependencies in a virtualenv with Hatch:
 
 ```shell
-❯ poetry install --with dev,docs,test
+❯ hatch env create
+```
+
+Note that this will install the library and default development dependencies. To install optional [environments](https://hatch.pypa.io/latest/config/environment/overview/) (to build the documentation, etc...) you can specify the environment name:
+
+```shell
+❯ hatch env create docs
 ```
 
 ### Code formatting
@@ -45,7 +50,7 @@ We use [Black](https://black.readthedocs.io/en/stable/) to ensure that the code 
 
 !!! Tip
 
-    Use `poetry shell` to enter a new shell in the virtualenv. In this page commands marked `(venv) ❯` can also be run with `poetry run <command>`
+    Use `hatch shell` to enter a new shell in the virtualenv. In this page commands marked `(venv) ❯` can also be run with `hatch run <command>`
 
 ### Linting
 
@@ -68,7 +73,7 @@ Mypy is the go-to static type checker for Python. It ensures that variables and 
 
 !!! info
 
-    We currently exclude untyped calls for [Fileseq](https://github.com/justinfx/fileseq) and [websocket-client](https://github.com/websocket-client/websocket-client)  in [`pyproject.toml`](https://github.com/brunchstudio/pytvpaint/blob/main/pyproject.toml) with [`untyped_calls_exclude`](https://mypy.readthedocs.io/en/stable/config_file.html#untyped-definitions-and-calls)
+    We currently exclude untyped calls for [Fileseq](https://github.com/justinfx/fileseq) and [websocket-client](https://github.com/websocket-client/websocket-client)  in [`pyproject.toml`](https://github.com/brunchstudio/pytvpaint/blob/main/pyproject.toml) with [`untyped_calls_exclude`](https://mypy.readthedocs.io/en/stable/config_file.html#untyped-definitions-and-calls)
 
 ### Documentation
 
@@ -79,7 +84,7 @@ On top of that we use [Material for MkDocs](https://squidfunk.github.io/mkdocs-m
 You can either run the development server or build the entire documentation:
 
 ```shell
-# Will serve the doc on http://127.0.0.1:8000 with hot reload
+# Will serve the doc on [http://127.0.0.1:8000](http://127.0.0.1:8000) with hot reload
 (venv) ❯ mkdocs serve
 
 # Build the doc as static files
@@ -114,7 +119,7 @@ To run the tests you'll need an open TVPaint instance with the [tvpaint-rpc plug
 To run them, use the following commands:
 
 ```shell
-# Will run all the tests
+# run all the tests
 (venv) ❯ pytest
 
 # Run with verbosity enabled (use PYTVPAINT_LOG_LEVEL to DEBUG) to see George commands

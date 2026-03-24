@@ -190,7 +190,7 @@ class Camera(Refreshable):
 
     @set_as_current
     def get_point_data_at(self, position: float) -> InterpolationCameraPoint:
-        """Get the points data interpolated at that position (between 0 and 1)."""
+        """Get the points data interpolated at the provided position (between 0 and 1)."""
         return InterpolationCameraPoint(position, self, InterpolationCameraPoint.get_point_data_at(position))
 
     @george.min_version_compatible(min_version="12")
@@ -201,7 +201,7 @@ class Camera(Refreshable):
 
     @set_as_current
     def remove_point(self, index: int) -> None:
-        """Remove a point at that index."""
+        """Remove a point at the provided index."""
         try:
             point = next(p for i, p in enumerate(self.points) if i == index)
             point.remove()
@@ -294,7 +294,7 @@ class CameraPoint(Removable):
 
     @refreshed_property
     def angle(self) -> float:
-        """The angle of the camera at that point."""
+        """The angle of the camera at the point."""
         return self._data.angle
 
     @angle.setter
@@ -310,7 +310,7 @@ class CameraPoint(Removable):
 
     @refreshed_property
     def scale(self) -> float:
-        """The scale of the camera at that point."""
+        """The scale of the camera at the point."""
         return self._data.scale
 
     @scale.setter
@@ -326,12 +326,12 @@ class CameraPoint(Removable):
 
     @property
     def width(self) -> float:
-        """The scale of the camera at that point."""
+        """The scale of the camera at the point."""
         return self.camera.clip.project.width * (self.scale * 0.01)
 
     @property
     def height(self) -> float:
-        """The scale of the camera at that point."""
+        """The scale of the camera at the point."""
         return self.camera.clip.project.height * (self.scale * 0.01)
 
     @classmethod
@@ -344,7 +344,7 @@ class CameraPoint(Removable):
         angle: int,
         scale: float,
     ) -> CameraPoint:
-        """Create a new point and add it to the camera path at that index."""
+        """Create a new point and add it to the camera path at the provided index."""
         george.tv_camera_insert_point(index, x, y, angle, scale)
         return cls(index, camera)
 
@@ -352,7 +352,7 @@ class CameraPoint(Removable):
         """Remove the camera point.
 
         Warning:
-            the point instance won't be usable after that call
+            the point instance won't be usable after this call
         """
         george.tv_camera_remove_point(self.index)
         self.mark_removed()
@@ -384,7 +384,7 @@ class InterpolationCameraPoint(CameraPoint):
 
     @classmethod
     def get_point_data_at(cls, position: float) -> george.TVPCameraPoint:
-        """Get the points data interpolated at that position (between 0 and 1)."""
+        """Get the points data interpolated at the provided position (between 0 and 1)."""
         position = max(0.0, min(position, 1.0))
         return george.tv_camera_interpolation(position)
 

@@ -43,9 +43,7 @@ def tv_camera_info_get() -> TVPCamera:
     if not is_tvp_version_below_12():
         # values of pixel aspect ratio and fps have been swapped in versions > 12
         fields_keys = list(dict(fields).keys())
-        pixel_aspect_index, fps_index = fields_keys.index(
-            "pixel_aspect_ratio"
-        ), fields_keys.index("frame_rate")
+        pixel_aspect_index, fps_index = fields_keys.index("pixel_aspect_ratio"), fields_keys.index("frame_rate")
         fields[pixel_aspect_index], fields[fps_index] = (
             fields[fps_index],
             fields[pixel_aspect_index],
@@ -92,7 +90,7 @@ def tv_camera_interpolation(position: float) -> TVPCameraPoint:
 
 def tv_camera_info_frame(frame: int) -> TVPCameraPoint:
     """Get the position/angle/scale values at the given frame."""
-    errors = ["Given frame out of camera layer's range"]
+    errors = ["The provided frame is out of the camera range"]
     res = tv_parse_list(
         send_cmd("tv_CameraInfoFrame", frame, error_values=errors),
         with_fields=TVPCameraPoint,

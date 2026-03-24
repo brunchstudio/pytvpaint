@@ -37,15 +37,11 @@ def test_rpc_increment_max_sys_int(json_rpc_client: JSONRPCClient) -> None:
     assert json_rpc_client.rpc_id == 0
 
 
-def test_rpc_execute_remote(
-    mocker: MockFixture, json_rpc_client: JSONRPCClient
-) -> None:
+def test_rpc_execute_remote(mocker: MockFixture, json_rpc_client: JSONRPCClient) -> None:
     def send(*args: Any) -> int:
         return 0
 
-    json_response_test = (
-        '{"id": 0, "jsonrpc": "2.0", "result": "TVP Animation 11 Pro 11.5.3 fr"}'
-    )
+    json_response_test = '{"id": 0, "jsonrpc": "2.0", "result": "TVP Animation 11 Pro 11.5.3 fr"}'
 
     def recv(w: WebSocket) -> str | bytes:
         return json_response_test

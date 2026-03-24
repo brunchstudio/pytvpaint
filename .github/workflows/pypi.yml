@@ -9,15 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.9"
 
-      - name: Install Poetry Action
-        uses: snok/install-poetry@v1.3.4
-        with:
-          version: 1.7.0
+      - name: Install Hatch
+        uses: pypa/hatch@install
+
+      - name: Build package
+        run: hatch build
 
       - name: Publish to PyPi
-        run: poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+        env:
+          HATCH_INDEX_USER: __token__
+          HATCH_INDEX_AUTH: ${{ secrets.PYPI_TOKEN }}
+        run: hatch publish

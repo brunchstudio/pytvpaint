@@ -254,15 +254,13 @@ def tv_layer_move(position: int, folder_id: int | None = None) -> None:
 
     Args:
         position: position to move layer to
-        folder_id: parent folder id,
+        folder_id: parent folder id
 
     Raises:
         GeorgeError: if layer could not be moved
     """
     if folder_id is not None and is_tvp_version_below_12():
-        log.warning(
-            "`folder_id` option is only available in TVPaint version 12 and above."
-        )
+        log.warning("`folder_id` option is only available in TVPaint version 12 and above.")
 
     args = [position]
     if not is_tvp_version_below_12() and folder_id:
@@ -355,35 +353,48 @@ def tv_layer_create(name: str, layer_type: int = 1) -> int:
         name: layer name
         layer_type: 1 for normal layer, 0 for Folder layer (only available for TVPaint 12 and above)
 
+    Returns:
+        layer_id: the id of the newly created layer.
     """
     if layer_type != 1 and is_tvp_version_below_12():
-        log.warning(
-            "`layer_type` selection is only available in TVPaint version 12 and above."
-        )
+        log.warning("`layer_type` selection is only available in TVPaint version 12 and above.")
 
     args = [name]
     if not is_tvp_version_below_12():
         args.append(str(layer_type))
+        if not name:
+            log.warning(
+                "You should provide a name for the layer, "
+                "otherwise tvpaint will consider that the layer type is the name."
+            )
 
-    return int(send_cmd("tv_LayerCreate", *args, handle_string=False))
+    return int(send_cmd("tv_LayerCreate", *args))
 
 
 def tv_layer_duplicate(name: str) -> int:
     """Duplicate the current layer and make it the current one."""
-    return int(send_cmd("tv_LayerDuplicate", name, handle_string=False))
+    return int(send_cmd("tv_LayerDuplicate", name))
 
 
 @try_cmd(
     raise_exc=NoObjectWithIdError,
     exception_msg="Invalid layer id",
 )
-def tv_layer_rename(layer_id: int, name: str) -> None:
+def tv_layer_rename(layer_id: int, name: str) -> str:
     """Rename a layer.
 
     Raises:
-        NoObjectWithIdError: if given an invalid layer id
+        NoObjectWithIdError: if given an invalid layer id.
+
+    Warning:
+        This function does not seem to work in TVPaint 12.
+
+    Returns:
+        str: new name
     """
-    send_cmd("tv_LayerRename", layer_id, name)
+    if not is_tvp_version_below_12():
+        log.warning("function `tv_LayerRename` does not seem to work properly in TVPaint 12")
+    return send_cmd("tv_LayerRename", layer_id, name, error_values=[-1])
 
 
 @try_cmd(
@@ -442,9 +453,7 @@ def tv_layer_display_get(layer_id: int) -> bool:
     raise_exc=NoObjectWithIdError,
     exception_msg="Invalid layer id",
 )
-def tv_layer_display_set(
-    layer_id: int, new_state: bool, light_table: bool = False
-) -> None:
+def tv_layer_display_set(layer_id: int, new_state: bool, light_table: bool = False) -> None:
     """Set the visibility of the given layer.
 
     Raises:
@@ -570,10 +579,7 @@ def tv_layer_stencil_set(layer_id: int, mode: StencilMode) -> None:
     Raises:
         NoObjectWithIdError: if given an invalid layer id
     """
-    if mode in [StencilMode.ON, StencilMode.OFF]:
-        args = [mode.value]
-    else:
-        args = ["on", mode.value]
+    args = [mode.value] if mode in [StencilMode.ON, StencilMode.OFF] else ["on", mode.value]
 
     send_cmd("tv_LayerStencil", layer_id, *args)
 
@@ -590,9 +596,7 @@ def tv_layer_show_thumbnails_get(
     Raises:
         NoObjectWithIdError: if given an invalid layer id
     """
-    res = send_cmd(
-        "tv_LayerShowThumbnails", layer_id, error_values=[GrgErrorValue.ERROR]
-    )
+    res = send_cmd("tv_LayerShowThumbnails", layer_id, error_values=[GrgErrorValue.ERROR])
     return res == "1"
 
 
@@ -681,9 +685,7 @@ def tv_layer_auto_create_instance_set(
     Raises:
         NoObjectWithIdError: if given an invalid layer id
     """
-    send_cmd(
-        "tv_LayerAutoCreateInstance", layer_id, int(state), error_values=[-1, -2, -3]
-    )
+    send_cmd("tv_LayerAutoCreateInstance", layer_id, int(state), error_values=[-1, -2, -3])
 
 
 @try_cmd(
@@ -775,7 +777,13 @@ def tv_preserve_get() -> LayerTransparency:
 
 
 def tv_preserve_set(state: LayerTransparency) -> None:
-    """Set the preserve transparency state of the current layer."""
+    """Set the preserve transparency state of the current layer.
+
+    Warning:
+        This function does not seem to work in TVPaint 12
+    """
+    if not is_tvp_version_below_12():
+        log.warning("This function does not seem to work in TVPaint 12")
     send_cmd("tv_Preserve", "alpha", state.value)
 
 
@@ -796,7 +804,12 @@ def tv_layer_mark_get(layer_id: int, frame: int) -> int:
     Returns:
         int: the mark color index
     """
-    return int(send_cmd("tv_LayerMarkGet", layer_id, frame))
+    res = send_cmd("tv_LayerMarkGet", layer_id, frame, error_values=[-1])
+    if is_tvp_version_below_12():
+        return int(res)
+
+    index, _, _, _ = tv_cast_to_type(res, tuple[int, ...])
+    return index
 
 
 @try_cmd(
@@ -953,7 +966,7 @@ def tv_layer_color_get_color(clip_id: int, color_index: int) -> TVPClipLayerColo
         LayerColorAction.GETCOLOR.value,
         clip_id,
         color_index,
-        error_values=[GrgErrorValue.ERROR],
+        error_values=[GrgErrorValue.ERROR, -1, -2],
     )
     parsed = tv_parse_list(result, with_fields=TVPClipLayerColor)
     return TVPClipLayerColor(**parsed)
@@ -974,6 +987,9 @@ def tv_layer_color_set_color(
     Raises:
         NoObjectWithIdError: if given an invalid layer id
 
+    Warning:
+        In tvpaint 12, this function will fail when the `name` argument is provided
+
     Note:
         The color with index 0 is the "Default" color, and it can't be changed
     """
@@ -987,6 +1003,8 @@ def tv_layer_color_set_color(
     ]
 
     if name:
+        if not is_tvp_version_below_12():
+            log.warning("In tvpaint 12, this function will fail when the `name` argument is provided")
         args.append(name)
 
     send_cmd("tv_LayerColor", *args, error_values=[GrgErrorValue.ERROR])
@@ -1008,7 +1026,11 @@ def tv_layer_color_get(layer_id: int) -> int:
         layer_id,
         error_values=[-1],
     )
-    return int(res)
+    if is_tvp_version_below_12():
+        return int(res)
+
+    index, _, _, _ = tv_cast_to_type(res, tuple[int, ...])
+    return index
 
 
 @try_cmd(raise_exc=NoObjectWithIdError)
@@ -1102,14 +1124,16 @@ def tv_layer_color_visible(color_index: int) -> bool:
     Raises:
         NoObjectWithIdError: if given an invalid layer id
     """
-    return bool(int(
-        send_cmd(
-            "tv_LayerColor",
-            LayerColorAction.VISIBLE.value,
-            color_index,
-            error_values=[-1],
+    return bool(
+        int(
+            send_cmd(
+                "tv_LayerColor",
+                LayerColorAction.VISIBLE.value,
+                color_index,
+                error_values=[-1],
+            )
         )
-    ))
+    )
 
 
 @try_cmd(
@@ -1253,6 +1277,9 @@ def tv_exposure_prev() -> int:
 @try_cmd(exception_msg="No file found or invalid format")
 def tv_save_image(export_path: Path | str) -> None:
     """Save the current image of the current layer.
+
+    Warnings:
+        This function outputs very low quality images, we recommend using other rendering functions.
 
     Raises:
         GeorgeError: if the file couldn't be saved or an invalid format was provided
@@ -1406,7 +1433,7 @@ def tv_ctg_source_remove(ctg_layer_id: int, source_ids: list[int]) -> None:
 
 
 def tv_panning(x: int, y: int, move_fill: bool = False, anti_aliasing: bool = False) -> None:
-    """Apply a panning FX to teh current layer.
+    """Apply a panning FX to the current layer.
 
     Args:
         x: new x position of the layer (position is calculated from the top left corner of the layer frame)
@@ -1414,5 +1441,4 @@ def tv_panning(x: int, y: int, move_fill: bool = False, anti_aliasing: bool = Fa
         move_fill: True to moved and fill all screen, False to only move images
         anti_aliasing: apply antialiasing
     """
-    anti_aliasing = 0 if not anti_aliasing else 2
-    send_cmd("tv_Panning ", x, y, int(move_fill), anti_aliasing)
+    send_cmd("tv_Panning ", x, y, int(move_fill), (2 if anti_aliasing else 0))

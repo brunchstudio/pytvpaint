@@ -6,6 +6,9 @@ on:
       - main
     tags:
       - "*"
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -15,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Configure Git Credentials
         run: |
@@ -23,12 +28,10 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.9"
 
-      - name: Install Poetry Action
-        uses: snok/install-poetry@v1.3.4
-        with:
-          version: 1.7.0
+      - name: Install Hatch
+        uses: pypa/hatch@install
 
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
@@ -39,5 +42,17 @@ jobs:
           restore-keys: |
             mkdocs-material-
 
-      - run: poetry install --no-interaction --with docs
-      - run: poetry run mkdocs gh-deploy --force
+      # Build the docs on PRs
+      - name: Verify Docs Build (on Pull Requests)
+        if: github.event_name == 'pull_request'
+        run: hatch run docs:mkdocs build --strict
+
+      # Deploy Dev Documentation (on main)
+      - name: Deploy Dev Documentation (on main)
+        if: github.ref == 'refs/heads/main'
+        run: hatch run docs:mike deploy dev --push
+
+      # Deploy Release Documentation (on tags)
+      - name: Deploy Release Documentation (on tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: hatch run docs:mike deploy ${{ github.ref_name }} latest --update-aliases --push

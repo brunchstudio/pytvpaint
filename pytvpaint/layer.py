@@ -400,7 +400,7 @@ class Layer(Removable):
         """Moves the layer to the provided position.
 
         Note:
-            This function fixes the issues with positions not been set correctly by TVPaint when value is superior to 0
+            This function fixes the issues with positions been set at (value-1) by TVPaint when value is superior to 0
         """
         if self.position == value:
             return
@@ -936,10 +936,10 @@ class Layer(Removable):
         """
         start = self.start if start is None else start
         end = self.end if end is None else end
+        frame_set = FrameSet(f"{start}-{end}")
         self.clip.render(
             output_path=output_path,
-            start=start,
-            end=end,
+            frame_set=frame_set,
             use_camera=use_camera,
             layer_selection=[self],
             alpha_mode=alpha_mode,
@@ -955,6 +955,7 @@ class Layer(Removable):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
+        use_camera: bool = False,
     ) -> Path:
         """Render a frame from the layer.
 
@@ -964,6 +965,7 @@ class Layer(Removable):
             alpha_mode: the render alpha mode
             background_mode: the render background mode
             format_opts: custom output format options to pass when rendering
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
 
         Raises:
             FileNotFoundError: if the render failed or output not found on disk
@@ -972,16 +974,12 @@ class Layer(Removable):
             Path: render output path
         """
         export_path = Path(export_path)
-        save_format = george.SaveFormat.from_extension(export_path.suffix)
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-
         frame = frame or self.clip.current_frame
         self.clip.current_frame = frame
 
         self.clip.render(
-            output_path=output_path,
-            start=frame,
-            end=frame,
+            output_path=export_path,
+            frame_set=FrameSet(frame),
             use_camera=use_camera,
             layer_selection=[self],
             alpha_mode=alpha_mode,
@@ -999,7 +997,8 @@ class Layer(Removable):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> FileSequence:
+        use_camera: bool = False,
+    ) -> None:
         """Render all layer instances in the provided range for the current layer.
 
         Args:
@@ -1009,6 +1008,7 @@ class Layer(Removable):
             alpha_mode: the render alpha mode
             background_mode: the render background mode
             format_opts: custom output format options to pass when rendering
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
 
         Raises:
             ValueError: if requested range (start-end) not in layer range/bounds
@@ -1018,25 +1018,17 @@ class Layer(Removable):
         Returns:
             FileSequence: instances output sequence
         """
-        file_sequence, start, end, is_sequence, is_image = utils.handle_output_range(
-            export_path, self.start, self.end, start, end
+        frames = [layer_instance.start for layer_instance in self.instances]
+
+        self.clip.render(
+            output_path=export_path,
+            frame_set=FrameSet(frames),
+            use_camera=use_camera,
+            layer_selection=[self],
+            alpha_mode=alpha_mode,
+            background_mode=background_mode,
+            format_opts=format_opts,
         )
-
-        if start < self.start or end > self.end:
-            raise ValueError(f"Render ({start}-{end}) not in clip range ({(self.start, self.end)})")
-        if not is_image:
-            raise ValueError(f"Video formats ({file_sequence.extension()}) are not supported for instance rendering !")
-
-        # render to output
-        frames = []
-        for layer_instance in self.instances:
-            cur_frame = layer_instance.start
-            instance_output = Path(file_sequence.frame(cur_frame))
-            self.render_frame(instance_output, cur_frame, alpha_mode, background_mode, format_opts)
-            frames.append(str(cur_frame))
-
-        file_sequence.setFrameSet(FrameSet(",".join(frames)))
-        return file_sequence
 
     @set_as_current
     def load_image(self, image_path: str | Path, frame: int | None = None, stretch: bool = False) -> None:
@@ -1123,7 +1115,7 @@ class Layer(Removable):
 
     @set_as_current
     def pan(self, position: tuple[int, int], move_fill: bool = False, anti_aliasing: bool = False) -> None:
-        """Apply a panning FX to teh current layer.
+        """Apply a panning FX to the current layer.
 
         Args:
             position: new position of the layer (position is calculated from the top left corner of the layer frame)
@@ -1194,6 +1186,12 @@ class Layer(Removable):
         """Copy the layer (copies all instances in layer)."""
         self.select_all_frames()
         self.copy_selection()
+
+    @set_as_current
+    def paste(self) -> None:
+        """Copy the layer (copies all instances in layer)."""
+        self.select_all_frames()
+        self.paste_selection()
 
     @refreshed_property
     @set_as_current
@@ -1371,7 +1369,7 @@ class CameraLayer(Layer):
     @property
     @george.min_version_compatible(min_version="12")
     def camera(self) -> Camera | None:
-        """Returns the Camera object linked ot this layer, if no camera is linked to teh layer, returns None."""
+        """Returns the Camera object linked ot this layer, if no camera is linked to the layer, returns None."""
         if self.layer_type != george.LayerType.CAMERA:
             return None
         return self.clip.camera

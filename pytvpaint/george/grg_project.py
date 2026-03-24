@@ -64,12 +64,12 @@ def tv_project_info(project_id: str) -> TVPProject:
     Raises:
         NoObjectWithIdError: if given an invalid project id
     """
-    result = send_cmd("tv_ProjectInfo", project_id, error_values=[GrgErrorValue.EMPTY])
+    result = send_cmd("tv_ProjectInfo", project_id, error_values=[GrgErrorValue.EMPTY, -1])
 
     fields = get_dataclass_fields(cast(DataclassInstance, TVPProject))
     if not is_tvp_version_below_12():
         # values of field_order have been removed in versions > 12 so for now we provide it ourselves
-        fields_keys: list[str] = list(dict(fields).keys())
+        fields_keys = list(dict(fields).keys())
         field_order_index, start_frame_index = fields_keys.index("field_order"), fields_keys.index("start_frame")
         fields[field_order_index], fields[start_frame_index] = (
             fields[start_frame_index],

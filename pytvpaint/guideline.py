@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TypeVar, Generic
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from pytvpaint import george
 from pytvpaint.utils import (
@@ -22,7 +21,7 @@ GuidelineT = TypeVar("GuidelineT", bound=george.GuidelineType)
 class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
     """A Guideline is an image or shape used as guideline for artists."""
 
-    TYPE: GuidelineT = None
+    TYPE: GuidelineT
 
     def __init__(
         self,
@@ -34,10 +33,6 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
         self._position: int = position
         self._project: Project = project
         self._data = data
-
-    def refresh(self) -> None:
-        """Refreshes the guideline data."""
-        super().refresh()
 
     def __repr__(self) -> str:
         """String representation of the camera point."""
@@ -58,7 +53,7 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
         return self._position
 
     @property
-    def data(self) -> GuidelineDT:
+    def data(self) -> GuidelineDT | None:
         """Returns the raw data of the guideline."""
         return self._data
 
@@ -69,6 +64,7 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
 
     @property
     def name(self) -> str:
+        """The name of the guideline."""
         return george.tv_guideline_name_get(self.position)
 
     @name.setter
@@ -77,6 +73,7 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
 
     @property
     def is_visible(self) -> bool:
+        """The guideline visibility."""
         return george.tv_guideline_visibility_get(self.position)
 
     @is_visible.setter
@@ -85,6 +82,7 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
 
     @property
     def margin(self) -> int:
+        """The guideline margin."""
         return george.tv_guideline_margin_get(self.position)
 
     @margin.setter
@@ -93,6 +91,7 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
 
     @property
     def color(self) -> george.RGBAColor:
+        """The guideline color."""
         return george.tv_guideline_color_get(self.position)
 
     @color.setter
@@ -101,19 +100,53 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
 
     @property
     def snap(self) -> bool:
+        """The guideline snap state."""
         return george.tv_guideline_snap_get(self.position)
 
     @snap.setter
     def snap(self, value: bool) -> None:
+        if not self.is_visible:
+            raise ValueError("Snap will not change if guideline is not visible")
         george.tv_guideline_snap_set(self.position, value)
 
     @property
     def collapse(self) -> bool:
+        """The guideline collapse state."""
         return george.tv_guideline_collapse_get(self.position)
 
     @collapse.setter
     def collapse(self, value: bool) -> None:
         george.tv_guideline_collapse_set(self.position, value)
+
+    @classmethod
+    def set_all_visible(cls, value: bool) -> None:
+        """Set visibility state on all guidelines."""
+        george.tv_guideline_visibility_set_all(cls.TYPE, value)
+
+    @classmethod
+    def set_all_margin(cls, value: int) -> None:
+        """Set the margin on all guidelines."""
+        george.tv_guideline_margin_set_all(cls.TYPE, value)
+
+    @classmethod
+    def set_all_color(cls, value: george.RGBAColor) -> None:
+        """Set the color on all guidelines."""
+        george.tv_guideline_color_set_all(cls.TYPE, value)
+
+    @classmethod
+    def set_all_snap(cls, value: bool) -> None:
+        """Set the snap state on all guidelines."""
+        george.tv_guideline_snap_set_all(cls.TYPE, value)
+
+    @staticmethod
+    def set_global_visible(value: bool) -> None:
+        """Set the visibility on the global guideline."""
+        george.tv_guideline_visibility_set(0, value, on_global=True)
+
+    @staticmethod
+    def set_global_snap(value: bool) -> None:
+        """Set snap state on the global guideline."""
+        george.tv_guideline_snap_set(0, value, on_global=True)
 
     def remove(self) -> None:
         """Remove the guideline.
@@ -127,6 +160,7 @@ class Guideline(Removable, Generic[GuidelineDT, GuidelineT]):
 
 
 class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
+    """A GuidelineImage is an image used as guideline for artists."""
 
     TYPE = george.GuidelineType.IMAGE
 
@@ -137,10 +171,10 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
         data: george.TVPGuidelineImage | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_image_get(self._position)
+        self._data: george.TVPGuidelineImage = data or george.tv_guideline_modify_image_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -220,6 +254,7 @@ class GuidelineImage(Guideline[george.TVPGuidelineImage, george.GuidelineType]):
 
 
 class GuidelineLine(Guideline[george.TVPGuidelineLine, george.GuidelineType]):
+    """A GuidelineLine is a line used as guideline for artists."""
 
     TYPE = george.GuidelineType.LINE
 
@@ -230,10 +265,10 @@ class GuidelineLine(Guideline[george.TVPGuidelineLine, george.GuidelineType]):
         data: george.TVPGuidelineLine | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_line_get(self._position)
+        self._data: george.TVPGuidelineLine = data or george.tv_guideline_modify_line_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -241,7 +276,7 @@ class GuidelineLine(Guideline[george.TVPGuidelineLine, george.GuidelineType]):
 
     @refreshed_property
     def x(self) -> float:
-        """The x coordinate of the image."""
+        """The x coordinate of the guideline."""
         return self._data.x
 
     @x.setter
@@ -250,7 +285,7 @@ class GuidelineLine(Guideline[george.TVPGuidelineLine, george.GuidelineType]):
 
     @refreshed_property
     def y(self) -> float:
-        """The y coordinate of the image."""
+        """The y coordinate of the guideline."""
         return self._data.y
 
     @y.setter
@@ -259,7 +294,7 @@ class GuidelineLine(Guideline[george.TVPGuidelineLine, george.GuidelineType]):
 
     @refreshed_property
     def angle(self) -> float:
-        """The rotation of the image."""
+        """The angle of the guideline."""
         return self._data.angle
 
     @angle.setter
@@ -282,6 +317,7 @@ class GuidelineLine(Guideline[george.TVPGuidelineLine, george.GuidelineType]):
 
 
 class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineType]):
+    """A GuidelineSegment is a segment drawing used as guideline for artists."""
 
     TYPE = george.GuidelineType.SEGMENT
 
@@ -292,10 +328,10 @@ class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineTyp
         data: george.TVPGuidelineSegment | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_segment_get(self._position)
+        self._data: george.TVPGuidelineSegment = data or george.tv_guideline_modify_segment_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -303,7 +339,7 @@ class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineTyp
 
     @refreshed_property
     def x1(self) -> float:
-        """The x coordinate of the image."""
+        """The x coordinate of the guideline."""
         return self._data.x1
 
     @x1.setter
@@ -312,7 +348,7 @@ class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineTyp
 
     @refreshed_property
     def y1(self) -> float:
-        """The y coordinate of the image."""
+        """The y coordinate of the guideline."""
         return self._data.y1
 
     @y1.setter
@@ -321,7 +357,7 @@ class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineTyp
 
     @refreshed_property
     def x2(self) -> float:
-        """The x coordinate of the image."""
+        """The x2 coordinate of the guideline."""
         return self._data.x2
 
     @x2.setter
@@ -330,7 +366,7 @@ class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineTyp
 
     @refreshed_property
     def y2(self) -> float:
-        """The y coordinate of the image."""
+        """The y2 coordinate of the guideline."""
         return self._data.y2
 
     @y2.setter
@@ -354,6 +390,7 @@ class GuidelineSegment(Guideline[george.TVPGuidelineSegment, george.GuidelineTyp
 
 
 class GuidelineCircle(Guideline[george.TVPGuidelineCircle, george.GuidelineType]):
+    """A GuidelineCircle is a circle used as guideline for artists."""
 
     TYPE = george.GuidelineType.CIRCLE
 
@@ -364,10 +401,10 @@ class GuidelineCircle(Guideline[george.TVPGuidelineCircle, george.GuidelineType]
         data: george.TVPGuidelineCircle | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_circle_get(self._position)
+        self._data: george.TVPGuidelineCircle = data or george.tv_guideline_modify_circle_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -375,7 +412,7 @@ class GuidelineCircle(Guideline[george.TVPGuidelineCircle, george.GuidelineType]
 
     @refreshed_property
     def x(self) -> float:
-        """The x coordinate of the image."""
+        """The x coordinate of the guideline."""
         return self._data.x
 
     @x.setter
@@ -384,7 +421,7 @@ class GuidelineCircle(Guideline[george.TVPGuidelineCircle, george.GuidelineType]
 
     @refreshed_property
     def y(self) -> float:
-        """The y coordinate of the image."""
+        """The y coordinate of the guideline."""
         return self._data.y
 
     @y.setter
@@ -393,7 +430,7 @@ class GuidelineCircle(Guideline[george.TVPGuidelineCircle, george.GuidelineType]
 
     @refreshed_property
     def radius(self) -> float:
-        """The rotation of the image."""
+        """The radius of the guideline."""
         return self._data.radius
 
     @radius.setter
@@ -416,6 +453,7 @@ class GuidelineCircle(Guideline[george.TVPGuidelineCircle, george.GuidelineType]
 
 
 class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineType]):
+    """A GuidelineEllipse is an ellipse used as guideline for artists."""
 
     TYPE = george.GuidelineType.ELLIPSE
 
@@ -426,10 +464,10 @@ class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineTyp
         data: george.TVPGuidelineEllipse | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_ellipse_get(self._position)
+        self._data: george.TVPGuidelineEllipse = data or george.tv_guideline_modify_ellipse_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -437,7 +475,7 @@ class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineTyp
 
     @refreshed_property
     def x(self) -> float:
-        """The x coordinate of the image."""
+        """The x coordinate of the guideline."""
         return self._data.x
 
     @x.setter
@@ -446,7 +484,7 @@ class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineTyp
 
     @refreshed_property
     def y(self) -> float:
-        """The y coordinate of the image."""
+        """The y coordinate of the guideline."""
         return self._data.y
 
     @y.setter
@@ -455,7 +493,7 @@ class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineTyp
 
     @refreshed_property
     def radius_a(self) -> float:
-        """The rotation of the image."""
+        """The radius_a of the guideline."""
         return self._data.radius_a
 
     @radius_a.setter
@@ -464,7 +502,7 @@ class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineTyp
 
     @refreshed_property
     def radius_b(self) -> float:
-        """The rotation of the image."""
+        """The radius_b of the guideline."""
         return self._data.radius_b
 
     @radius_b.setter
@@ -488,6 +526,7 @@ class GuidelineEllipse(Guideline[george.TVPGuidelineEllipse, george.GuidelineTyp
 
 
 class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
+    """A GuidelineGrid is a grid used as guideline for artists."""
 
     TYPE = george.GuidelineType.GRID
 
@@ -498,10 +537,10 @@ class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
         data: george.TVPGuidelineGrid | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_grid_get(self._position)
+        self._data: george.TVPGuidelineGrid = data or george.tv_guideline_modify_grid_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -509,7 +548,7 @@ class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
 
     @refreshed_property
     def x(self) -> float:
-        """The x coordinate of the image."""
+        """The x coordinate of the guideline."""
         return self._data.x
 
     @x.setter
@@ -518,7 +557,7 @@ class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
 
     @refreshed_property
     def y(self) -> float:
-        """The y coordinate of the image."""
+        """The y coordinate of the guideline."""
         return self._data.y
 
     @y.setter
@@ -527,8 +566,8 @@ class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
 
     @refreshed_property
     def width(self) -> float:
-        """The rotation of the image."""
-        return self._data.w
+        """The width of the guideline."""
+        return self._data.width
 
     @width.setter
     def width(self, value: float) -> None:
@@ -536,7 +575,7 @@ class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
 
     @refreshed_property
     def height(self) -> float:
-        """The rotation of the image."""
+        """The height of the guideline."""
         return self._data.height
 
     @height.setter
@@ -560,6 +599,7 @@ class GuidelineGrid(Guideline[george.TVPGuidelineGrid, george.GuidelineType]):
 
 
 class GuidelineMarks(Guideline[george.TVPGuidelineMarks, george.GuidelineType]):
+    """A GuidelineCircle is a set of marks used as guidelines for artists."""
 
     TYPE = george.GuidelineType.MARKS
 
@@ -570,31 +610,41 @@ class GuidelineMarks(Guideline[george.TVPGuidelineMarks, george.GuidelineType]):
         data: george.TVPGuidelineMarks | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_marks_get(self._position)
+        self._data: george.TVPGuidelineMarks = data or george.tv_guideline_modify_marks_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
         self._data = george.tv_guideline_modify_marks_get(self._position)
 
     @refreshed_property
-    def count_x(self) -> float:
-        """The x coordinate of the image."""
+    def count_x(self) -> int:
+        """The number of vertical marks."""
         return self._data.count_x
 
     @count_x.setter
-    def count_x(self, value: float) -> None:
+    def count_x(self, value: int) -> None:
+        """The number of vertical marks.
+
+        Warnings:
+            function GuidelineMarks.x doesn't seem to work in tvpaint, values are never changed.
+        """
         george.tv_guideline_modify_marks_set(self.position, count_x=value)
 
     @refreshed_property
-    def count_y(self) -> float:
-        """The y coordinate of the image."""
+    def count_y(self) -> int:
+        """The number of horizontal marks."""
         return self._data.count_y
 
     @count_y.setter
-    def count_y(self, value: float) -> None:
+    def count_y(self, value: int) -> None:
+        """The number of vertical marks.
+
+        Warnings:
+            function GuidelineMarks.y doesn't seem to work in tvpaint, values are never changed.
+        """
         george.tv_guideline_modify_marks_set(self.position, count_y=value)
 
     @classmethod
@@ -612,6 +662,7 @@ class GuidelineMarks(Guideline[george.TVPGuidelineMarks, george.GuidelineType]):
 
 
 class GuidelineFieldChart(Guideline[george.TVPGuideField, george.GuidelineType]):
+    """A GuidelineFieldChart is a field chart used as guideline for artists."""
 
     TYPE = george.GuidelineType.FIELD_CHART
 
@@ -633,6 +684,7 @@ class GuidelineFieldChart(Guideline[george.TVPGuideField, george.GuidelineType])
 
 
 class GuidelineAnimatorField(Guideline[george.TVPGuideField, george.GuidelineType]):
+    """A GuidelineAnimatorField is a shape used as guideline for artists."""
 
     TYPE = george.GuidelineType.ANIMATOR_FIELD
 
@@ -654,6 +706,7 @@ class GuidelineAnimatorField(Guideline[george.TVPGuideField, george.GuidelineTyp
 
 
 class GuidelineSafeArea(Guideline[george.TVPGuidelineSafeArea, george.GuidelineType]):
+    """A GuidelineSafeArea is an area used as guideline for artists."""
 
     TYPE = george.GuidelineType.SAFE_AREA
 
@@ -664,10 +717,10 @@ class GuidelineSafeArea(Guideline[george.TVPGuidelineSafeArea, george.GuidelineT
         data: george.TVPGuidelineSafeArea | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_safe_area_get(self._position)
+        self._data: george.TVPGuidelineSafeArea = data or george.tv_guideline_modify_safe_area_get(self._position)
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -675,7 +728,7 @@ class GuidelineSafeArea(Guideline[george.TVPGuidelineSafeArea, george.GuidelineT
 
     @refreshed_property
     def sf_out(self) -> float:
-        """The x coordinate of the image."""
+        """The out value of the safe area."""
         return self._data.sf_out
 
     @sf_out.setter
@@ -684,7 +737,7 @@ class GuidelineSafeArea(Guideline[george.TVPGuidelineSafeArea, george.GuidelineT
 
     @refreshed_property
     def sf_in(self) -> float:
-        """The y coordinate of the image."""
+        """The in value of the safe area."""
         return self._data.sf_in
 
     @sf_in.setter
@@ -706,6 +759,7 @@ class GuidelineSafeArea(Guideline[george.TVPGuidelineSafeArea, george.GuidelineT
 
 
 class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.GuidelineType]):
+    """A GuidelineVanishPoint1 is a point used as guideline for artists."""
 
     TYPE = george.GuidelineType.VANISH_POINT_1
 
@@ -716,10 +770,12 @@ class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.Gu
         data: george.TVPGuidelineVanishPoint1 | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_vanish_point_1_get(self._position)
+        self._data: george.TVPGuidelineVanishPoint1 = data or george.tv_guideline_modify_vanish_point_1_get(
+            self._position
+        )
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -727,7 +783,7 @@ class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.Gu
 
     @refreshed_property
     def x(self) -> float:
-        """The x coordinate of the image."""
+        """The x coordinate of the guideline."""
         return self._data.x
 
     @x.setter
@@ -736,7 +792,7 @@ class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.Gu
 
     @refreshed_property
     def y(self) -> float:
-        """The y coordinate of the image."""
+        """The y coordinate of the guideline."""
         return self._data.y
 
     @y.setter
@@ -745,8 +801,8 @@ class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.Gu
 
     @refreshed_property
     def ray(self) -> int:
-        """The rotation of the image."""
-        return self._data.grid
+        """The number of rays in the guideline."""
+        return self._data.ray
 
     @ray.setter
     def ray(self, value: int) -> None:
@@ -754,7 +810,7 @@ class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.Gu
 
     @refreshed_property
     def grid(self) -> bool:
-        """The rotation of the image."""
+        """The grid state of the guideline."""
         return self._data.grid
 
     @grid.setter
@@ -777,6 +833,7 @@ class GuidelineVanishPoint1(Guideline[george.TVPGuidelineVanishPoint1, george.Gu
 
 
 class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.GuidelineType]):
+    """A GuidelineVanishPoint2 is a set of points used as guideline for artists."""
 
     TYPE = george.GuidelineType.VANISH_POINT_2
 
@@ -787,10 +844,12 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
         data: george.TVPGuidelineVanishPoint2 | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_vanish_point_2_get(self._position)
+        self._data: george.TVPGuidelineVanishPoint2 = data or george.tv_guideline_modify_vanish_point_2_get(
+            self._position
+        )
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
@@ -798,7 +857,7 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
 
     @refreshed_property
     def x1(self) -> float:
-        """The x coordinate of the image."""
+        """The x1 coordinate of the guideline."""
         return self._data.x1
 
     @x1.setter
@@ -807,7 +866,7 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
 
     @refreshed_property
     def y1(self) -> float:
-        """The y coordinate of the image."""
+        """The y1 coordinate of the guideline."""
         return self._data.y1
 
     @y1.setter
@@ -816,7 +875,7 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
 
     @refreshed_property
     def x2(self) -> float:
-        """The x coordinate of the image."""
+        """The x2 coordinate of the guideline."""
         return self._data.x2
 
     @x2.setter
@@ -825,12 +884,21 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
 
     @refreshed_property
     def y2(self) -> float:
-        """The y coordinate of the image."""
+        """The y2 coordinate of the guideline."""
         return self._data.y2
 
     @y2.setter
     def y2(self, value: float) -> None:
         george.tv_guideline_modify_vanish_point_2_set(self.position, y2=value)
+
+    @refreshed_property
+    def ray(self) -> int:
+        """The number of rays in the guideline."""
+        return self._data.ray
+
+    @ray.setter
+    def ray(self, value: int) -> None:
+        george.tv_guideline_modify_vanish_point_2_set(self.position, ray=value)
 
     @classmethod
     def new(
@@ -848,7 +916,8 @@ class GuidelineVanishPoint2(Guideline[george.TVPGuidelineVanishPoint2, george.Gu
         return cls(position, project)
 
 
-class GuidelineVanishPoint3(GuidelineVanishPoint2):
+class GuidelineVanishPoint3(Guideline[george.TVPGuidelineVanishPoint3, george.GuidelineType]):
+    """A GuidelineVanishPoint3 is a set of points used as guideline for artists."""
 
     TYPE = george.GuidelineType.VANISH_POINT_3
 
@@ -859,23 +928,79 @@ class GuidelineVanishPoint3(GuidelineVanishPoint2):
         data: george.TVPGuidelineVanishPoint3 | None = None,
     ) -> None:
         super().__init__(position, project)
-        self._data = data or george.tv_guideline_modify_vanish_point_3_get(self._position)
+        self._data: george.TVPGuidelineVanishPoint3 = data or george.tv_guideline_modify_vanish_point_3_get(
+            self._position
+        )
 
     def refresh(self) -> None:
-        """Refreshes the camera point data."""
+        """Refreshes the guideline data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
         self._data = george.tv_guideline_modify_vanish_point_3_get(self._position)
 
     @refreshed_property
+    def x1(self) -> float:
+        """The x1 coordinate of the guideline."""
+        return self._data.x1
+
+    @x1.setter
+    def x1(self, value: float) -> None:
+        george.tv_guideline_modify_vanish_point_3_set(self.position, x1=value)
+
+    @refreshed_property
+    def y1(self) -> float:
+        """The y1 coordinate of the guideline."""
+        return self._data.y1
+
+    @y1.setter
+    def y1(self, value: float) -> None:
+        george.tv_guideline_modify_vanish_point_3_set(self.position, y1=value)
+
+    @refreshed_property
+    def x2(self) -> float:
+        """The x2 coordinate of the guideline."""
+        return self._data.x2
+
+    @x2.setter
+    def x2(self, value: float) -> None:
+        george.tv_guideline_modify_vanish_point_3_set(self.position, x2=value)
+
+    @refreshed_property
+    def y2(self) -> float:
+        """The y2 coordinate of the guideline."""
+        return self._data.y2
+
+    @y2.setter
+    def y2(self, value: float) -> None:
+        george.tv_guideline_modify_vanish_point_3_set(self.position, y2=value)
+
+    @refreshed_property
+    def x3(self) -> float:
+        """The x3 coordinate of the guideline."""
+        return self._data.y3
+
+    @x3.setter
+    def x3(self, value: float) -> None:
+        george.tv_guideline_modify_vanish_point_3_set(self.position, x3=value)
+
+    @refreshed_property
     def y3(self) -> float:
-        """The y coordinate of the image."""
+        """The y3 coordinate of the guideline."""
         return self._data.y3
 
     @y3.setter
     def y3(self, value: float) -> None:
         george.tv_guideline_modify_vanish_point_3_set(self.position, y3=value)
+
+    @refreshed_property
+    def ray(self) -> int:
+        """The number of rays in the guideline."""
+        return self._data.ray
+
+    @ray.setter
+    def ray(self, value: int) -> None:
+        george.tv_guideline_modify_vanish_point_3_set(self.position, ray=value)
 
     @classmethod
     def new(

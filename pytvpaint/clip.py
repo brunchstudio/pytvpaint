@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from fileseq.filesequence import FileSequence
+from fileseq.frameset import FrameSet
 
-from pytvpaint import george, utils
-from pytvpaint.george.client import parse
-from pytvpaint.sound import ClipSound
+from pytvpaint import george, log, utils
 from pytvpaint.camera import Camera
+from pytvpaint.george.client import parse
 from pytvpaint.layer import CameraLayer, CTGLayer, Layer, LayerColor, LayerFolder
+from pytvpaint.sound import ClipSound
 from pytvpaint.utils import (
     Removable,
     Renderable,
@@ -311,11 +312,13 @@ class Clip(Removable, Renderable):
         Note:
             a new unique name is choosen for the duplicated clip with `get_unique_name`.
         """
+        current_clips = list(self.project.clips)
         george.tv_clip_duplicate(self.id)
-        new_clip = self.project.current_clip
+        new_clip = [clip for clip in self.project.clips if clip not in current_clips][0]  # noqa: RUF015
 
-        clip_names = [clip.name for clip in self.project.clips if clip != new_clip]
-        new_clip.name = utils.get_unique_name(clip_names, new_clip.name)
+        clip_names = [clip.name for clip in current_clips]
+        new_name = utils.get_unique_name(clip_names, self.name)
+        new_clip.name = new_name
 
         return new_clip
 
@@ -346,7 +349,7 @@ class Clip(Removable, Renderable):
             ignore_types: list of layer types to ignore, default is None, meaning all.
 
         Note:
-            Since TVP12 have introduced multiple layer types, this function is will replace Clip.layers.
+            Since TVP12 have introduced multiple layer types, this function will replace Clip.layers.
         """
         for layer_id in self.layer_ids:
             layer_data = george.tv_layer_info(layer_id)
@@ -552,7 +555,7 @@ class Clip(Removable, Renderable):
         if start < clip_full_range[0] or end > clip_full_range[1]:
             raise ValueError(f"Render ({start}-{end}) not in clip range ({clip_full_range})")
 
-    def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
+    def _get_real_range(self, start: int, end: int, frame_set: FrameSet | None = None) -> tuple[int, int, FrameSet]:
         # get project start to get real values
         project_start_frame = self.project.start_frame
         # get clip real start in project timeline
@@ -560,13 +563,28 @@ class Clip(Removable, Renderable):
         # get real mark_in since we'll also need to subtract it from the range
         real_mark_in = (self.mark_in - project_start_frame) if self.mark_in else 0
 
-        start = (start - project_start_frame - real_mark_in) + clip_real_start
-        end = (end - project_start_frame - real_mark_in) + clip_real_start
+        def convert_range(x: int) -> int:
+            return (x - project_start_frame - real_mark_in) + clip_real_start
+
+        start = convert_range(start)
+        end = convert_range(end)
 
         # clamp values to clip start
         start = max(clip_real_start, start)
         end = max(clip_real_start, end)
-        return start, end
+
+        if frame_set is not None:
+            start = max(start, convert_range(frame_set.start()))
+            end = min(end, convert_range(frame_set.end()))
+            if frame_set.isConsecutive():
+                frame_set = FrameSet(f"{start}-{end}")
+            else:
+                frames = [convert_range(f) for f in frame_set.items] + [start, end]
+                frame_set = FrameSet(frames)
+        else:
+            frame_set = FrameSet(f"{start}-{end}")
+
+        return start, end, frame_set
 
     @set_as_current
     def render(
@@ -574,6 +592,7 @@ class Clip(Removable, Renderable):
         output_path: Path | str | FileSequence,
         start: int | None = None,
         end: int | None = None,
+        frame_set: FrameSet | None = None,
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
@@ -586,6 +605,7 @@ class Clip(Removable, Renderable):
             output_path: a single file or file sequence pattern
             start: the start frame to render or the mark in or the clip's start if None. Defaults to None.
             end: the end frame to render or the mark out or the clip's end if None. Defaults to None.
+            frame_set: a FrameSet with the frames/range to render. Defaults to None.
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             layer_selection: list of layers to render, if None render all of them. Defaults to None.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
@@ -610,12 +630,13 @@ class Clip(Removable, Renderable):
         default_end = self.mark_out or self.end
 
         self._render(
-            output_path,
-            default_start,
-            default_end,
-            start,
-            end,
-            use_camera,
+            output_path=output_path,
+            default_start=default_start,
+            default_end=default_end,
+            start=start,
+            end=end,
+            frame_set=frame_set,
+            use_camera=use_camera,
             layer_selection=layer_selection,
             alpha_mode=alpha_mode,
             background_mode=background_mode,
@@ -941,6 +962,8 @@ class Clip(Removable, Renderable):
         Args:
             layer_color: the layer color instance.
         """
+        if not george.is_tvp_version_below_12():
+            log.warning("this function currently does not work properly in tvpaint 12")
         george.tv_layer_color_set_color(self.id, layer_color.index, layer_color.color, layer_color.name)
 
     def get_layer_color(
@@ -961,7 +984,7 @@ class Clip(Removable, Renderable):
         """
         values = (by_index, by_name, by_regex)
         if not any(v is not None for v in values):
-            raise ValueError(f"At least one value ({' or '.join(values)} must be provided")
+            raise ValueError(f"At least one value ({' or '.join(str(v) for v in values)} must be provided")
 
         if by_index is not None:
             return next(c for i, c in enumerate(self.layer_colors) if i == by_index)
@@ -1038,7 +1061,7 @@ class Clip(Removable, Renderable):
         """
         values = (by_track_index, by_path)
         if not any(v is not None for v in values):
-            raise ValueError(f"At least one value ({' or '.join(values)} must be provided")
+            raise ValueError(f"At least one value ({' or '.join(str(v) for v in values)} must be provided")
 
         for sound in self.sounds:
             if by_track_index is not None and sound.by_track_index != by_track_index:

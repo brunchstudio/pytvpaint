@@ -53,7 +53,7 @@ def tv_scene_create(clips: list[str]) -> int:
         scene_id: new scene id
 
     Warning:
-        This function doesn't seem to work for now.
+        function `tv_scene_create` doesn't seem to work in tvpaint.
     """
     return int(send_cmd("tv_SceneCreate", *clips))
 

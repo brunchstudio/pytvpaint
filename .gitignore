@@ -62,3 +62,6 @@ venv.bak/
 .idea/
 .pytest_cache/
 .vscode
+
+# hatch version
+pytvpaint/_version.py

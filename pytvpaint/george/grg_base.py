@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import contextlib
 import functools
+import warnings
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, TypeVar, cast, overload
-import warnings
 
 from packaging import version
 from typing_extensions import Literal, TypeAlias
@@ -349,6 +349,21 @@ class SaveFormat(Enum):
         return cast(SaveFormat, getattr(cls, extension.upper()))
 
     @classmethod
+    def to_extension(cls, save_format: SaveFormat) -> str:
+        """Returns the typical tvpaint file extension for the provided format."""
+        image_formats = {
+            SaveFormat.JPG: "jpg",
+            SaveFormat.MKV: "mkv",
+            SaveFormat.MOV: "mov",
+            SaveFormat.MP4: "mp4",
+            SaveFormat.SGI: "sgi",
+            SaveFormat.SOFTIMAGE: "pic",
+            SaveFormat.TIFF: "tiff",
+            SaveFormat.WEBM: "webm",
+        }
+        return f".{image_formats.get(save_format, save_format.value)}"
+
+    @classmethod
     def is_image(cls, extension: str) -> bool:
         """Returns True if the extension correspond to an image format."""
         extension = extension.replace(".", "").lower()
@@ -638,7 +653,7 @@ def tv_version() -> tuple[str, str, str]:
         tvp_version (str): version number (ex: 12.0.0)
         language (str): language (ex: fr, en, etc...)
     """
-    cmd_fields = [
+    cmd_fields: FieldTypes = [
         ("software_name", str),
         ("version", str),
         ("language", str),
@@ -743,9 +758,9 @@ def tv_menu_show(menu_element: MenuElement | None = None, *menu_options: Any, cu
 
 
 def add_some_magic(i_am_a_badass: bool = False, magic_number: int | None = None) -> None:
-    """Don't use this function ! It just might change your life forever..."""
+    """Don't use this function ! It just might change your life forever !"""
     if not i_am_a_badass:
-        log.warning("Sorry, you're not enough of a badass for this function...")
+        log.warning("Sorry, you're not enough of a badass for this function !")
 
     magic_number = magic_number if magic_number is not None else 14
     send_cmd("tv_MagicNumber", magic_number)
@@ -1113,7 +1128,7 @@ def tv_pen(size: float) -> float:
     Warning:
         DEPRECATED: Function `tv_pen` is deprecated, We advise using `tv_penbrush` instead.
     """
-    res = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
+    res: dict[str, Any] = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
     return cast(float, res["size"])
 
 
@@ -1125,7 +1140,7 @@ def tv_pen_brush_get(tool_mode: bool = False) -> TVPPenBrush:
     # Remove the first value which is tv_penbrush
     result = result[(len("tv_penbrush") + 1) :]
 
-    res = tv_parse_dict(result, with_fields=TVPPenBrush)
+    res: dict[str, Any] = tv_parse_dict(result, with_fields=TVPPenBrush)
     return TVPPenBrush(**res)
 
 

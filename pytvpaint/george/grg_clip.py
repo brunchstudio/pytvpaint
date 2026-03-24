@@ -67,14 +67,12 @@ def tv_clip_info(clip_id: int) -> TVPClip:
         NoObjectWithIdError: if given an invalid clip id
     """
     result = send_cmd("tv_ClipInfo", clip_id, error_values=[GrgErrorValue.EMPTY])
-    clip = tv_parse_dict(result, with_fields=TVPClip)
+    clip: dict[str, Any] = tv_parse_dict(result, with_fields=TVPClip)
     clip["id"] = clip_id
     return TVPClip(**clip)
 
 
-@try_cmd(
-    exception_msg="Invalid scene id or clip position or elements have been removed"
-)
+@try_cmd(exception_msg="Invalid scene id or clip position or elements have been removed")
 def tv_clip_enum_id(scene_id: int, clip_position: int) -> int:
     """Get the id of the clip at the given position inside the given scene.
 
@@ -166,9 +164,7 @@ def tv_clip_hidden_set(clip_id: int, new_state: bool) -> None:
     Raises:
         NoObjectWithIdError: if given an invalid clip id
     """
-    send_cmd(
-        "tv_ClipHidden", clip_id, int(new_state), error_values=[GrgErrorValue.EMPTY]
-    )
+    send_cmd("tv_ClipHidden", clip_id, int(new_state), error_values=[GrgErrorValue.EMPTY])
 
 
 def tv_clip_select(clip_id: int) -> None:
@@ -283,8 +279,7 @@ def tv_save_sequence(
 
     if not export_path.parent.exists():
         raise NotADirectoryError(
-            "Can't save the sequence because parent"
-            f"folder does not exist: {export_path.parent.as_posix()}"
+            "Can't save the sequence because parent" f"folder does not exist: {export_path.parent.as_posix()}"
         )
 
     args: list[Any] = [export_path.as_posix()]
@@ -302,9 +297,7 @@ def tv_bookmarks_enum(position: int) -> int:
     Raises:
         GeorgeError: if no bookmark found at provided position
     """
-    return int(
-        send_cmd("tv_BookmarksEnum", position, error_values=[GrgErrorValue.NONE])
-    )
+    return int(send_cmd("tv_BookmarksEnum", position, error_values=[GrgErrorValue.NONE]))
 
 
 def tv_bookmark_set(frame: int) -> None:
@@ -425,22 +418,28 @@ def tv_clip_save_structure_json(
         ValueError: the parent folder doesn't exist
     """
     export_path = Path(export_path).resolve()
-
     if not export_path.parent.exists():
-        raise ValueError(
-            "Can't write file because the destination folder doesn't exist"
-        )
+        raise ValueError("Can't write file because the destination folder doesn't exist")
+
+    valid_extensions = [
+        SaveFormat.BMP,
+        SaveFormat.JPG,
+        SaveFormat.PNG,
+        SaveFormat.TGA,
+        SaveFormat.TIFF,
+    ]
+    if file_format not in valid_extensions:
+        raise ValueError(f"File format not in valid formats for json exports : {valid_extensions}")
 
     args = [export_path.as_posix(), "JSON"]
-
     dict_args = {
-        "fileformat": file_format.value,
-        "background": int(fill_background) if fill_background else None,
+        "fileformat": SaveFormat.to_extension(file_format)[1:],
+        "background": int(fill_background) if fill_background is not None else None,
         "patternfolder": folder_pattern,
         "patternfile": file_pattern,
-        "onlyvisiblelayers": int(visible_layers_only),
-        "allimages": int(all_images),
-        "ignoreduplicateimages": int(ignore_duplicates),
+        "onlyvisiblelayers": int(visible_layers_only) if visible_layers_only is not None else None,
+        "allimages": int(all_images) if all_images is not None else None,
+        "ignoreduplicateimages": int(ignore_duplicates) if ignore_duplicates is not None else None,
         "excludenames": (";".join(exclude_names) if exclude_names else None),
     }
     args.extend(args_dict_to_list(dict_args))
@@ -467,9 +466,7 @@ def tv_clip_save_structure_psd(
     export_path = Path(export_path)
 
     if not export_path.parent.exists():
-        raise ValueError(
-            "Can't write file because the destination folder doesn't exist"
-        )
+        raise ValueError("Can't write file because the destination folder doesn't exist")
 
     args_dict: dict[str, str | int | None]
 

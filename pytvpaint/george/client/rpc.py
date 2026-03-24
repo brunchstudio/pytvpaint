@@ -100,9 +100,7 @@ class JSONRPCClient:
 
             # There's a timeout after which we stop reconnecting
             if self.timeout and (time() - self._ping_start_time) > self.timeout:
-                raise ConnectionRefusedError(
-                    "Could not establish connection with a tvpaint instance before timeout !"
-                )
+                raise ConnectionRefusedError("Could not establish connection with a tvpaint instance before timeout !")
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""
@@ -119,9 +117,7 @@ class JSONRPCClient:
 
         if not self.ping_thread:
             self._ping_start_time = time()
-            self.ping_thread = threading.Thread(
-                target=self._auto_reconnect, daemon=True
-            )
+            self.ping_thread = threading.Thread(target=self._auto_reconnect, daemon=True)
             self.run_forever = True
             self.ping_thread.start()
 
@@ -156,9 +152,7 @@ class JSONRPCClient:
             JSONRPCResponse: the JSON-RPC response payload
         """
         if not self.is_connected:
-            raise ConnectionError(
-                f"Can't send rpc message because the client is not connected to {self.url}"
-            )
+            raise ConnectionError(f"Can't send rpc message because the client is not connected to {self.url}")
 
         payload: JSONRPCPayload = {
             "jsonrpc": self.jsonrpc_version,

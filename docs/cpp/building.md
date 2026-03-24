@@ -11,8 +11,8 @@ To install the build dependencies, we use [Conan](https://conan.io/) which is a 
 To install it, use the virtualenv provided by [Poetry](https://python-poetry.org/):
 
 ```shell
-❯ poetry install # Installs Conan
-❯ poetry shell # Enter a new venv shell
+❯ hatch env create # create the venv
+❯ hatch shell # Enter the new venv shell
 ```
 
 Then configure your Conan compilation profile:
