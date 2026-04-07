@@ -1278,7 +1278,7 @@ def tv_exposure_prev() -> int:
 def tv_save_image(export_path: Path | str) -> None:
     """Save the current image of the current layer.
 
-    Warnings:
+    Warning:
         This function outputs very low quality images, we recommend using other rendering functions.
 
     Raises:

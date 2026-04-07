@@ -892,7 +892,7 @@ def tv_guideline_modify_marks_set(
 ) -> None:
     """Set info for the marks guideline at the given position.
 
-    Warnings:
+    Warning:
         function `tv_GuidelineModify` doesn't seem to work in tvpaint, values are never changed.
 
     """

@@ -279,7 +279,7 @@ def tv_save_sequence(
 
     if not export_path.parent.exists():
         raise NotADirectoryError(
-            "Can't save the sequence because parent" f"folder does not exist: {export_path.parent.as_posix()}"
+            f"Can't save the sequence because parentfolder does not exist: {export_path.parent.as_posix()}"
         )
 
     args: list[Any] = [export_path.as_posix()]

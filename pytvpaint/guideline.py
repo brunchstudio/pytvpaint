@@ -628,7 +628,7 @@ class GuidelineMarks(Guideline[george.TVPGuidelineMarks, george.GuidelineType]):
     def count_x(self, value: int) -> None:
         """The number of vertical marks.
 
-        Warnings:
+        Warning:
             function GuidelineMarks.x doesn't seem to work in tvpaint, values are never changed.
         """
         george.tv_guideline_modify_marks_set(self.position, count_x=value)
@@ -642,7 +642,7 @@ class GuidelineMarks(Guideline[george.TVPGuidelineMarks, george.GuidelineType]):
     def count_y(self, value: int) -> None:
         """The number of vertical marks.
 
-        Warnings:
+        Warning:
             function GuidelineMarks.y doesn't seem to work in tvpaint, values are never changed.
         """
         george.tv_guideline_modify_marks_set(self.position, count_y=value)

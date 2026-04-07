@@ -27,12 +27,6 @@ Simply install it with Pip:
 ❯ pip install pytvpaint
 ```
 
-or use [Poetry](https://python-poetry.org/):
-
-```console
-❯ poetry add pytvpaint
-```
-
 !!! success
 
     You are now ready to start coding in Python for TVPaint!

@@ -58,6 +58,7 @@ class Camera(Refreshable):
     @width.setter
     @set_as_current
     def width(self, value: int) -> None:
+        """The sensor width of the camera."""
         george.tv_camera_info_set(width=value, height=self.height)
 
     @refreshed_property
@@ -69,6 +70,7 @@ class Camera(Refreshable):
     @height.setter
     @set_as_current
     def height(self, value: int) -> None:
+        """The sensor height of the camera."""
         george.tv_camera_info_set(height=value, width=self.width)
 
     @refreshed_property
@@ -93,6 +95,12 @@ class Camera(Refreshable):
         "For now, in TVP 12, it always sets 1.0 but will be removed in future versions."
     )
     def fps(self, value: float) -> None:
+        """The framerate of the camera.
+
+        Warning:
+            DEPRECATED: Property `Camera.fps` is not recommended for use in TVP 12, use Project.fps instead.
+            For now, in TVP 12, it always returns 1.0 but will be removed in future versions.
+        """
         george.tv_camera_info_set(
             self.width,
             self.height,
@@ -109,6 +117,7 @@ class Camera(Refreshable):
     @pixel_aspect_ratio.setter
     @set_as_current
     def pixel_aspect_ratio(self, value: float) -> None:
+        """The pixel aspect ratio of the camera."""
         george.tv_camera_info_set(
             self.width,
             self.height,
@@ -141,6 +150,7 @@ class Camera(Refreshable):
     @field_order.setter
     @set_as_current
     def field_order(self, value: george.FieldOrder) -> None:
+        """The field order of the camera."""
         george.tv_camera_info_set(self.width, self.height, field_order=value)
 
     @property
@@ -267,6 +277,7 @@ class CameraPoint(Removable):
 
     @x.setter
     def x(self, value: float) -> None:
+        """The x coordinate of the point."""
         current_data = george.tv_camera_enum_points(self.index)
         george.tv_camera_set_point(
             self.index,
@@ -283,6 +294,7 @@ class CameraPoint(Removable):
 
     @y.setter
     def y(self, value: float) -> None:
+        """The y coordinate of the point."""
         current_data = george.tv_camera_enum_points(self.index)
         george.tv_camera_set_point(
             self.index,
@@ -299,6 +311,7 @@ class CameraPoint(Removable):
 
     @angle.setter
     def angle(self, value: float) -> None:
+        """The angle of the camera at the point."""
         current_data = george.tv_camera_enum_points(self.index)
         george.tv_camera_set_point(
             self.index,
@@ -315,6 +328,7 @@ class CameraPoint(Removable):
 
     @scale.setter
     def scale(self, value: float) -> None:
+        """The scale of the camera at the point."""
         current_data = george.tv_camera_enum_points(self.id)
         george.tv_camera_set_point(
             self.id,
@@ -326,12 +340,12 @@ class CameraPoint(Removable):
 
     @property
     def width(self) -> float:
-        """The scale of the camera at the point."""
+        """The width of the camera at the point."""
         return self.camera.clip.project.width * (self.scale * 0.01)
 
     @property
     def height(self) -> float:
-        """The scale of the camera at the point."""
+        """The height of the camera at the point."""
         return self.camera.clip.project.height * (self.scale * 0.01)
 
     @classmethod
@@ -401,7 +415,7 @@ class InterpolationCameraPoint(CameraPoint):
             the FrameCameraPoint instance is read-only and cannot be removed as  it doesn't really exist
         """
         log.warning(
-            "Read-Only InterpolationCameraPoint cannot be deleted as it doesn't really exist, " "ignoring request."
+            "Read-Only InterpolationCameraPoint cannot be deleted as it doesn't really exist, ignoring request."
         )
         return
 
@@ -448,5 +462,5 @@ class FrameCameraPoint(CameraPoint):
         Warning:
             the FrameCameraPoint instance is read-only and cannot be removed as  it doesn't really exist
         """
-        log.warning("Read-Only FrameCameraPoint cannot be deleted as it doesn't really exist, " "ignoring request.")
+        log.warning("Read-Only FrameCameraPoint cannot be deleted as it doesn't really exist, ignoring request.")
         return

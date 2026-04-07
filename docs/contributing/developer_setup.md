@@ -19,22 +19,33 @@ First clone the repository:
 ❯ git clone git@github.com:brunchstudio/pytvpaint.git
 ```
 
+then `cd` into the repo directory
+
+```shell
+❯ cd /path/to/the/repo
+```
+
 Install Hatch if needed:
 ```shell
 ❯ pip install hatch
 ```
 
-Then install the dependencies in a virtualenv with Hatch:
 
-```shell
-❯ hatch env create
-```
+!!! info
 
-Note that this will install the library and default development dependencies. To install optional [environments](https://hatch.pypa.io/latest/config/environment/overview/) (to build the documentation, etc...) you can specify the environment name:
+    You may create the env and install the dependencies in a virtualenv with Hatch if you want to, 
+    but it is not necessary for hatch as it creates the environment on its own when needed:
+    
+    ```shell
+    ❯ hatch env create # create the venv
+    ❯ hatch shell # Enter the new venv shell
+    ```
 
-```shell
-❯ hatch env create docs
-```
+    Note that this will install the library and default development dependencies. To install optional [environments](https://hatch.pypa.io/latest/config/environment/overview/) (to build the documentation, etc...) you can specify the environment name:
+    
+    ```shell
+    ❯ hatch env create docs
+    ```
 
 ### Code formatting
 
@@ -42,25 +53,35 @@ We use [Black](https://black.readthedocs.io/en/stable/) to ensure that the code 
 
 ```shell
 # Will format all the .py files in the current directory
-(venv) ❯ black .
+❯ hatch run dev:black .
 
 # To only check if the format is correct
-(venv) ❯ black --check .
+❯ hatch run dev:black --check .
 ```
 
-!!! Tip
+Or use the `pyproject.toml` shortcut :
 
-    Use `hatch shell` to enter a new shell in the virtualenv. In this page commands marked `(venv) ❯` can also be run with `hatch run <command>`
+```shell
+# this is the same as running `black .`
+❯ hatch run dev:format
+```
 
 ### Linting
 
 We also use [Ruff](https://docs.astral.sh/ruff/) as a linter. It combines a lot of rules from other projects like Flake8, pyupgrade, pydocstyle, isort, etc...
 
 ```shell
-(venv) ❯ ruff .
+❯ hatch run dev:ruff check .
 
 # Will apply autofixes
-(venv) ❯ ruff --fix .
+❯ hatch run dev:ruff check --fix .
+```
+
+Or use the `pyproject.toml` shortcut :
+
+```shell
+# this is the same as running `ruff check --fix .`
+❯ hatch run dev:lint
 ```
 
 ### Type checking
@@ -68,7 +89,21 @@ We also use [Ruff](https://docs.astral.sh/ruff/) as a linter. It combines a lot 
 Mypy is the go-to static type checker for Python. It ensures that variables and functions are used correctly and can catch refactor errors when editing the codebase.
 
 ```shell
-(venv) ❯ mypy .
+❯ hatch run dev:mypy .
+```
+
+Or use the `pyproject.toml` shortcut :
+
+```shell
+# this is the same as running `mypy .`
+❯ hatch run dev:typecheck
+```
+
+You can also use this shortcut to run all the steps above combined by running:
+
+```shell
+# This will run format then lint then typecheck.
+❯ hatch run dev:all
 ```
 
 !!! info
@@ -77,18 +112,16 @@ Mypy is the go-to static type checker for Python. It ensures that variables and 
 
 ### Documentation
 
-The documentation is built using [MkDocs](https://www.mkdocs.org/) which is a static site generator that uses Markdown as the source format.
-
-On top of that we use [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) which provides the Material look as well as some other nice features.
+The documentation is built using [Zensical](https://zensical.org/) which is a static site generator that uses Markdown as the source format.
 
 You can either run the development server or build the entire documentation:
 
 ```shell
 # Will serve the doc on [http://127.0.0.1:8000](http://127.0.0.1:8000) with hot reload
-(venv) ❯ mkdocs serve
+❯ hatch run docs:serve
 
 # Build the doc as static files
-(venv) ❯ mkdocs build
+❯ hatch run docs:build
 ```
 
 The [Python API documentation](https://brunchstudio.github.io/pytvpaint/api/objects/project/) is auto-generated from the docstrings in the code by using [mkdocstrings](https://mkdocstrings.github.io/). We use the [Google style](https://mkdocstrings.github.io/griffe/docstrings/#google-style) for docstrings.
@@ -120,14 +153,14 @@ To run them, use the following commands:
 
 ```shell
 # run all the tests
-(venv) ❯ pytest
+❯ hatch run test:pytest
 
 # Run with verbosity enabled (use PYTVPAINT_LOG_LEVEL to DEBUG) to see George commands
-(venv) ❯ pytest -v -s
+❯ hatch run test:pytest -v -s
 
 # Only run specific tests with pattern matching
-(venv) ❯ pytest -k test_tv_clip
+❯ hatch run test:pytest -k test_tv_clip
 
 # See the coverage statistics with pytest-cov
-(venv) ❯ pytest --cov=pytvpaint
+❯ hatch run test:pytest --cov=pytvpaint
 ```

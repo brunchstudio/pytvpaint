@@ -904,17 +904,19 @@ class Layer(Removable):
         output_path: Path | str | FileSequence,
         start: int | None = None,
         end: int | None = None,
+        frame_set: FrameSet | None = None,
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> None:
+    ) -> Path | FileSequence:
         """Render the layer to a single frame or frame sequence or movie.
 
         Args:
             output_path: a single file or file sequence pattern
             start: the start frame to render the layer's start if None. Defaults to None.
             end: the end frame to render or the layer's end if None. Defaults to None.
+            frame_set: a FrameSet with the frames/range to render. Defaults to None.
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             background_mode: the background mode for rendering. Defaults to None.
@@ -933,11 +935,14 @@ class Layer(Removable):
         Warning:
             Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
             encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
+
+        Returns:
+            the output file path or sequence
         """
         start = self.start if start is None else start
         end = self.end if end is None else end
-        frame_set = FrameSet(f"{start}-{end}")
-        self.clip.render(
+        frame_set = frame_set or FrameSet(f"{start}-{end}")
+        return self.clip.render(
             output_path=output_path,
             frame_set=frame_set,
             use_camera=use_camera,
@@ -986,25 +991,23 @@ class Layer(Removable):
             background_mode=background_mode,
             format_opts=format_opts,
         )
-        return export_path
+        return Path(export_path)
 
     @set_as_current
     def render_instances(
         self,
         export_path: Path | str | FileSequence,
-        start: int | None = None,
-        end: int | None = None,
+        frame_set: FrameSet | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
         use_camera: bool = False,
-    ) -> None:
+    ) -> Path | FileSequence:
         """Render all layer instances in the provided range for the current layer.
 
         Args:
             export_path: the export path (the extension determines the output format)
-            start: the start frame to render the layer's start if None. Defaults to None.
-            end: the end frame to render or the layer's end if None. Defaults to None.
+            frame_set: Render only the instances within the provided frameset. Defaults to None.
             alpha_mode: the render alpha mode
             background_mode: the render background mode
             format_opts: custom output format options to pass when rendering
@@ -1019,10 +1022,15 @@ class Layer(Removable):
             FileSequence: instances output sequence
         """
         frames = [layer_instance.start for layer_instance in self.instances]
+        if frame_set is not None:
+            frame_set = FrameSet([f for f in frame_set.items if f in frames])
+        else:
+            frame_set = FrameSet(frames) or frame_set
 
-        self.clip.render(
+        print("frame_set ===> ", frame_set)
+        return self.clip.render(
             output_path=export_path,
-            frame_set=FrameSet(frames),
+            frame_set=frame_set,
             use_camera=use_camera,
             layer_selection=[self],
             alpha_mode=alpha_mode,
@@ -1281,8 +1289,7 @@ class Layer(Removable):
 
         if start and self.get_instance(start):
             raise ValueError(
-                "An instance already exists at the designated frame range. "
-                "Edit or delete it before adding a new one."
+                "An instance already exists at the designated frame range. Edit or delete it before adding a new one."
             )
 
         start = start if start is not None else self.clip.current_frame

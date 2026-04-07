@@ -63,9 +63,9 @@ as these have no range selection options. We will also ignore all the clip expor
 same way as `tv_SaveSequence` (which we will review below) when handling ranges.
 
 | Method                                                                                                     | Description       | Can Render Camera |
-| :--------------------------------------------------------------------------------------------------------- | :---------------- | ----------------- |
+|:-----------------------------------------------------------------------------------------------------------| :---------------- | ----------------- |
 | [`tv_ProjectSaveSequence`](../api/george/project.md#pytvpaint.george.grg_project.tv_project_save_sequence) | Renders a project | True              |
-| [`tv_SaveSequence`](../api/george/layer.md#pytvpaint.george.grg_clip.tv_save_sequence)                     | Renders a clip    | False             |
+| [`tv_SaveSequence`](../api/george/clip.md#pytvpaint.george.grg_clip.tv_save_sequence)                      | Renders a clip    | False             |
 
 ### Setup
 

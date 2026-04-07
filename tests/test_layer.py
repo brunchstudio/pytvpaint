@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from fileseq.filesequence import FileSequence
+from fileseq.frameset import FrameSet
 
 from pytvpaint import george
 from pytvpaint.clip import Clip
@@ -283,7 +285,23 @@ def test_layer_load_image(test_layer_obj: Layer, png_sequence: list[Path]) -> No
 
 
 def test_layer_render_frame(with_loaded_sequence: Layer, tmp_path: Path) -> None:
-    with_loaded_sequence.render_frame(tmp_path / "out.jpg", frame=3)
+    out_img = with_loaded_sequence.render_frame(tmp_path / "out.jpg", frame=3)
+    assert out_img and out_img.exists() and out_img == (tmp_path / "out.jpg")
+
+
+@pytest.mark.parametrize("frame_set", [None, FrameSet([1, 3, 5]), FrameSet("1-15")])
+def test_layer_render_instances(with_loaded_sequence: Layer, tmp_path: Path, frame_set: FrameSet) -> None:
+    out_seq = with_loaded_sequence.render_instances(tmp_path / "out.#.jpg", frame_set=frame_set)
+    found_sequence = FileSequence.findSequenceOnDisk(str(out_seq))
+
+    frame_set = frame_set or FrameSet(f"{with_loaded_sequence.start}-{with_loaded_sequence.end}")
+    check_frame_set = FrameSet(
+        [f for f in frame_set.items if with_loaded_sequence.start <= f <= with_loaded_sequence.end]
+    )
+
+    assert found_sequence and found_sequence.frameSet() and found_sequence.frameSet().items  # type: ignore[union-attr]
+    assert check_frame_set and check_frame_set.items
+    assert found_sequence.frameSet().items == check_frame_set.items  # type: ignore[union-attr]
 
 
 @pytest.mark.skipif(not IS_NOT_TVP12, reason="TVP12 create anim layers by default now.")

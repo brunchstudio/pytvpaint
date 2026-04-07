@@ -108,7 +108,7 @@ plugins:
       handlers:
         python:
           paths: [.]
-          import:
+          inventories:
             - https://docs.python.org/3/objects.inv
           options:
             members_order: source
@@ -120,6 +120,8 @@ plugins:
             filters: ["!^_"]
             show_signature_annotations: True
             merge_init_into_class: True
+            show_if_no_docstring: true
+            inherited_members: true
 
 markdown_extensions:
   - admonition

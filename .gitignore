@@ -50,7 +50,7 @@ ENV/
 env.bak/
 venv.bak/
 
-# mkdocs documentation
+# zensical documentation
 /site
 
 # mypy

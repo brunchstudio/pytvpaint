@@ -139,7 +139,7 @@ class Renderable(ABC):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> None:
+    ) -> Path | FileSequence:
         if (start or end) and not frame_set:
             log.warning("Use of `start` and `end` is deprecated, prefer using `fileseq.FrameSet()` instead.")
         if start and end and frame_set and any(f not in frame_set for f in (start, end)):
@@ -166,7 +166,7 @@ class Renderable(ABC):
             raise ValueError("TVPaint will not render a movie that contains a single frame")
 
         # get first frame, tvp doesn't understand vfx padding `#`
-        if is_image or file_sequence.padding():
+        if is_image and is_sequence:
             first_frame = Path(file_sequence.frame(file_sequence.start()))
         else:
             first_frame = Path(str(output_path))
@@ -209,11 +209,12 @@ class Renderable(ABC):
                 # not all frames found
                 missing_frames = file_sequence_frame_set.difference(frame_set)
                 raise FileNotFoundError(
-                    f"Not all frames found, missing frames ({missing_frames}) " f"in sequence : {output_path}"
+                    f"Not all frames found, missing frames ({missing_frames}) in sequence : {output_path}"
                 )
-        else:
-            if not first_frame.exists():
-                raise FileNotFoundError(f"Could not find output at : {first_frame.as_posix()}")
+            return file_sequence
+        if not first_frame.exists():
+            raise FileNotFoundError(f"Could not find output at : {first_frame.as_posix()}")
+        return first_frame
 
 
 def get_unique_name(names: Iterable[str], stub: str) -> str:

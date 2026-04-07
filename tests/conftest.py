@@ -182,27 +182,76 @@ def count_up_generate(test_clip_obj: Clip) -> None:
         george.tv_update_undo()
 
 
-def png_generate(path: Path, width: int, height: int) -> None:
+# 5x7 Bitmap font definition for digits 0-9
+FONT_BITMAPS = {
+    "0": [" 000 ", "0   0", "0   0", "0   0", "0   0", "0   0", " 000 "],
+    "1": ["  1  ", " 11  ", "  1  ", "  1  ", "  1  ", "  1  ", " 111 "],
+    "2": [" 222 ", "2   2", "    2", "  22 ", " 2   ", "2    ", "22222"],
+    "3": [" 333 ", "3   3", "    3", "  33 ", "    3", "3   3", " 333 "],
+    "4": ["   4 ", "  44 ", " 4 4 ", "4  4 ", "44444", "   4 ", "   4 "],
+    "5": ["55555", "5    ", "5555 ", "    5", "    5", "5   5", " 555 "],
+    "6": [" 666 ", "6    ", "6666 ", "6   6", "6   6", "6   6", " 666 "],
+    "7": ["77777", "    7", "   7 ", "  7  ", " 7   ", "7    ", "7    "],
+    "8": [" 888 ", "8   8", "8   8", " 888 ", "8   8", "8   8", " 888 "],
+    "9": [" 999 ", "9   9", "9   9", " 9999", "    9", "    9", " 999 "],
+}
+
+
+def png_generate_with_index(path: Path, width: int, height: int, index: int) -> None:
     """
     Generates a valid grayscale PNG image file using pure Python.
-    No external dependencies required.
+    Renders the numeric index in the center of the image.
     """
     signature = b"\x89PNG\r\n\x1a\n"
 
     def make_chunk(chunk_type: bytes, data: bytes) -> bytes:
-        """Helper to create a standard PNG chunk with length and CRC32."""
         length = struct.pack(">I", len(data))
         crc = struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
         return length + chunk_type + data + crc
 
+    # IHDR: Bit depth 8, Color Type 0 (Grayscale)
     ihdr_data = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
     ihdr = make_chunk(b"IHDR", ihdr_data)
 
+    # Initialize canvas with a dark gray background
+    row_size = width + 1
     raw_data = bytearray()
     for _ in range(height):
         raw_data.append(0)  # Filter type 0
-        for _ in range(width):
-            raw_data.append(randint(0, 255))
+        raw_data.extend([40] * width)
+
+    # Geometric calculation for text centering
+    index_str = str(index)
+    scale = 8  # Magnification multiplier for the 5x7 font
+    char_w, char_h = 5, 7
+    spacing = 1
+
+    total_w = (len(index_str) * char_w + (len(index_str) - 1) * spacing) * scale
+    total_h = char_h * scale
+
+    start_x = max(0, (width - total_w) // 2)
+    start_y = max(0, (height - total_h) // 2)
+
+    # Rasterize font onto the 1D buffer
+    current_x = start_x
+    for char in index_str:
+        bitmap = FONT_BITMAPS.get(char, FONT_BITMAPS["0"])
+        for row_idx, row in enumerate(bitmap):
+            for col_idx, pixel in enumerate(row):
+                if pixel != " ":
+                    # Apply magnification scaling
+                    for sy in range(scale):
+                        for sx in range(scale):
+                            px = current_x + col_idx * scale + sx
+                            py = start_y + row_idx * scale + sy
+
+                            # Boundary condition check
+                            if 0 <= px < width and 0 <= py < height:
+                                # 1D Array Mapping: y * row_width + 1 (filter offset) + x
+                                buf_idx = py * row_size + 1 + px
+                                raw_data[buf_idx] = 255  # White pixel
+
+        current_x += (char_w + spacing) * scale
 
     idat_data = zlib.compress(raw_data)
     idat = make_chunk(b"IDAT", idat_data)
@@ -224,8 +273,9 @@ def png_sequence(tmp_path_factory: pytest.TempPathFactory) -> Generator[list[Pat
     images: list[Path] = []
 
     for i in range(5):
-        png_path = images_dir / f"image.{(i + 1):03d}.png"
-        png_generate(png_path, 200, 200)
+        idx = i + 1
+        png_path = images_dir / f"image.{idx:03d}.png"
+        png_generate_with_index(png_path, 512, 512, idx)
         images.append(png_path)
 
     yield images
@@ -234,7 +284,7 @@ def png_sequence(tmp_path_factory: pytest.TempPathFactory) -> Generator[list[Pat
 @pytest.fixture(scope="session")
 def wav_file(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Create a test WAV sound file with random data"""
-    sounds_dir = tmp_path_factory.mktemp("sounds")
+    sounds_dir = Path(tmp_path_factory.mktemp("sounds"))
     import uuid
 
     wav_path = sounds_dir / f"{uuid.uuid4()}.wav"

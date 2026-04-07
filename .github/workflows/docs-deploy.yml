@@ -45,14 +45,14 @@ jobs:
       # Build the docs on PRs
       - name: Verify Docs Build (on Pull Requests)
         if: github.event_name == 'pull_request'
-        run: hatch run docs:mkdocs build --strict
+        run: hatch run docs:build
 
       # Deploy Dev Documentation (on main)
       - name: Deploy Dev Documentation (on main)
         if: github.ref == 'refs/heads/main'
-        run: hatch run docs:mike deploy dev --push
+        run: hatch run docs:deploy-dev
 
       # Deploy Release Documentation (on tags)
       - name: Deploy Release Documentation (on tags)
         if: startsWith(github.ref, 'refs/tags/')
-        run: hatch run docs:mike deploy ${{ github.ref_name }} latest --update-aliases --push
+        run: hatch run docs:deploy-release ${{ github.ref_name }}

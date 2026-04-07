@@ -637,7 +637,7 @@ class Project(Refreshable, Renderable):
             if frame_set.isConsecutive():
                 frame_set = FrameSet(f"{start}-{end}")
             else:
-                frames = [convert_range(int(f)) for f in frame_set.items] + [start, end]
+                frames = [convert_range(int(f)) for f in frame_set.items if start <= convert_range(int(f)) <= end]
                 frame_set = FrameSet(frames)
         else:
             frame_set = FrameSet(f"{start}-{end}")
@@ -655,7 +655,7 @@ class Project(Refreshable, Renderable):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> None:
+    ) -> Path | FileSequence:
         """Render the project to a single frame or frame sequence or movie.
 
         Args:
@@ -681,11 +681,14 @@ class Project(Refreshable, Renderable):
         Warning:
             Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
             encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
+
+        Returns:
+            the output file path or sequence
         """
         default_start = self.mark_in or self.start_frame
         default_end = self.mark_out or self.end_frame
 
-        self._render(
+        return self._render(
             output_path=output_path,
             default_start=default_start,
             default_end=default_end,

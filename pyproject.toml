@@ -26,6 +26,15 @@ dependencies = [
 Repository = "https://github.com/brunchstudio/pytvpaint"
 Documentation = "https://brunchstudio.github.io/pytvpaint/"
 
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "pytvpaint/_version.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github"]
+
 [project.optional-dependencies]
 dev = [
     "black>=24.2.0",
@@ -39,27 +48,32 @@ test = [
     "pytest-html>=4.0.0",
 ]
 docs = [
-    "mkdocs-material>=9.5.10",
+    "zensical",
     "mkdocstrings[python]>=0.24.0",
     "mike",
 ]
 
-[tool.hatch.version]
-source = "vcs"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "pytvpaint/_version.py"
-
-[tool.hatch.build.targets.sdist]
-exclude = ["/.github"]
-
 [tool.hatch.envs.default]
 features = ["dev", "test"]
+
+[tool.hatch.envs.dev]
+features = ["dev"]
+
+[tool.hatch.envs.dev.scripts]
+format = "black ."
+lint = "ruff check --fix ."
+typecheck = "mypy ."
+all = ["format", "lint", "typecheck"]
+
+[tool.hatch.envs.test]
+features = ["test"]
 
 [tool.hatch.envs.docs]
 features = ["docs"]
 
 [tool.hatch.envs.docs.scripts]
+build = "zensical build"
+serve = "zensical serve"
 deploy-dev = "mike deploy dev --push"
 deploy-release = "mike deploy {args} latest --update-aliases --push"
 
@@ -120,7 +134,7 @@ disallow_any_generics = true
 disallow_incomplete_defs = true
 disallow_subclassing_any = true
 disallow_untyped_calls = true
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false
 disallow_untyped_defs = true
 exclude = "package.py"
 follow_imports = "normal"

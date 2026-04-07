@@ -19,12 +19,12 @@ jobs:
 
       - name: Formatting check
         if: always()
-        run: hatch run black --check .
+        run: hatch run dev:black --check .
 
       - name: Linting
         if: always()
-        run: hatch run ruff check .
+        run: hatch run dev:ruff check .
 
       - name: Type checking
         if: always()
-        run: hatch run mypy .
+        run: hatch run dev:mypy .
