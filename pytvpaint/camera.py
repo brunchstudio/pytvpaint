@@ -328,10 +328,9 @@ class CameraPoint(Removable):
 
     @scale.setter
     def scale(self, value: float) -> None:
-        """The scale of the camera at the point."""
-        current_data = george.tv_camera_enum_points(self.id)
+        current_data = george.tv_camera_enum_points(self.index)
         george.tv_camera_set_point(
-            self.id,
+            self.index,
             x=current_data.x,
             y=current_data.y,
             angle=current_data.angle,
