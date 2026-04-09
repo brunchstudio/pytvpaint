@@ -74,8 +74,7 @@ features = ["docs"]
 [tool.hatch.envs.docs.scripts]
 build = "zensical build"
 serve = "zensical serve"
-deploy-dev = "mike deploy dev --push"
-deploy-release = "mike deploy {args} latest --update-aliases --push"
+deploy = "mike deploy {args} latest --update-aliases --push"
 
 [tool.pytest.ini_options]
 addopts = [

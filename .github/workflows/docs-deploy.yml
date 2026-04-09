@@ -2,10 +2,11 @@ name: Publish documentation
 
 on:
   push:
+    # Trigger on all branches and all tags
     branches:
-      - main
+      - "**"
     tags:
-      - "*"
+      - "**"
   pull_request:
     branches:
       - main
@@ -17,7 +18,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -26,7 +27,7 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.9"
 
@@ -35,24 +36,19 @@ jobs:
 
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           key: mkdocs-material-${{ env.cache_id }}
           path: .cache
           restore-keys: |
             mkdocs-material-
 
-      # Build the docs on PRs
+      # Build the docs on PRs to verify they don't break
       - name: Verify Docs Build (on Pull Requests)
         if: github.event_name == 'pull_request'
         run: hatch run docs:build
 
-      # Deploy Dev Documentation (on main)
-      - name: Deploy Dev Documentation (on main)
-        if: github.ref == 'refs/heads/main'
-        run: hatch run docs:deploy-dev
-
-      # Deploy Release Documentation (on tags)
-      - name: Deploy Release Documentation (on tags)
-        if: startsWith(github.ref, 'refs/tags/')
-        run: hatch run docs:deploy-release ${{ github.ref_name }}
+      # Deploy Documentation dynamically for EVERY branch and tag
+      - name: Deploy Documentation
+        if: github.event_name == 'push'
+        run: hatch run docs:deploy ${{ github.ref_name }}
