@@ -2,6 +2,8 @@
   {
     "version": "tvp12",
     "title": "tvp12",
-    "aliases": []
+    "aliases": [
+      "latest"
+    ]
   }
 ]
