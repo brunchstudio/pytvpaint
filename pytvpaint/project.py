@@ -632,14 +632,15 @@ class Project(Refreshable, Renderable):
         end = convert_range(end)
 
         if frame_set is not None:
-            start = max(start, convert_range(int(frame_set.start())))
-            end = min(end, convert_range(int(frame_set.end())))
+            frames = sorted(frame_set.items)
+            start = max(start, convert_range(int(frames[0]))) if frames else start
+            end = min(end, convert_range(int(frames[-1]))) if frames else end
             if frame_set.isConsecutive():
                 frame_set = FrameSet(f"{start}-{end}")
             else:
-                frames = [convert_range(int(f)) for f in frame_set.items if start <= convert_range(int(f)) <= end]
+                frames = [convert_range(int(f)) for f in frames if start <= convert_range(int(f)) <= end]
                 frame_set = FrameSet(frames)
-        else:
+        if frame_set is None or not frame_set.items:
             frame_set = FrameSet(f"{start}-{end}")
 
         return start, end, frame_set

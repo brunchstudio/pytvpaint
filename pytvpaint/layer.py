@@ -1021,13 +1021,12 @@ class Layer(Removable):
         Returns:
             FileSequence: instances output sequence
         """
-        frames = [layer_instance.start for layer_instance in self.instances]
+        frames = sorted([layer_instance.start for layer_instance in self.instances])
         if frame_set is not None:
             frame_set = FrameSet([f for f in frame_set.items if f in frames])
         else:
             frame_set = FrameSet(frames) or frame_set
 
-        print("frame_set ===> ", frame_set)
         return self.clip.render(
             output_path=export_path,
             frame_set=frame_set,
