@@ -35,30 +35,12 @@ version-file = "pytvpaint/_version.py"
 [tool.hatch.build.targets.sdist]
 exclude = ["/.github"]
 
-[project.optional-dependencies]
-dev = [
+[tool.hatch.envs.dev]
+dependencies = [
     "black>=24.2.0",
     "ruff>=0.2.2",
     "mypy>=1.9.0",
 ]
-test = [
-    "pytest>=7.0.0",
-    "pytest-mock>=3.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-html>=4.0.0",
-]
-docs = [
-    "zensical",
-    "mkdocstrings[python]>=0.24.0",
-    "mike",
-]
-
-[tool.hatch.envs.default]
-features = ["dev", "test"]
-
-[tool.hatch.envs.dev]
-features = ["dev"]
-
 [tool.hatch.envs.dev.scripts]
 format = "black ."
 lint = "ruff check --fix ."
@@ -66,15 +48,24 @@ typecheck = "mypy ."
 all = ["format", "lint", "typecheck"]
 
 [tool.hatch.envs.test]
-features = ["test"]
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-mock>=3.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-html>=4.0.0",
+]
 
 [tool.hatch.envs.docs]
-features = ["docs"]
+dependencies = [
+    "zensical",
+    "mkdocstrings[python]>=0.24.0",
+    "mike @ git+https://github.com/squidfunk/mike.git",
+]
 
 [tool.hatch.envs.docs.scripts]
 build = "zensical build"
 serve = "zensical serve"
-deploy = "mike deploy {args} latest --update-aliases --push"
+deploy = "mike deploy {args} --update-aliases --push"
 
 [tool.pytest.ini_options]
 addopts = [

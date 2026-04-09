@@ -43,12 +43,17 @@ jobs:
           restore-keys: |
             zensical-
 
-      # Build the docs on PRs to verify they don't break
+      # Test build docs on PRs
       - name: Verify Docs Build (on Pull Requests)
         if: github.event_name == 'pull_request'
         run: hatch run docs:build
 
-      # Deploy Documentation dynamically for EVERY branch and tag
-      - name: Deploy Documentation
-        if: github.event_name == 'push'
+      # Deploy dev documentation
+      - name: Deploy Branch Documentation
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
         run: hatch run docs:deploy ${{ github.ref_name }}
+
+      # Deploy release documentation
+      - name: Deploy Release Documentation
+        if: startsWith(github.ref, 'refs/tags/')
+        run: hatch run docs:deploy ${{ github.ref_name }} latest

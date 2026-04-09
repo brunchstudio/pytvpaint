@@ -124,7 +124,7 @@ You can either run the development server or build the entire documentation:
 ❯ hatch run docs:build
 ```
 
-The [Python API documentation](https://brunchstudio.github.io/pytvpaint/api/objects/project/) is auto-generated from the docstrings in the code by using [mkdocstrings](https://mkdocstrings.github.io/). We use the [Google style](https://mkdocstrings.github.io/griffe/docstrings/#google-style) for docstrings.
+The [Python API documentation](https://brunchstudio.github.io/pytvpaint/api/objects/project/) is auto-generated from the docstrings in the code by using [Zensical](https://github.com/zensical/zensical). We use the [Google style](https://mkdocstrings.github.io/griffe/docstrings/#google-style) for docstrings.
 
 For example:
 
