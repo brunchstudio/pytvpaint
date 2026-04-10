@@ -170,8 +170,8 @@ class Renderable(ABC):
             not is_sequence and FileSequence(str(output_path)).padding()
         ):  # get first frame, tvp doesn't understand vfx padding `#`
             first_frame = (
-                sorted(file_sequence.frameSet().items)[0]
-                if len(file_sequence.frameSet()) >= 1
+                sorted(file_sequence.frameSet().items)[0]  # type: ignore[union-attr]
+                if file_sequence.frameSet() and len(file_sequence.frameSet()) >= 1  # type: ignore[arg-type]
                 else file_sequence.start()
             )
             first_frame_file = Path(file_sequence.frame(first_frame))

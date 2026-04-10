@@ -12,7 +12,6 @@ import pytest
 
 from pytvpaint import george
 from pytvpaint.clip import Clip
-from pytvpaint.george.client import send_cmd
 from pytvpaint.guideline import GuidelineLine
 from pytvpaint.layer import Layer
 from pytvpaint.project import Project
@@ -256,7 +255,7 @@ def png_sequence(tmp_path_factory: pytest.TempPathFactory) -> Generator[list[Pat
 @pytest.fixture
 def count_up_generate(test_clip_obj: Clip, png_sequence: list[Path]) -> None:
     """Load 5 frames with a text in the middle of the screen for each frame. Useful for debugging render tests."""
-    test_clip_obj.load_media(png_sequence[0], start_count=[0, 5], stretch=True, preload=True, with_name="count_up")
+    test_clip_obj.load_media(png_sequence[0], start_count=(0, 5), stretch=True, preload=True, with_name="count_up")
 
 
 @pytest.fixture(scope="session")

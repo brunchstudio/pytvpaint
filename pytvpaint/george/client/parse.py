@@ -178,19 +178,18 @@ def tv_cast_to_type(value: str, cast_type: type[T]) -> T:  # noqa: C901
 
         return cast(T, container_cls(casted_items))
 
-    # clean_val = clean_val.strip("\"'")
     # Basic Primitives
     target_type = cast_type if isinstance(cast_type, type) else type(cast_type)
     if target_type is str:
-        return clean_val
+        return cast(T, clean_val)
     if target_type is int:
-        return int(float(clean_val))
+        return cast(T, int(float(clean_val)))
     if target_type is float:
-        return float(clean_val)
+        return cast(T, float(clean_val))
     if target_type is Path:
-        return Path(clean_val)
+        return cast(T, Path(clean_val))
     if target_type is bool:
-        return clean_val.lower() in ("true", "1", "yes", "on")
+        return cast(T, clean_val.lower() in ("true", "1", "yes", "on"))
 
     # Enums
     if issubclass(cast_type, Enum):
