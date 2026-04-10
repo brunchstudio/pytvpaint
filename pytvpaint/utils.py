@@ -146,8 +146,9 @@ class Renderable(ABC):
             log.warning("`start` and/or `end` outside of `frame_set` range, will prioritize FrameSet.")
 
         if frame_set is not None and not (start and end):
-            start = start if start is not None else int(frame_set.start())
-            end = end if end is not None else int(frame_set.end())
+            frames = sorted(frame_set.items)
+            start = start if start is not None or not frames else int(frames[0])
+            end = end if end is not None or not frames else int(frames[-1])
 
         # finds range if none provided or in path and clamps it to the correct context
         file_sequence, start, end, is_sequence, is_image = handle_output_range(
@@ -165,12 +166,18 @@ class Renderable(ABC):
         if not is_image and start == end:
             raise ValueError("TVPaint will not render a movie that contains a single frame")
 
-        # get first frame, tvp doesn't understand vfx padding `#`
-        if is_image and is_sequence:
-            first_frame = Path(file_sequence.frame(file_sequence.start()))
-        else:
-            first_frame = Path(str(output_path))
-        first_frame.parent.mkdir(exist_ok=True, parents=True)
+        if is_sequence or (
+            not is_sequence and FileSequence(str(output_path)).padding()
+        ):  # get first frame, tvp doesn't understand vfx padding `#`
+            first_frame = (
+                sorted(file_sequence.frameSet().items)[0]
+                if len(file_sequence.frameSet()) >= 1
+                else file_sequence.start()
+            )
+            first_frame_file = Path(file_sequence.frame(first_frame))
+        else:  # if movie or single image
+            first_frame_file = Path(str(output_path))
+        first_frame_file.parent.mkdir(exist_ok=True, parents=True)
 
         save_format = george.SaveFormat.from_extension(file_sequence.extension().lower())
 
@@ -179,7 +186,7 @@ class Renderable(ABC):
         with render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             if frame_set.isConsecutive():
                 george.tv_project_save_sequence(
-                    first_frame,
+                    first_frame_file,
                     start=start,
                     end=end,
                     use_camera=use_camera,
@@ -203,7 +210,7 @@ class Renderable(ABC):
             file_sequence_frame_set = file_sequence.frameSet()
 
             if file_sequence_frame_set is None or frame_set is None:
-                raise Exception("Should have frame set")
+                raise Exception("Sequence Should have a frame set !")
 
             if not frame_set.issuperset(file_sequence_frame_set):
                 # not all frames found
@@ -212,9 +219,9 @@ class Renderable(ABC):
                     f"Not all frames found, missing frames ({missing_frames}) in sequence : {output_path}"
                 )
             return file_sequence
-        if not first_frame.exists():
-            raise FileNotFoundError(f"Could not find output at : {first_frame.as_posix()}")
-        return first_frame
+        if not first_frame_file.exists():
+            raise FileNotFoundError(f"Could not find output at : {first_frame_file.as_posix()}")
+        return first_frame_file
 
 
 def get_unique_name(names: Iterable[str], stub: str) -> str:
@@ -475,8 +482,8 @@ def handle_output_range(
 ) -> tuple[FileSequence, int, int, bool, bool]:
     """Handle the different options for output paths and range.
 
-    Whether the user provides a range (start-end) or a filesequence with a range or not, this functions ensures we
-    always end up with a valid range to render
+    Whether the user provides a range (start-end) or a frame set or a filesequence with a range or not, this functions
+    ensures we always end up with a valid range to render
 
     Args:
         output_path: user provided output path
@@ -503,8 +510,9 @@ def handle_output_range(
 
     # if the provided sequence has a range, and we don't, use the sequence range
     if frame_set and len(frame_set) >= 1 and is_image:
-        start = start or int(file_sequence.start())
-        end = end or int(file_sequence.end())
+        frames = sorted(frame_set.items)
+        start = start or int(frames[0])
+        end = end or int(frames[-1])
 
     # check characteristics of file sequence
     fseq_has_range = frame_set and len(frame_set) > 1
@@ -529,6 +537,8 @@ def handle_output_range(
 
     if not file_sequence.padding() and is_image and len(frame_set) > 1:
         file_sequence.setPadding("#")
+        if not is_sequence and "#" not in str(file_sequence):
+            is_sequence = True
 
     # we should have a range by now, set it in the sequence
     if (is_image and not is_single_image) or file_sequence.padding():

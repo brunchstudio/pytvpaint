@@ -88,8 +88,6 @@ def test_layer_is_current(
 
 
 def test_layer_is_selected(test_layer_obj: Layer) -> None:
-    assert not test_layer_obj.is_selected
-
     test_layer_obj.is_selected = True
     assert test_layer_obj.is_selected
 

@@ -154,34 +154,6 @@ def test_guideline_obj(test_project_obj: Project) -> FixtureYield[GuidelineLine]
     yield guideline_obj
 
 
-@pytest.fixture
-def count_up_generate(test_clip_obj: Clip) -> None:
-    """Create 5 frames with a text in the middle of the screen for each frame. Useful for debugging render tests."""
-    text_pos = (
-        int(test_clip_obj.project.width / 2),
-        int(test_clip_obj.project.height / 2),
-    )
-
-    test_clip_obj.current_frame = 1
-    test_layer = Layer.new_anim_layer("count_up", test_clip_obj)
-    test_layer.make_current()
-
-    for i in range(1, 6):
-        if i != 1:
-            test_layer.add_instance(i)
-        test_clip_obj.current_frame = i
-
-        # write the frame number in the middle of the image
-        george.tv_set_a_pen_rgba(george.RGBColor(0, 0, 0), 255)  # set the pen color
-        send_cmd("tv_TextTool2", "size", 200)  # set text size
-        george.tv_text_brush(str(i))  # set the brush text
-        george.tv_set_active_shape(george.TVPShape.FREE_HAND_LINE, size=200)  # set the shape and it's size
-        # write a line with the text brush, having the start-end pos being the same will fake a single click
-        george.tv_line(text_pos, text_pos)
-        # update undo stack otherwise edits to last image are not saved (-_-)"
-        george.tv_update_undo()
-
-
 # 5x7 Bitmap font definition for digits 0-9
 FONT_BITMAPS = {
     "0": [" 000 ", "0   0", "0   0", "0   0", "0   0", "0   0", " 000 "],
@@ -275,10 +247,16 @@ def png_sequence(tmp_path_factory: pytest.TempPathFactory) -> Generator[list[Pat
     for i in range(5):
         idx = i + 1
         png_path = images_dir / f"image.{idx:03d}.png"
-        png_generate_with_index(png_path, 512, 512, idx)
+        png_generate_with_index(png_path, 1920, 1080, idx)
         images.append(png_path)
 
     yield images
+
+
+@pytest.fixture
+def count_up_generate(test_clip_obj: Clip, png_sequence: list[Path]) -> None:
+    """Load 5 frames with a text in the middle of the screen for each frame. Useful for debugging render tests."""
+    test_clip_obj.load_media(png_sequence[0], start_count=[0, 5], stretch=True, preload=True, with_name="count_up")
 
 
 @pytest.fixture(scope="session")

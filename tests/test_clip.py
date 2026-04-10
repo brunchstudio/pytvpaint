@@ -267,7 +267,8 @@ def test_clip_render_single_img(
     end: int | None,
     expected: str,
 ) -> None:
-    test_clip_obj.render(tmp_path / out, start, end)
+    frame_set = FrameSet(f"{start}-{end}") if start is not None and end is not None else None
+    test_clip_obj.render(output_path=tmp_path / out, frame_set=frame_set)
 
     expected_path = tmp_path.joinpath(expected)
     if "#" in expected_path.stem:
