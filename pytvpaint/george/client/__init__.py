@@ -18,18 +18,19 @@ from pytvpaint.george.client.parse import tv_handle_string
 from pytvpaint.george.client.rpc import JSONRPCClient
 from pytvpaint.george.exceptions import GeorgeError
 
+DEFAULT_HOST = "ws://localhost"
+DEFAULT_PORT = 3000
+DEFAULT_TIMEOUT = 60
 
-def _connect_client(host: str = "ws://localhost", port: int = 3000, timeout: int = 60) -> JSONRPCClient:
-    host = os.getenv("PYTVPAINT_WS_HOST", host)
-    port = int(os.getenv("PYTVPAINT_WS_PORT", port))
-    startup_connect = bool(int(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1)))
-    timeout = int(os.getenv("PYTVPAINT_WS_TIMEOUT", timeout))
 
-    rpc_client = JSONRPCClient(f"{host}:{port}", timeout)
+def _connect_client(
+    host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, timeout: int = DEFAULT_TIMEOUT, startup_connect: bool = True
+) -> JSONRPCClient:
 
+    _rpc_client = JSONRPCClient(f"{host}:{port}", timeout)
     if not startup_connect:
         log.debug("Auto Connect Disabled, RPC client is not connected")
-        return rpc_client
+        return _rpc_client
 
     start_time = time()
     wait_duration = 5
@@ -39,7 +40,7 @@ def _connect_client(host: str = "ws://localhost", port: int = 3000, timeout: int
         if timeout and (time() - start_time) > timeout:
             break
         with contextlib.suppress(ConnectionRefusedError):
-            rpc_client.connect()
+            _rpc_client.connect()
             connection_successful = True
             break
 
@@ -48,18 +49,22 @@ def _connect_client(host: str = "ws://localhost", port: int = 3000, timeout: int
 
     if not connection_successful:
         # Connection could not be established after timeout
-        if rpc_client.is_connected:
-            rpc_client.disconnect()
+        if _rpc_client.is_connected:
+            _rpc_client.disconnect()
 
         raise ConnectionRefusedError("Could not establish connection with a tvpaint instance before timeout !")
 
     if connection_successful:
         log.info(f"Connected to TVPaint on port {port}")
 
-    return rpc_client
+    return _rpc_client
 
 
-rpc_client = _connect_client()
+_rpc_host = os.getenv("PYTVPAINT_WS_HOST", DEFAULT_HOST)
+_rpc_port = int(os.getenv("PYTVPAINT_WS_PORT", DEFAULT_PORT))
+_rpc_timeout = int(os.getenv("PYTVPAINT_WS_TIMEOUT", DEFAULT_TIMEOUT))
+_rpc_startup_connect = bool(int(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1)))
+rpc_client = _connect_client(_rpc_host, _rpc_port, _rpc_timeout, _rpc_startup_connect)
 
 T = TypeVar("T", bound=Callable[..., Any])
 

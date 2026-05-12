@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import contextlib
 import json
+import select
+import socket
 import sys
-import threading
-from time import time
 from typing import Any, Union, cast
 
 from typing_extensions import NotRequired, TypedDict
-from websocket import WebSocket, WebSocketException
-
-from pytvpaint import log
+from websocket import WebSocket
 
 JSONValueType = Union[str, int, float, bool, None]
 
@@ -60,47 +57,26 @@ class JSONRPCResponseError(Exception):
 
 
 class JSONRPCClient:
-    """Simple JSON-RPC 2.0 client over websockets with automatic reconnection.
+    """Simple JSON-RPC 2.0 client over websockets.
 
     See: https://www.jsonrpc.org/specification#notification
     """
 
-    def __init__(self, url: str, timeout: int = 60, version: str = "2.0") -> None:
+    def __init__(self, url: str, timeout: int = 60, max_retries: int = 5, version: str = "2.0") -> None:
         """Initialize a new JSON-RPC client with a WebSocket url endpoint.
 
         Args:
             url: the WebSocket url endpoint
-            timeout: the reconnection timeout
+            timeout: the socket operation timeout
+            max_retries: the maximum socket connection retries
             version: The JSON-RPC version. Defaults to "2.0".
         """
         self.ws_handle = WebSocket()
         self.url = url
         self.rpc_id = 0
         self.timeout = timeout
+        self.max_retries = max_retries
         self.jsonrpc_version = version
-
-        self.stop_ping = threading.Event()
-        self.run_forever = False
-        self.ping_thread: threading.Thread | None = None
-        self._ping_start_time: float = 0
-
-    def _auto_reconnect(self) -> None:
-        """Automatic WebSocket reconnection in a thread by pinging the server."""
-        while self.run_forever and not self.stop_ping.wait(1):
-            try:
-                self.ws_handle.ping()
-                continue
-            except (WebSocketException, ConnectionError):
-                self.ws_handle.close()
-
-            with contextlib.suppress(ConnectionRefusedError):
-                self.connect()
-                log.info(f"Reconnected automatically to endpoint: {self.url}")
-                continue
-
-            # There's a timeout after which we stop reconnecting
-            if self.timeout and (time() - self._ping_start_time) > self.timeout:
-                raise ConnectionRefusedError("Could not establish connection with a tvpaint instance before timeout !")
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""
@@ -108,25 +84,45 @@ class JSONRPCClient:
 
     @property
     def is_connected(self) -> bool:
-        """Returns True if the client is connected."""
-        return self.ws_handle.connected
+        """Returns True if the client is connected and the socket is active."""
+        if not self.ws_handle.connected or self.ws_handle.sock is None:
+            return False
+
+        try:
+            # check if the socket is readable.
+            readable_sockets, _, _ = select.select([self.ws_handle.sock], [], [], 0.0)
+            if readable_sockets:
+                # MSG_PEEK reads data without consuming it from the buffer.
+                # If recv returns 0 bytes on a readable socket, the peer has disconnected.
+                data = self.ws_handle.sock.recv(1, socket.MSG_PEEK)
+                if not data:
+                    return False
+        except (BlockingIOError, InterruptedError):
+            pass  # Normal non-blocking behavior
+        except Exception:
+            return False  # Socket error indicates disconnection
+
+        return True
 
     def connect(self, timeout: float | None = None) -> None:
-        """Connects to the WebSocket endpoint."""
+        """Connects to the WebSocket endpoint and configures TCP keepalive."""
         self.ws_handle.connect(self.url, timeout=timeout)
 
-        if not self.ping_thread:
-            self._ping_start_time = time()
-            self.ping_thread = threading.Thread(target=self._auto_reconnect, daemon=True)
-            self.run_forever = True
-            self.ping_thread.start()
+        if self.ws_handle.sock:
+            sock = self.ws_handle.sock
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+            # Apply OS-specific keepalive configurations if available
+            if hasattr(socket, "TCP_KEEPIDLE"):  # linux and windows specific
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.timeout)
+            if hasattr(socket, "TCP_KEEPINTVL"):
+                probe_interval = max(1, self.timeout // 6)
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, probe_interval)
+            if hasattr(socket, "TCP_KEEPCNT"):
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, self.max_retries)
 
     def disconnect(self) -> None:
         """Disconnects from the server."""
-        self.run_forever = False
-        if self.ping_thread:
-            self.ping_thread.join()
-
         self.ws_handle.close()
 
     def increment_rpc_id(self) -> None:
