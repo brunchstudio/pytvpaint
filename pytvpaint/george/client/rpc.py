@@ -104,7 +104,7 @@ class JSONRPCClient:
 
         return True
 
-    def connect(self, timeout: float | None = None) -> None:
+    def connect(self, timeout: int = 0) -> None:
         """Connects to the WebSocket endpoint and configures TCP keepalive."""
         self.ws_handle.connect(self.url, timeout=timeout)
 
@@ -116,7 +116,7 @@ class JSONRPCClient:
             if hasattr(socket, "TCP_KEEPIDLE"):  # linux and windows specific
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.timeout)
             if hasattr(socket, "TCP_KEEPINTVL"):
-                probe_interval = max(1, self.timeout // 6)
+                probe_interval = max(1, max(self.timeout, 1) // 6)
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, probe_interval)
             if hasattr(socket, "TCP_KEEPCNT"):
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, self.max_retries)

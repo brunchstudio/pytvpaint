@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import socket
 from typing import Any
 
 import pytest
@@ -11,8 +12,11 @@ from pytvpaint.george.client.rpc import JSONRPCClient
 
 @pytest.fixture
 def json_rpc_client(mocker: MockFixture) -> JSONRPCClient:
+    mocker.patch("select.select", return_value=([], [], []))
+
     def connect(w: WebSocket, url: str, **options: Any) -> None:
         w.connected = True
+        w.sock = mocker.MagicMock(spec=socket.socket)
 
     mocker.patch.object(WebSocket, "connect", connect)
     return JSONRPCClient("ws://localhost:3000")
