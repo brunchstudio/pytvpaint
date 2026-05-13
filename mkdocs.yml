@@ -49,6 +49,7 @@ nav:
           - Internals: contributing/internals.md
           - Wrapping George commands: contributing/wrap_george.md
           - Modifying high-level classes: contributing/modify_objects.md
+      - Changelog: changelog.md
       - Credits: credits.md
   - C++ plugin:
       - Introduction: cpp/index.md
