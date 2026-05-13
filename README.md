@@ -83,7 +83,7 @@ For any questions on the limitations of our API, please head to [this page](http
 
 ## TVPaint 12
 
-PyTVPaint is incompatible with TVPaint-12. For now, it seems to still be compatible with George (maybe just for compatibility with older versions) but we do not currently have the new SDK, which is required to compile the c++ plugin, the documentation is also currently unavailable, we will update this when we have access to these requirements. 
+TVPaint-12 compatibility has been added in the latest release. It requires a new version of the [tvpaint-rpc plugin](https://github.com/brunchstudio/tvpaint-rpc). The api has been tested with the new version of TVPaint and mostly works, however there are a lot of breaking changes and some bugs, check the release notes for more info. We currently do not advise using pytvpaint with TVPaint-12 in production.
 
 
 <hr>
