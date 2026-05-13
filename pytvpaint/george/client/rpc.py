@@ -113,7 +113,7 @@ class JSONRPCClient:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
             # Apply OS-specific keepalive configurations if available
-            if hasattr(socket, "TCP_KEEPIDLE"):  # linux and windows specific
+            if hasattr(socket, "TCP_KEEPIDLE"):
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.timeout)
             if hasattr(socket, "TCP_KEEPINTVL"):
                 probe_interval = max(1, max(self.timeout, 1) // 6)
