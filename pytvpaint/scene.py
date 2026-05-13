@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 
 from pytvpaint import george, utils
@@ -14,7 +15,7 @@ from pytvpaint.utils import (
 
 
 class Scene(Removable):
-    """A Scene is a collection of clips. A Scene is inside a project."""
+    """A Scene is a collection of clips. A Scene is parented to a project."""
 
     def __init__(self, scene_id: int, project: Project) -> None:
         super().__init__()
@@ -45,12 +46,42 @@ class Scene(Removable):
         )
 
     @classmethod
-    def new(cls, project: Project | None = None) -> Scene:
-        """Creates a new scene in the provided project."""
+    def new(cls, project: Project | None = None, clips: list[str] | None = None) -> Scene:
+        """Creates a new scene in the provided project.
+
+        Args:
+            project: parent project
+            clips: list of clip names to create alongside new scene
+
+        Returns:
+            new scene instance
+        """
         project = project or Project.current_project()
         project.make_current()
+
+        # TODO commenting this for now until george.tv_scene_create is fixed by TVP devs
+        # if not clips or george.is_tvp_version_below_12():
+        #     george.tv_scene_new() # noqa: ERA001
+        #     new_scene = cls.current_scene() # noqa: ERA001
+        #
+        #     if clips and george.is_tvp_version_below_12():
+        #         for clip_name in clips:
+        #             new_scene.add_clip(clip_name) # noqa: ERA001
+        #
+        #     return new_scene # noqa: ERA001
+        #
+        # # if here, then we are using tvp 12 or superior
+        # scene_id = george.tv_scene_create(clips) # noqa: ERA001
+        # return project.get_scene(by_id=scene_id) # noqa: ERA001
+
         george.tv_scene_new()
-        return cls.current_scene()
+        new_scene = cls.current_scene()
+
+        if clips and george.is_tvp_version_below_12():
+            for clip_name in clips:
+                new_scene.add_clip(clip_name)
+
+        return new_scene
 
     def make_current(self) -> None:
         """Make this scene the current one."""
@@ -96,10 +127,8 @@ class Scene(Removable):
     @property
     @set_as_current
     def clip_ids(self) -> Iterator[int]:
-        """Returns an iterator over the clip ids."""
-        return utils.position_generator(
-            lambda pos: george.tv_clip_enum_id(self.id, pos)
-        )
+        """Returns an Returns an iterator over the clip ids."""
+        return utils.position_generator(lambda pos: george.tv_clip_enum_id(self.id, pos))
 
     @property
     def clips(self) -> Iterator[Clip]:
@@ -111,13 +140,22 @@ class Scene(Removable):
         self,
         by_id: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
     ) -> Clip | None:
-        """Find a clip by id or by name."""
-        for clip in self.clips:
-            if (by_id and clip.id == by_id) or (by_name and clip.name == by_name):
-                return clip
+        """Find a clip by id or by name.
 
-        return None
+        Args:
+            by_id: search by id. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+
+        Raises:
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            Clip | None: the searched element or None if search was unsuccessful
+        """
+        return utils.get_tvp_element(self.clips, by_id=by_id, by_name=by_name, by_regex=by_regex)
 
     @set_as_current
     def add_clip(self, clip_name: str) -> Clip:
@@ -132,6 +170,21 @@ class Scene(Removable):
         dup_pos = self.position + 1
         dup_id = george.tv_scene_enum_id(dup_pos)
         return Scene(dup_id, self.project)
+
+    @george.min_version_compatible(min_version="12")
+    def split(self) -> list[Scene]:
+        """Duplicate the scene and return it."""
+        self.project.make_current()
+        clip_ids = george.tv_scene_split(self.id)
+
+        new_scenes = []
+        for clip_id in clip_ids:
+            clip = self.project.get_clip(by_id=clip_id)
+            if not clip:
+                continue
+
+            new_scenes.append(clip.scene)
+        return new_scenes
 
     def remove(self) -> None:
         """Remove the scene and all the clips inside.

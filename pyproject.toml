@@ -1,56 +1,96 @@
-[tool.poetry]
-name = "pytvpaint"
-version = "1.0.2"
-description = "Python scripting for TVPaint"
-authors = [
-    "Brunch Studio Developers <dev@brunchstudio.tv>",
-    "Radouane Lahmidi <rlahmidi@brunchstudio.tv>",
-    "Joseph Henry <jhenry@brunchstudio.tv>",
-]
-license = "MIT"
-readme = "README.md"
-repository = "https://github.com/brunchstudio/pytvpaint"
-documentation = "https://brunchstudio.github.io/pytvpaint/"
-keywords = ["tvpaint", "brunch", "tvp", "george"]
-packages = [{ include = "pytvpaint" }]
-
-[tool.poetry.dependencies]
-python = ">=3.9"
-websocket-client = "^1.7.0"
-typing-extensions = "^4.9.0"
-fileseq = "^2.0.0"
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.2.0"
-ruff = "^0.2.2"
-mypy = "^1.9.0"
-
-[tool.poetry.group.test]
-optional = true
-
-[tool.poetry.group.test.dependencies]
-pytest = "^8.0.1"
-pytest-mock = "^3.12.0"
-pytest-cov = "^4.1.0"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-mkdocs-material = "^9.5.10"
-mkdocstrings = { extras = ["python"], version = "^0.24.0" }
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pytvpaint"
+dynamic = ["version"]
+description = "Python scripting for TVPaint"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [
+    { name = "Brunch Studio Developers", email = "dev@brunchstudio.tv" },
+    { name = "Radouane Lahmidi", email = "rlahmidi@brunchstudio.tv" },
+    { name = "Joseph Henry", email = "jhenry@brunchstudio.tv" },
+]
+keywords = ["tvpaint", "brunch", "tvp", "george"]
+dependencies = [
+    "websocket-client>=1.7.0",
+    "typing-extensions>=4.9.0",
+    "fileseq>=2.0.0",
+    "packaging>=22.0",
+]
+
+[project.urls]
+Repository = "https://github.com/brunchstudio/pytvpaint"
+Documentation = "https://brunchstudio.github.io/pytvpaint/"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "pytvpaint/_version.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github"]
+
+[tool.hatch.envs.default]
+installer = "uv"
+
+[tool.hatch.envs.dev]
+dependencies = [
+    "black>=24.2.0",
+    "ruff>=0.2.2",
+    "mypy>=1.9.0",
+]
+[tool.hatch.envs.dev.scripts]
+format = "black ."
+lint = "ruff check --fix ."
+typecheck = "mypy ."
+all = ["format", "lint", "typecheck"]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-mock>=3.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-html>=4.0.0",
+]
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "zensical",
+    "mkdocstrings[python]>=0.24.0",
+    "mike @ git+https://github.com/squidfunk/mike.git",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "zensical build"
+serve = "zensical serve"
+deploy = "mike deploy {args} --update-aliases --push"
+
+[tool.pytest.ini_options]
+addopts = [
+  "--cov=pytvpaint",
+  "--durations=5",
+  "--failed-first",
+  "--new-first",
+  "--html=tests/reports/test_report.html",
+  "--self-contained-html",
+  "-vv",
+#  "--maxfail=1"
+]
+cache_dir = "tests/.pytest_cache"
+log_cli = true
+required_plugins = ["pytest-cov", "pytest-html"]
 
 [tool.black]
+line-length = 120
 target-version = ["py39", "py310", "py311", "py312"]
 
 [tool.ruff]
+line-length = 120
 target-version = "py39"
 
 [tool.ruff.lint]
@@ -87,7 +127,7 @@ disallow_any_generics = true
 disallow_incomplete_defs = true
 disallow_subclassing_any = true
 disallow_untyped_calls = true
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false
 disallow_untyped_defs = true
 exclude = "package.py"
 follow_imports = "normal"

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from pytvpaint.george.client import send_cmd, try_cmd
-from pytvpaint.george.grg_base import GrgErrorValue
+from pytvpaint.george.client.parse import tv_cast_to_type
+from pytvpaint.george.grg_base import GrgErrorValue, min_version_compatible
 
 
 @try_cmd(exception_msg="No scene at provided position")
@@ -39,3 +40,33 @@ def tv_scene_duplicate(scene_id: int) -> None:
 def tv_scene_close(scene_id: int) -> None:
     """Remove the given scene."""
     send_cmd("tv_SceneClose", scene_id)
+
+
+@min_version_compatible(min_version="12")
+def tv_scene_create(clips: list[str]) -> int:
+    """Create a new scene (with a list of new clips provided) after the current scene.
+
+    Args:
+        clips: list of clip names to create alongside new scene
+
+    Returns:
+        scene_id: new scene id
+
+    Warning:
+        function `tv_scene_create` doesn't seem to work in tvpaint.
+    """
+    return int(send_cmd("tv_SceneCreate", *clips))
+
+
+@min_version_compatible(min_version="12")
+def tv_scene_split(scene_id: int) -> list[int]:
+    """Splits each clips in the scene into its own scene.
+
+    Args:
+        scene_id: scene if
+
+    Returns:
+        clip_ids: list of clip ids in the split scene
+
+    """
+    return tv_cast_to_type(send_cmd("tv_SceneSplit", scene_id), list[int])

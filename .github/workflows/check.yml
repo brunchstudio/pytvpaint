@@ -7,27 +7,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.9"
 
-      - name: Install Poetry Action
-        uses: snok/install-poetry@v1.3.4
-        with:
-          version: 1.7.0
-
-      - name: Installing dependencies...
-        run: poetry install --no-interaction --with dev,test
+      - name: Install Hatch
+        uses: pypa/hatch@install
 
       - name: Formatting check
         if: always()
-        run: poetry run black --check .
+        run: hatch run dev:black --check .
 
       - name: Linting
         if: always()
-        run: poetry run ruff .
+        run: hatch run dev:ruff check .
 
       - name: Type checking
         if: always()
-        run: poetry run mypy .
+        run: hatch run dev:mypy .

@@ -1,0 +1,62 @@
+name: Update Changelogs on Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  append-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Process Release Metadata and Update Root Changelog
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_DATE: ${{ github.event.release.published_at }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          python3 -c '
+          import os
+          from pathlib import Path
+          from datetime import datetime
+
+          tag = os.environ.get("RELEASE_TAG", "Unversioned")
+          date_str = os.environ.get("RELEASE_DATE", "")
+          body = os.environ.get("RELEASE_BODY", "")
+
+          try:
+              date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+              formatted_date = date_obj.strftime("%Y-%m-%d")
+          except ValueError:
+              formatted_date = datetime.utcnow().strftime("%Y-%m-%d")
+
+          new_entry = f"## [{tag}] - {formatted_date}\n\n{body}\n\n---\n\n"
+          
+          file_path = Path("CHANGELOG.md")
+          content = file_path.read_text()
+
+          # Inject the new entry precisely below the standardized header
+          insert_marker = "# Changelog\n\n"
+          new_content = content.replace(insert_marker, insert_marker + new_entry, 1)
+          content = file_path.write_text(new_content)
+          '
+
+      - name: Synchronize to Docs Directory
+        run: |
+          mkdir -p docs
+          cp CHANGELOG.md docs/changelog.md
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add CHANGELOG.md docs/changelog.md
+          
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: append release notes for ${{ github.event.release.tag_name }}" && git push)

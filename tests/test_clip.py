@@ -5,15 +5,16 @@ from pathlib import Path
 
 import pytest
 from fileseq.filesequence import FileSequence
+from fileseq.frameset import FrameSet
 
 from pytvpaint import george
 from pytvpaint.clip import Clip
-from pytvpaint.george import RGBColor
-from pytvpaint.layer import Layer, LayerColor, LayerInstance
+from pytvpaint.layer import Layer, LayerColor, LayerFolder, LayerInstance
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 from tests.conftest import FixtureYield
-from tests.george.test_grg_clip import TEST_TEXTS
+
+IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
 
 
 def test_clip_init(test_project_obj: Project, test_clip_obj: Clip) -> None:
@@ -131,7 +132,10 @@ def test_clip_color_index(test_clip_obj: Clip, index: int) -> None:
     assert test_clip_obj.color_index == index
 
 
-@pytest.mark.parametrize("text", [TEST_TEXTS[-1]])
+TEST_TEXTS = ["", "l", "0", "ab", "a0l", "ap*", "a\nb"]
+
+
+@pytest.mark.parametrize("text", TEST_TEXTS)
 def test_clip_action_text(test_clip_obj: Clip, text: str) -> None:
     test_clip_obj.action_text = text
     assert test_clip_obj.action_text == text
@@ -159,12 +163,12 @@ def test_clip_current_clip(test_clip_obj: Clip) -> None:
 
 @pytest.mark.parametrize("frame", range(0, 10, 2))
 def test_clip_current_frame(test_clip_obj: Clip, frame: int) -> None:
-    test_clip_obj.project.start_frame = 5
+    test_clip_obj.project.start_frame = 0
     test_clip_obj.current_frame = frame
     assert test_clip_obj.current_frame == frame
 
 
-@pytest.mark.parametrize("name", ["d", "un clip", "tset0"])
+@pytest.mark.parametrize("name", ["d", "un clip", "test0"])
 def test_clip_new(test_project_obj: Project, name: str) -> None:
     clip = Clip.new(name)
     assert clip.name == name
@@ -204,7 +208,12 @@ def test_clip_layer_ids(test_clip_obj: Clip, create_some_layers: list[Layer]) ->
 
 
 def test_clip_layers(test_clip_obj: Clip, create_some_layers: list[Layer]) -> None:
-    assert list(test_clip_obj.layers) == create_some_layers
+    assert list(test_clip_obj.get_layers()) == create_some_layers
+
+
+@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+def test_clip_layer_folders(test_clip_obj: Clip, create_some_layer_folders: list[LayerFolder]) -> None:
+    assert list(test_clip_obj.folders) == create_some_layer_folders
 
 
 def test_clip_current_layer(test_clip_obj: Clip, test_layer_obj: Layer) -> None:
@@ -213,27 +222,30 @@ def test_clip_current_layer(test_clip_obj: Clip, test_layer_obj: Layer) -> None:
 
 def test_clip_add_layer(test_clip_obj: Clip) -> None:
     layer = test_clip_obj.add_layer("test")
-    assert test_clip_obj.current_layer == layer
+    assert test_clip_obj.current_layer == layer and isinstance(layer, Layer)
 
 
-def test_clip_selected_layers(
-    test_clip_obj: Clip, create_some_layers: list[Layer]
-) -> None:
+@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+def test_clip_add_layer_folder(test_clip_obj: Clip) -> None:
+    layer = test_clip_obj.add_layer_folder("test")
+    assert test_clip_obj.current_layer == layer and isinstance(layer, LayerFolder)
+
+
+def test_clip_selected_layers(test_clip_obj: Clip, create_some_layers: list[Layer]) -> None:
     layer = create_some_layers[0]
     layer.is_selected = True
     assert list(test_clip_obj.selected_layers) == [layer]
 
 
-def test_clip_visible_layers(
-    test_clip_obj: Clip, create_some_layers: list[Layer]
-) -> None:
+def test_clip_visible_layers(test_clip_obj: Clip, create_some_layers: list[Layer]) -> None:
     layer = create_some_layers[0]
     layer.is_visible = False
     assert list(test_clip_obj.visible_layers) == create_some_layers[1:]
 
 
-def test_clip_load_media(test_clip_obj: Clip, ppm_sequence: list[Path]) -> None:
-    layer = test_clip_obj.load_media(ppm_sequence[0], with_name="images")
+@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerRename` does not currently work in TVP12.")
+def test_clip_load_media(test_clip_obj: Clip, png_sequence: list[Path]) -> None:
+    layer = test_clip_obj.load_media(png_sequence[0], with_name="images")
     assert layer.name == "images"
 
 
@@ -255,14 +267,13 @@ def test_clip_render_single_img(
     end: int | None,
     expected: str,
 ) -> None:
-    test_clip_obj.render(tmp_path / out, start, end)
+    frame_set = FrameSet(f"{start}-{end}") if start is not None and end is not None else None
+    test_clip_obj.render(output_path=tmp_path / out, frame_set=frame_set)
 
     expected_path = tmp_path.joinpath(expected)
     if "#" in expected_path.stem:
         expected_seq = FileSequence(expected_path.as_posix())
-        found_seq = FileSequence.findSequenceOnDisk(
-            expected_path.as_posix(), strictPadding=True
-        )
+        found_seq = FileSequence.findSequenceOnDisk(expected_path.as_posix(), strictPadding=True)
         assert expected_seq.frameSet() == found_seq.frameSet()
     else:
         assert expected_path.exists()
@@ -270,20 +281,25 @@ def test_clip_render_single_img(
 
 @pytest.mark.parametrize("use_camera", [True, False])
 @pytest.mark.parametrize(
-    "out, start, end, expected, error",
+    "out, start, end, frame_set, expected, error",
     [
-        ("render.0010.png", 2, 5, "render.2-5#.png", None),
-        ("render.#.png", 1, 5, "render.1-5#.png", None),
-        ("render.png", 2, 7, "", ValueError),
-        ("render.#.png", None, None, "render.1-5#.png", None),
-        ("render.1-5#.png", None, None, "render.1-5#.png", None),
-        ("render.2-4#.png", None, None, "render.2-4#.png", None),
-        ("render.1-5#.png", 2, 5, "render.2-5#.png", None),
-        ("render.1-5#.png", 2, None, "render.2-5#.png", None),
-        ("render.1-5#.png", 2, 4, "render.2-4#.png", None),
-        ("render.1-5#.png", 1, 7, "", ValueError),
-        ("render.#.png", -6, 7, "", ValueError),
-        ("render.1-5#.png", -6, 7, "", ValueError),
+        ("render.0010.png", 2, 5, None, "render.2-5#.png", None),
+        ("render.#.png", 1, 5, None, "render.1-5#.png", None),
+        ("render.png", 2, 7, None, "", ValueError),
+        ("render.#.png", None, None, None, "render.1-5#.png", None),
+        ("render.1-5#.png", None, None, None, "render.1-5#.png", None),
+        ("render.2-4#.png", None, None, None, "render.2-4#.png", None),
+        ("render.1-5#.png", 2, 5, None, "render.2-5#.png", None),
+        ("render.1-5#.png", 2, None, None, "render.2-5#.png", None),
+        ("render.1-5#.png", 2, 4, None, "render.2-4#.png", None),
+        ("render.1-5#.png", 1, 7, None, "", ValueError),
+        ("render.#.png", -6, 7, None, "", ValueError),
+        ("render.1-5#.png", -6, 7, None, "", ValueError),
+        ("render.#.png", 1, 5, FrameSet("1-5"), "render.1-5#.png", None),
+        ("render.#.png", 1, 5, FrameSet("1-3"), "render.1-3#.png", None),
+        ("render.#.png", 1, 5, FrameSet([1, 3, 5]), "render.1-5x2#.png", None),
+        ("render.#.png", 1, 5, FrameSet([1, 3, 4]), "render.1,3-4#.png", None),
+        ("render.#.png", None, None, FrameSet([1, 3, 5]), "render.1-5x2#.png", None),
     ],
 )
 def test_clip_render_sequence(
@@ -294,21 +310,20 @@ def test_clip_render_sequence(
     out: str,
     start: int | None,
     end: int | None,
+    frame_set: FrameSet | None,
     expected: str,
     error: type[Exception] | None,
 ) -> None:
     if error:
         with pytest.raises(error):
-            test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
+            test_clip_obj.render(tmp_path / out, start, end, frame_set, use_camera=use_camera)
     else:
-        test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
+        test_clip_obj.render(tmp_path / out, start, end, frame_set, use_camera=use_camera)
 
     if expected:
         expected_path = tmp_path.joinpath(expected)
         expected_seq = FileSequence(expected_path.as_posix())
-        found_seq = FileSequence.findSequenceOnDisk(
-            expected_path.as_posix(), strictPadding=True
-        )
+        found_seq = FileSequence.findSequenceOnDisk(expected_path.as_posix(), strictPadding=True)
         assert expected_seq.frameSet() == found_seq.frameSet()
 
 
@@ -363,9 +378,8 @@ def test_export_tvp(
     loaded.close()
 
 
-def test_clip_export_json(
-    test_clip_obj: Clip, tmp_path: Path, with_loaded_sequence: Layer
-) -> None:
+@pytest.mark.skipif(not IS_NOT_TVP12, reason="Skip since layer naming doesn't work in TVP12.")
+def test_clip_export_json(test_clip_obj: Clip, tmp_path: Path, with_loaded_sequence: Layer) -> None:
     out_json = tmp_path / "out.json"
 
     test_clip_obj.export_json(
@@ -424,9 +438,7 @@ def test_clip_mark_in(test_clip_obj: Clip, mark_in: int | None) -> None:
 
 
 @pytest.mark.parametrize("mark_out", [None, 5, 10, 50, 100])
-def test_clip_mark_out(
-    test_project_obj: Project, test_clip_obj: Clip, mark_out: int | None
-) -> None:
+def test_clip_mark_out(test_project_obj: Project, test_clip_obj: Clip, mark_out: int | None) -> None:
     test_project_obj.start_frame = 5
 
     test_clip_obj.mark_out = mark_out
@@ -438,18 +450,17 @@ def test_clip_layer_colors(test_clip_obj: Clip) -> None:
 
 
 @pytest.fixture
-def random_color() -> RGBColor:
-    return RGBColor(
+def random_color() -> george.RGBColor:
+    return george.RGBColor(
         random.randint(0, 255),
         random.randint(0, 255),
         random.randint(0, 255),
     )
 
 
+@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerColor setcolor` does not work when a name is provided.")
 @pytest.mark.parametrize("index", range(1, 26))
-def test_clip_set_layer_color(
-    test_clip_obj: Clip, index: int, random_color: RGBColor
-) -> None:
+def test_clip_set_layer_color(test_clip_obj: Clip, index: int, random_color: george.RGBColor) -> None:
     expected = LayerColor(index, test_clip_obj)
     expected.color = random_color
     expected.name = "test"
@@ -464,7 +475,7 @@ def test_clip_set_layer_color(
 
 @pytest.fixture
 def create_some_bookmarks(test_clip_obj: Clip) -> FixtureYield[list[int]]:
-    bookmarks = [1, 50, 20, 34]
+    bookmarks = [2, 50, 20, 34]
     for mark in bookmarks:
         test_clip_obj.add_bookmark(mark)
     yield sorted(bookmarks)
@@ -487,25 +498,27 @@ def test_clip_remove_bookmark(test_clip_obj: Clip, mark: int) -> None:
     assert list(test_clip_obj.bookmarks) == []
 
 
-def test_clip_clear_bookmarks(
-    test_clip_obj: Clip, create_some_bookmarks: list[int]
-) -> None:
+def test_clip_clear_bookmarks(test_clip_obj: Clip, create_some_bookmarks: list[int]) -> None:
     test_clip_obj.clear_bookmarks()
     assert list(test_clip_obj.bookmarks) == []
 
 
-def test_clip_go_to_previous_bookmark(
-    test_clip_obj: Clip, create_some_bookmarks: list[int]
-) -> None:
-    for mark in reversed(create_some_bookmarks):
+def test_clip_go_to_previous_bookmark(test_clip_obj: Clip) -> None:
+    bookmarks = [1, 50, 20, 34]
+    for mark in bookmarks:
+        test_clip_obj.add_bookmark(mark)
+
+    for mark in reversed(sorted(bookmarks)):
         test_clip_obj.go_to_previous_bookmark()
         assert test_clip_obj.current_frame == mark
 
 
-def test_clip_go_to_next_bookmark(
-    test_clip_obj: Clip, create_some_bookmarks: list[int]
-) -> None:
+def test_clip_go_to_next_bookmark(test_clip_obj: Clip, create_some_bookmarks: list[int]) -> None:
     test_clip_obj.current_frame = 0
+
+    bookmarks = [2, 50, 20, 34]
+    for mark in bookmarks:
+        test_clip_obj.add_bookmark(mark)
 
     for mark in create_some_bookmarks:
         test_clip_obj.go_to_next_bookmark()

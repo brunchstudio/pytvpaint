@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pytvpaint import george
+from pytvpaint import george, guideline
 from pytvpaint.clip import Clip
 from pytvpaint.george.grg_project import TVPProject
 from pytvpaint.project import Project
@@ -39,9 +39,7 @@ def test_project_exists_on_disk(test_project_obj: Project) -> None:
 
 @pytest.fixture()
 def other_project(tmp_path: Path) -> FixtureYield[None]:
-    other_project = george.tv_project_new(
-        tmp_path / "other.tvpp", width=1234, height=567
-    )
+    other_project = george.tv_project_new(tmp_path / "other.tvpp", width=1234, height=567)
     yield
     george.tv_project_close(other_project)
 
@@ -79,9 +77,7 @@ def test_project_resize_same_width_and_height(test_project_obj: Project) -> None
     assert resized == test_project_obj
 
 
-def test_project_resize(
-    test_project_obj: Project, cleanup_current_project: None
-) -> None:
+def test_project_resize(test_project_obj: Project, cleanup_current_project: None) -> None:
     resized = test_project_obj.resize(100, 200)
 
     # The resized project is a new project
@@ -94,9 +90,7 @@ def test_project_resize(
     assert test_project_obj.is_closed
 
 
-def test_project_resize_overwrite(
-    test_project_obj: Project, cleanup_current_project: None
-) -> None:
+def test_project_resize_overwrite(test_project_obj: Project, cleanup_current_project: None) -> None:
     origin_path = test_project_obj.path
 
     resized = test_project_obj.resize(100, 200, overwrite=True)
@@ -176,9 +170,7 @@ def test_project_end_frame_clip_mark_out(test_project_obj: Project) -> None:
 @pytest.mark.parametrize("mark_in", [1, 2, 10, 100])
 @pytest.mark.parametrize("current_frame", [0, 1, 5, 50])
 @pytest.mark.parametrize("start_frame", [2, 5, 20])
-def test_project_current_frame(
-    test_project_obj: Project, mark_in: int, current_frame: int, start_frame: int
-) -> None:
+def test_project_current_frame(test_project_obj: Project, mark_in: int, current_frame: int, start_frame: int) -> None:
     test_project_obj.start_frame = start_frame
     test_project_obj.current_clip.mark_in = mark_in
     test_project_obj.current_frame = current_frame
@@ -202,9 +194,7 @@ def test_project_clear_background(test_project_obj: Project) -> None:
         george.RGBColor(0, 255, 255),
     ],
 )
-def test_project_set_background_solid_color(
-    test_project_obj: Project, color: george.RGBColor
-) -> None:
+def test_project_set_background_solid_color(test_project_obj: Project, color: george.RGBColor) -> None:
     test_project_obj.background_mode = george.BackgroundMode.COLOR
     test_project_obj.background_colors = color
 
@@ -231,19 +221,19 @@ def test_project_set_background_checker_colors(
     assert test_project_obj.background_colors == actual_colors
 
 
-@pytest.mark.parametrize("header", ["", "Hello", "THis is a project header"])
+@pytest.mark.parametrize("header", ["", "Hello", "This is a project header", "This is a project \nheader"])
 def test_project_header_info(test_project_obj: Project, header: str) -> None:
     test_project_obj.header_info = header
     assert test_project_obj.header_info == header
 
 
-@pytest.mark.parametrize("author", ["a", "Hello", "THis is a project author"])
+@pytest.mark.parametrize("author", ["a", "Hello", "This is a project author", "This is a project \nauthor"])
 def test_project_author(test_project_obj: Project, author: str) -> None:
     test_project_obj.author = author
     assert test_project_obj.author == author
 
 
-@pytest.mark.parametrize("notes", ["a", "Hello", "THis is a project notes"])
+@pytest.mark.parametrize("notes", ["a", "Hello", "This is a project note", "This is a project \nnote"])
 def test_project_notes(test_project_obj: Project, notes: str) -> None:
     test_project_obj.notes = notes
     assert test_project_obj.notes == notes
@@ -272,9 +262,7 @@ def test_project_current_scene_ids(
     assert ids == [s.id for s in create_some_scenes]
 
 
-def test_project_current_scene(
-    test_project_obj: Project, test_scene_obj: Scene
-) -> None:
+def test_project_current_scene(test_project_obj: Project, test_scene_obj: Scene) -> None:
     assert test_project_obj.current_scene == test_scene_obj
 
 
@@ -286,7 +274,7 @@ def test_project_scenes(
 
 
 def test_project_get_scene(test_project_obj: Project, test_scene_obj: Scene) -> None:
-    test_project_obj.get_scene(by_id=test_scene_obj.id)
+    test_project_obj.get_scene(scene_id=test_scene_obj.id)
 
 
 def test_project_add_scene(test_project_obj: Project) -> None:
@@ -295,17 +283,13 @@ def test_project_add_scene(test_project_obj: Project) -> None:
 
 
 @pytest.mark.parametrize("index", range(5))
-def test_project_current_clip(
-    test_project_obj: Project, create_some_clips: list[Clip], index: int
-) -> None:
+def test_project_current_clip(test_project_obj: Project, create_some_clips: list[Clip], index: int) -> None:
     clip = create_some_clips[index]
     clip.make_current()
     assert test_project_obj.current_clip == clip
 
 
-def test_project_clips(
-    test_project_obj: Project, create_some_clips: list[Clip]
-) -> None:
+def test_project_clips(test_project_obj: Project, create_some_clips: list[Clip]) -> None:
     clips = [clip for scene in test_project_obj.scenes for clip in scene.clips]
     assert list(test_project_obj.clips) == clips
 
@@ -334,9 +318,7 @@ def test_project_get_clip_by_id_scene_id(
 
 
 @pytest.mark.parametrize("name", ["l", "hello", "this is my clip"])
-def test_project_add_clip(
-    test_project_obj: Project, test_scene_obj: Scene, name: str
-) -> None:
+def test_project_add_clip(test_project_obj: Project, test_scene_obj: Scene, name: str) -> None:
     clip = test_project_obj.add_clip(name, test_scene_obj)
     assert clip.scene == test_scene_obj
     assert clip.name == name
@@ -389,6 +371,103 @@ def test_project_mark_out(test_project_obj: Project, mark_out: int) -> None:
     assert test_project_obj.mark_in == mark_out
 
 
+def test_project_add_guideline_line(test_project_obj: Project) -> None:
+    guideline_line = test_project_obj.add_guideline_line(x=10, y=20, angle=45)
+    assert isinstance(guideline_line, guideline.GuidelineLine)
+    assert guideline_line.x == 10
+    assert guideline_line.y == 20
+    assert guideline_line.angle == 45
+
+
+def test_project_add_guideline_segment(test_project_obj: Project) -> None:
+    guideline_segment = test_project_obj.add_guideline_segment(x1=0, y1=0, x2=100, y2=100)
+    assert isinstance(guideline_segment, guideline.GuidelineSegment)
+    assert guideline_segment.x1 == 0
+    assert guideline_segment.y1 == 0
+    assert guideline_segment.x2 == 100
+    assert guideline_segment.y2 == 100
+
+
+def test_project_add_guideline_circle(test_project_obj: Project) -> None:
+    guideline_circle = test_project_obj.add_guideline_circle(x=50, y=50, radius=25)
+    assert isinstance(guideline_circle, guideline.GuidelineCircle)
+    assert guideline_circle.x == 50
+    assert guideline_circle.y == 50
+    assert guideline_circle.radius == 25
+
+
+def test_project_add_guideline_ellipse(test_project_obj: Project) -> None:
+    guideline_ellipse = test_project_obj.add_guideline_ellipse(x=10, y=10, radius_a=20, radius_b=10)
+    assert isinstance(guideline_ellipse, guideline.GuidelineEllipse)
+    assert guideline_ellipse.x == 10
+    assert guideline_ellipse.y == 10
+    assert guideline_ellipse.radius_a == 20
+    assert guideline_ellipse.radius_b == 10
+
+
+def test_project_add_guideline_grid(test_project_obj: Project) -> None:
+    guideline_grid = test_project_obj.add_guideline_grid(x=0, y=0, width=1920, height=1080)
+    assert isinstance(guideline_grid, guideline.GuidelineGrid)
+    assert guideline_grid.x == 0
+    assert guideline_grid.y == 0
+    assert guideline_grid.width == 1920
+    assert guideline_grid.height == 1080
+
+
+def test_project_add_guideline_marks(test_project_obj: Project) -> None:
+    guideline_marks = test_project_obj.add_guideline_marks(count_x=4, count_y=3)
+    assert isinstance(guideline_marks, guideline.GuidelineMarks)
+    assert guideline_marks.count_x == 4
+    assert guideline_marks.count_y == 3
+
+
+def test_project_add_guideline_field_chart(test_project_obj: Project) -> None:
+    guideline_field = test_project_obj.add_guideline_field_chart()
+    assert isinstance(guideline_field, guideline.GuidelineFieldChart)
+    # (No internal metrics to assert on creation for field charts)
+
+
+def test_project_add_guideline_animator_field(test_project_obj: Project) -> None:
+    guideline_anim = test_project_obj.add_guideline_animator_field()
+    assert isinstance(guideline_anim, guideline.GuidelineAnimatorField)
+    # (No internal metrics to assert on creation for animator fields)
+
+
+def test_project_add_guideline_safe_area(test_project_obj: Project) -> None:
+    guideline_safe = test_project_obj.add_guideline_safe_area(sf_out=10, sf_in=20)
+    assert isinstance(guideline_safe, guideline.GuidelineSafeArea)
+    assert guideline_safe.sf_out == 10
+    assert guideline_safe.sf_in == 20
+
+
+def test_project_add_guideline_vanishing_point1(test_project_obj: Project) -> None:
+    guideline_vp1 = test_project_obj.add_guideline_vanishing_point1(x=100, y=100, grid=True)
+    assert isinstance(guideline_vp1, guideline.GuidelineVanishPoint1)
+    assert guideline_vp1.x == 100
+    assert guideline_vp1.y == 100
+    assert guideline_vp1.grid is True
+
+
+def test_project_add_guideline_vanishing_point2(test_project_obj: Project) -> None:
+    guideline_vp2 = test_project_obj.add_guideline_vanishing_point2(x1=10, y1=10, x2=100, y2=100)
+    assert isinstance(guideline_vp2, guideline.GuidelineVanishPoint2)
+    assert guideline_vp2.x1 == 10
+    assert guideline_vp2.y1 == 10
+    assert guideline_vp2.x2 == 100
+    assert guideline_vp2.y2 == 100
+
+
+def test_project_add_guideline_vanishing_point3(test_project_obj: Project) -> None:
+    guideline_vp3 = test_project_obj.add_guideline_vanishing_point3(x1=10, y1=10, x2=100, y2=100, x3=50, y3=50)
+    assert isinstance(guideline_vp3, guideline.GuidelineVanishPoint3)
+    assert guideline_vp3.x1 == 10
+    assert guideline_vp3.y1 == 10
+    assert guideline_vp3.x2 == 100
+    assert guideline_vp3.y2 == 100
+    assert guideline_vp3.x3 == 50
+    assert guideline_vp3.y3 == 50
+
+
 def test_project_new(tmp_path: Path, cleanup_current_project: None) -> None:
     proj = Project.new(tmp_path / "project.tvpp")
     assert Project.current_project() == proj
@@ -432,8 +511,6 @@ def test_project_save(test_project_obj: Project, tmp_path: Path) -> None:
     test_project_obj.save(tmp_path / "save.tvpp")
 
 
-def test_project_save_destination_does_not_exist(
-    test_project_obj: Project, tmp_path: Path
-) -> None:
+def test_project_save_destination_does_not_exist(test_project_obj: Project, tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="folder does not exist"):
         test_project_obj.save(tmp_path / "lo" / "save.tvpp")

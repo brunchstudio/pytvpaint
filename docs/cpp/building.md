@@ -8,17 +8,18 @@
 
 To install the build dependencies, we use [Conan](https://conan.io/) which is a C/C++ package manager.
 
-To install it, use the virtualenv provided by [Poetry](https://python-poetry.org/):
+To install it, use [Hatch](https://hatch.pypa.io/). 
+
+If you do not have Hatch, you can install it via Python pip :
 
 ```shell
-❯ poetry install # Installs Conan
-❯ poetry shell # Enter a new venv shell
+❯ pip install hatch
 ```
 
 Then configure your Conan compilation profile:
 
 ```shell
-(venv) ❯ conan profile detect
+❯ hatch run conan profile detect
 ```
 
 ### Windows
@@ -43,7 +44,7 @@ os=Windows
 To check if your profile is correct, use:
 
 ```shell
-(venv) ❯ conan profile show
+❯ hatch run conan profile show
 ```
 
 #### Install the C++ dependencies
@@ -51,10 +52,10 @@ To check if your profile is correct, use:
 Install the dependencies specified in [`conanfile.txt`](https://github.com/brunchstudio/tvpaint-rpc/blob/main/conanfile.txt):
 
 ```shell
-(venv) ❯ conan install . --output-folder=build --build=missing
+❯ hatch run conan install . --output-folder=build --build=missing
 ```
 
-The above command generates CMake build files that helps finding those libraries.
+The above command generates CMake build files that helps to find those libraries.
 
 #### Build
 

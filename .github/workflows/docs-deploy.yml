@@ -2,10 +2,14 @@ name: Publish documentation
 
 on:
   push:
+    # Trigger on all branches and all tags
+    branches:
+      - "**"
+    tags:
+      - "**"
+  pull_request:
     branches:
       - main
-    tags:
-      - "*"
 
 permissions:
   contents: write
@@ -14,30 +18,42 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Configure Git Credentials
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: 3.9
+          python-version: "3.9"
 
-      - name: Install Poetry Action
-        uses: snok/install-poetry@v1.3.4
-        with:
-          version: 1.7.0
+      - name: Install Hatch
+        uses: pypa/hatch@install
 
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
-          key: mkdocs-material-${{ env.cache_id }}
+          key: zensical-${{ env.cache_id }}
           path: .cache
           restore-keys: |
-            mkdocs-material-
+            zensical-
 
-      - run: poetry install --no-interaction --with docs
-      - run: poetry run mkdocs gh-deploy --force
+      # Test build docs on PRs
+      - name: Verify Docs Build (on Pull Requests)
+        if: github.event_name == 'pull_request'
+        run: hatch run docs:build
+
+      # Deploy dev documentation
+      - name: Deploy Branch Documentation
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+        run: hatch run docs:deploy ${{ github.ref_name }}
+
+      # Deploy release documentation
+      - name: Deploy Release Documentation
+        if: startsWith(github.ref, 'refs/tags/')
+        run: hatch run docs:deploy ${{ github.ref_name }} latest

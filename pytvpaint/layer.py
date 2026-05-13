@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from fileseq.filesequence import FileSequence
@@ -21,6 +21,7 @@ from pytvpaint.utils import (
 )
 
 if TYPE_CHECKING:
+    from pytvpaint.camera import Camera
     from pytvpaint.clip import Clip
     from pytvpaint.project import Project
     from pytvpaint.scene import Scene
@@ -100,9 +101,7 @@ class LayerInstance:
     @end.setter
     def end(self, value: int) -> None:
         if value < self.start:
-            raise ValueError(
-                f"End must be equal to or superior to instance start ({self.start})"
-            )
+            raise ValueError(f"End must be equal to or superior to instance start ({self.start})")
 
         new_length = (value - self.start) + 1
         self.length = new_length
@@ -120,9 +119,7 @@ class LayerInstance:
             LayerInstance: the new layer instance
         """
         if at_frame > self.end:
-            raise ValueError(
-                f"`at_frame` must be in range of the instance's start-end ({self.start}-{self.end})"
-            )
+            raise ValueError(f"`at_frame` must be in range of the instance's start-end ({self.start}-{self.end})")
 
         self.layer.make_current()
         real_frame = at_frame - self.layer.project.start_frame
@@ -130,9 +127,7 @@ class LayerInstance:
 
         return LayerInstance(self.layer, at_frame)
 
-    def duplicate(
-        self, direction: george.InsertDirection = george.InsertDirection.AFTER
-    ) -> None:
+    def duplicate(self, direction: george.InsertDirection = george.InsertDirection.AFTER) -> None:
         """Duplicate the instance and insert it in the given direction."""
         self.layer.make_current()
 
@@ -145,9 +140,7 @@ class LayerInstance:
 
         with utils.restore_current_frame(self.layer.clip, move_frame):
             self.copy()
-            at_frame = (
-                self.end if direction == george.InsertDirection.AFTER else self.start
-            )
+            at_frame = self.end if direction == george.InsertDirection.AFTER else self.start
             self.paste(at_frame=at_frame)
 
     def cut(self) -> None:
@@ -176,7 +169,7 @@ class LayerInstance:
 
     def select(self) -> None:
         """Select all frames in this instance."""
-        self.layer.select_frames(self.start, (self.length - 1))
+        self.layer.select_frames(self.start, self.end)
 
     @property
     def next(self) -> LayerInstance | None:
@@ -270,8 +263,9 @@ class LayerColor(Refreshable):
     @name.setter
     def name(self, value: str) -> None:
         """Set the name of the color."""
-        clip_layer_color_names = (color.name for color in self.clip.layer_colors)
+        clip_layer_color_names = (color.name for color in self.clip.layer_colors if color != self)
         value = utils.get_unique_name(clip_layer_color_names, value)
+
         george.tv_layer_color_set_color(self.clip.id, self.index, self.color, value)
 
     @refreshed_property
@@ -329,21 +323,27 @@ class LayerColor(Refreshable):
 
 
 class Layer(Removable):
-    """A Layer is inside a clip and contains drawings."""
+    """A Layer is parented to a clip and contains LayerInstances."""
 
-    def __init__(self, layer_id: int, clip: Clip | None = None) -> None:
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
         from pytvpaint.clip import Clip
 
         super().__init__()
         self._id = layer_id
         self._clip = clip or Clip.current_clip()
-        self._data = george.tv_layer_info(self.id)
+        self._data = data or george.tv_layer_info(self.id)
 
     def refresh(self) -> None:
         """Refreshes the layer data."""
         super().refresh()
         if not self.refresh_on_call and self._data:
             return
+
         try:
             self._data = george.tv_layer_info(self._id)
         except GeorgeError:
@@ -352,20 +352,22 @@ class Layer(Removable):
 
     def __repr__(self) -> str:
         """The string representation of the layer."""
-        return f"Layer({self.name})<id:{self.id}>"
+        return f"{self.__class__.__name__}({self.name})<id:{self.id}>"
 
     def __eq__(self, other: object) -> bool:
         """Two layers are equal if their id is the same."""
         if not isinstance(other, Layer):
             return NotImplemented
-        return self.id == other.id
+
+        is_same_type = self.layer_type == other.layer_type
+        return is_same_type and self.id == other.id
 
     @property
     def id(self) -> int:
         """The layers unique identifier.
 
         Warning:
-            layer ids are not persistent across project load/close
+            layer ids are not persistent and are reset every time the project is opened
         """
         return self._id
 
@@ -398,7 +400,7 @@ class Layer(Removable):
         """Moves the layer to the provided position.
 
         Note:
-            This function fixes the issues with positions not been set correctly by TVPaint when value is superior to 0
+            This function fixes the issues with positions been set at (value-1) by TVPaint when value is superior to 0
         """
         if self.position == value:
             return
@@ -411,6 +413,41 @@ class Layer(Removable):
 
         self.make_current()
         george.tv_layer_move(value)
+
+    @george.min_version_compatible(min_version="12")
+    def set_folder_position(self, folder: LayerFolder, position: int) -> None:
+        """Moves the layer to the provided position in the folder.
+
+        Note:
+            the position is relative to the root of the layer stack and not the folder.
+            If the position is larger than that of the last layer in the folder, then the layer will be placed last.
+            If you want to move a layer outside it's folder then just set its position using the layer.position property
+            and move it outside the range of the folder, meaning before the first or after the last layer in the folder.
+        """
+        value = max(0, position)
+        # TVPaint will always set the position at (value - 1) if value is superior to 0, so we need to add +1 in
+        #  that case to set the position correctly, I don't know why it works this way, but it honestly makes no sense
+        if value != 0:
+            value += 1
+
+        self.make_current()
+        george.tv_layer_move(value, folder.id)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def folder(self) -> None:
+        """The layer's parent folder if any.
+
+        Raises:
+            NotImplementedError: as there is currently no way to get the parent folder from a Layer.
+        """
+        raise NotImplementedError("There is currently no way to get the parent folder from a Layer.")
+
+    @folder.setter
+    @george.min_version_compatible(min_version="12")
+    def folder(self, folder: LayerFolder) -> None:
+        """Set the layer's parent folder."""
+        george.tv_layer_move(self.position, folder.id)
 
     @refreshed_property
     def name(self) -> str:
@@ -427,7 +464,9 @@ class Layer(Removable):
         """
         if value == self.name:
             return
-        value = utils.get_unique_name(self.clip.layer_names, value)
+
+        layer_names = (layer.name for layer in self.clip.get_layers() if layer != self)
+        value = utils.get_unique_name(layer_names, value)
         george.tv_layer_rename(self.id, value)
 
     @refreshed_property
@@ -633,6 +672,37 @@ class Layer(Removable):
         """Returns True if the layer is an animation layer."""
         return self.layer_type == george.LayerType.SEQUENCE
 
+    @property
+    @george.min_version_compatible(min_version="12")
+    def is_ctg_layer(self) -> bool:
+        """Returns True if the layer is a CTG layer."""
+        return self.layer_type == george.LayerType.SCRIBBLES
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def is_ctg_source(self) -> bool:
+        """Returns True if the layer is a CTG layer source."""
+        return bool(george.tv_layer_is_ctg_source())
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def sourced_ctg_layers(self) -> list[CTGLayer]:
+        """Returns a list of CTGLayer instances that use this layer as a source."""
+        if not self.is_ctg_source:
+            return []
+
+        ctg_layers = []
+        for layer_id in george.tv_layer_is_ctg_source():
+            ctg_layer = self.clip.get_layer(by_id=layer_id)
+            if not ctg_layer:
+                continue
+
+            ctg_layers.append(ctg_layer)
+
+        return cast(list[CTGLayer], ctg_layers)
+
     def load_dependencies(self) -> None:
         """Load all dependencies of the layer in memory."""
         george.tv_layer_load_dependencies(self.id)
@@ -701,9 +771,10 @@ class Layer(Removable):
         """
         george.tv_layer_merge_all(keep_color_grp, keep_img_mark, keep_instance_name)
 
-    @staticmethod
+    @classmethod
     @george.undoable
     def new(
+        cls,
         name: str,
         clip: Clip | None = None,
         color: LayerColor | None = None,
@@ -728,10 +799,10 @@ class Layer(Removable):
         clip.make_current()
 
         name = utils.get_unique_name(clip.layer_names, name)
-        layer_id = george.tv_layer_create(name)
+        layer_type = 1 if cls == Layer else 0
+        layer_id = george.tv_layer_create(name, layer_type=layer_type)
 
-        layer = Layer(layer_id=layer_id, clip=clip)
-
+        layer = cls(layer_id=layer_id, clip=clip)
         if color:
             layer.color = color
 
@@ -833,17 +904,19 @@ class Layer(Removable):
         output_path: Path | str | FileSequence,
         start: int | None = None,
         end: int | None = None,
+        frame_set: FrameSet | None = None,
         use_camera: bool = False,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> None:
+    ) -> Path | FileSequence:
         """Render the layer to a single frame or frame sequence or movie.
 
         Args:
             output_path: a single file or file sequence pattern
             start: the start frame to render the layer's start if None. Defaults to None.
             end: the end frame to render or the layer's end if None. Defaults to None.
+            frame_set: a FrameSet with the frames/range to render. Defaults to None.
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
             background_mode: the background mode for rendering. Defaults to None.
@@ -862,13 +935,16 @@ class Layer(Removable):
         Warning:
             Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
             encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
+
+        Returns:
+            the output file path or sequence
         """
         start = self.start if start is None else start
         end = self.end if end is None else end
-        self.clip.render(
+        frame_set = frame_set or FrameSet(f"{start}-{end}")
+        return self.clip.render(
             output_path=output_path,
-            start=start,
-            end=end,
+            frame_set=frame_set,
             use_camera=use_camera,
             layer_selection=[self],
             alpha_mode=alpha_mode,
@@ -884,6 +960,7 @@ class Layer(Removable):
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = george.BackgroundMode.NONE,
         format_opts: list[str] | None = None,
+        use_camera: bool = False,
     ) -> Path:
         """Render a frame from the layer.
 
@@ -893,6 +970,7 @@ class Layer(Removable):
             alpha_mode: the render alpha mode
             background_mode: the render background mode
             format_opts: custom output format options to pass when rendering
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
 
         Raises:
             FileNotFoundError: if the render failed or output not found on disk
@@ -901,47 +979,39 @@ class Layer(Removable):
             Path: render output path
         """
         export_path = Path(export_path)
-        save_format = george.SaveFormat.from_extension(export_path.suffix)
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-
         frame = frame or self.clip.current_frame
         self.clip.current_frame = frame
 
-        with utils.render_context(
-            alpha_mode,
-            background_mode,
-            save_format,
-            format_opts,
+        self.clip.render(
+            output_path=export_path,
+            frame_set=FrameSet(frame),
+            use_camera=use_camera,
             layer_selection=[self],
-        ):
-            george.tv_save_image(export_path)
-
-        if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find rendered image ({frame}) at : {export_path.as_posix()}"
-            )
-
-        return export_path
+            alpha_mode=alpha_mode,
+            background_mode=background_mode,
+            format_opts=format_opts,
+        )
+        return Path(export_path)
 
     @set_as_current
     def render_instances(
         self,
         export_path: Path | str | FileSequence,
-        start: int | None = None,
-        end: int | None = None,
+        frame_set: FrameSet | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> FileSequence:
+        use_camera: bool = False,
+    ) -> Path | FileSequence:
         """Render all layer instances in the provided range for the current layer.
 
         Args:
             export_path: the export path (the extension determines the output format)
-            start: the start frame to render the layer's start if None. Defaults to None.
-            end: the end frame to render or the layer's end if None. Defaults to None.
+            frame_set: Render only the instances within the provided frameset. Defaults to None.
             alpha_mode: the render alpha mode
             background_mode: the render background mode
             format_opts: custom output format options to pass when rendering
+            use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
 
         Raises:
             ValueError: if requested range (start-end) not in layer range/bounds
@@ -951,36 +1021,24 @@ class Layer(Removable):
         Returns:
             FileSequence: instances output sequence
         """
-        file_sequence, start, end, is_sequence, is_image = utils.handle_output_range(
-            export_path, self.start, self.end, start, end
+        frames = sorted([layer_instance.start for layer_instance in self.instances])
+        if frame_set is not None:
+            frame_set = FrameSet([f for f in frame_set.items if f in frames])
+        else:
+            frame_set = FrameSet(frames) or frame_set
+
+        return self.clip.render(
+            output_path=export_path,
+            frame_set=frame_set,
+            use_camera=use_camera,
+            layer_selection=[self],
+            alpha_mode=alpha_mode,
+            background_mode=background_mode,
+            format_opts=format_opts,
         )
 
-        if start < self.start or end > self.end:
-            raise ValueError(
-                f"Render ({start}-{end}) not in clip range ({(self.start, self.end)})"
-            )
-        if not is_image:
-            raise ValueError(
-                f"Video formats ({file_sequence.extension()}) are not supported for instance rendering !"
-            )
-
-        # render to output
-        frames = []
-        for layer_instance in self.instances:
-            cur_frame = layer_instance.start
-            instance_output = Path(file_sequence.frame(cur_frame))
-            self.render_frame(
-                instance_output, cur_frame, alpha_mode, background_mode, format_opts
-            )
-            frames.append(str(cur_frame))
-
-        file_sequence.setFrameSet(FrameSet(",".join(frames)))
-        return file_sequence
-
     @set_as_current
-    def load_image(
-        self, image_path: str | Path, frame: int | None = None, stretch: bool = False
-    ) -> None:
+    def load_image(self, image_path: str | Path, frame: int | None = None, stretch: bool = False) -> None:
         """Load an image in the current layer at a given frame.
 
         Args:
@@ -1030,9 +1088,7 @@ class Layer(Removable):
             TypeError: if the layer is not an animation layer
         """
         if not self.is_anim_layer:
-            raise TypeError(
-                f"Can't add a mark because this is not an animation layer ({self})"
-            )
+            raise TypeError(f"Can't add a mark because this is not an animation layer ({self})")
         frame = frame - self.project.start_frame
         george.tv_layer_mark_set(self.id, frame, color.index)
 
@@ -1047,7 +1103,7 @@ class Layer(Removable):
 
     @property
     def marks(self) -> Iterator[tuple[int, LayerColor]]:
-        """Iterator over the layer marks including the frame and the color.
+        """Returns an iterator over the layer marks including the frame and the color.
 
         Yields:
             frame (int): the mark frame
@@ -1065,6 +1121,17 @@ class Layer(Removable):
             self.remove_mark(frame)
 
     @set_as_current
+    def pan(self, position: tuple[int, int], move_fill: bool = False, anti_aliasing: bool = False) -> None:
+        """Apply a panning FX to the current layer.
+
+        Args:
+            position: new position of the layer (position is calculated from the top left corner of the layer frame)
+            move_fill: True to moved and fill all screen, False to only move images
+            anti_aliasing: apply antialiasing
+        """
+        george.tv_panning(position[0], position[1], move_fill, anti_aliasing)
+
+    @set_as_current
     def select_frames(self, start: int, end: int) -> None:
         """Select the frames from a start and count.
 
@@ -1073,9 +1140,7 @@ class Layer(Removable):
             end: the selected end frame
         """
         if not self.is_anim_layer:
-            log.warning(
-                "Selection may display weird behaviour when applied to a non animation layer"
-            )
+            log.warning("Selection may display weird behaviour when applied to a non animation layer")
         frame_count = (end - start) + 1
         george.tv_layer_select(start - self.clip.start, frame_count)
 
@@ -1111,10 +1176,29 @@ class Layer(Removable):
         """Copy the selected instances."""
         george.tv_layer_copy()
 
-    @set_as_current
-    def paste_selection(self) -> None:
-        """Paste the previously copied instances."""
+    def paste_selection(self, target_layer: Layer | None = None) -> None:
+        """Paste the layer into another layer (regardless of the project)."""
+        if target_layer:
+            target_layer.make_current()
         george.tv_layer_paste()
+
+    @set_as_current
+    def cut(self) -> None:
+        """Copy the layer (cuts all instances in layer)."""
+        self.select_all_frames()
+        self.cut_selection()
+
+    @set_as_current
+    def copy(self) -> None:
+        """Copy the layer (copies all instances in layer)."""
+        self.select_all_frames()
+        self.copy_selection()
+
+    @set_as_current
+    def paste(self) -> None:
+        """Copy the layer (copies all instances in layer)."""
+        self.select_all_frames()
+        self.paste_selection()
 
     @refreshed_property
     @set_as_current
@@ -1172,6 +1256,7 @@ class Layer(Removable):
             if layer_instance.start > to_frame:
                 break
 
+    @set_as_current
     def add_instance(
         self,
         start: int | None = None,
@@ -1203,8 +1288,7 @@ class Layer(Removable):
 
         if start and self.get_instance(start):
             raise ValueError(
-                "An instance already exists at the designated frame range. "
-                "Edit or delete it before adding a new one."
+                "An instance already exists at the designated frame range. Edit or delete it before adding a new one."
             )
 
         start = start if start is not None else self.clip.current_frame
@@ -1246,3 +1330,163 @@ class Layer(Removable):
             process: the instance naming process
         """
         george.tv_instance_name(self.id, mode, prefix, suffix, process)
+
+
+class LayerFolder(Layer):
+    """A LayerFolder is parented to a clip and contains Layers."""
+
+    @george.min_version_compatible(min_version="12")
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
+        super().__init__(layer_id, clip, data)
+
+    def remove(self, remove_children: bool = True) -> None:
+        """Remove the layer from the clip.
+
+        Args:
+            remove_children: True will remove child layers in the folder, False will remove the folder and move the
+                              layers to the root level. Default value is True.
+
+        Warning:
+            The current instance won't be usable after this call since it will be mark removed.
+        """
+        self.clip.make_current()
+        self.is_locked = False
+        george.tv_layer_folder_delete(self.id, remove_children)
+        self.mark_removed()
+
+
+class CameraLayer(Layer):
+    """A CameraLayer is parented to a clip and is linked to the Camera object."""
+
+    @george.min_version_compatible(min_version="12")
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
+        super().__init__(layer_id, clip, data)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def camera(self) -> Camera | None:
+        """Returns the Camera object linked ot this layer, if no camera is linked to the layer, returns None."""
+        if self.layer_type != george.LayerType.CAMERA:
+            return None
+        return self.clip.camera
+
+
+class CTGLayer(Layer):
+    """A CameraLayer is parented to a clip and is linked to the Camera object."""
+
+    @george.min_version_compatible(min_version="12")
+    def __init__(
+        self,
+        layer_id: int,
+        clip: Clip | None = None,
+        data: george.TVPLayer | None = None,
+    ) -> None:
+        super().__init__(layer_id, clip, data)
+
+    @classmethod
+    @george.min_version_compatible(min_version="12")
+    @george.undoable
+    def new(
+        cls,
+        name: str,
+        clip: Clip | None = None,
+        color: LayerColor | None = None,
+        sources: list[Layer] | None = None,
+    ) -> CTGLayer:
+        """Create a new CTG layer.
+
+        Args:
+            name: the name of the new layer
+            clip: the parent clip
+            color: the layer color
+            sources: the layer sources
+
+        Returns:
+            CTGLayer: the new layer
+
+        Note:
+            The layer name is checked against all other layers to have a unique name using `get_unique_name`.
+            This can take a while if you have a lot of layers.
+        """
+        from pytvpaint.clip import Clip
+
+        clip = clip or Clip.current_clip()
+        clip.make_current()
+
+        sources = sources or []
+        name = utils.get_unique_name(clip.layer_names, name)
+        layer_id = george.tv_ctg_layer_create(name, sources=[layer.name for layer in sources])
+
+        layer = cls(layer_id=layer_id, clip=clip)
+        if color:
+            layer.color = color
+
+        return layer
+
+    @property
+    @set_as_current
+    def squiggles_visible(self) -> bool:
+        """Get squiggles visibility."""
+        prev_value = george.tv_ctg_squiggles_visible(self.id, True)
+        # reset value
+        george.tv_ctg_squiggles_visible(self.id, prev_value)
+        return prev_value
+
+    @squiggles_visible.setter
+    @set_as_current
+    def squiggles_visible(self, value: bool) -> None:
+        """Set squiggles visibility."""
+        george.tv_ctg_squiggles_visible(self.id, value)
+
+    @property
+    @set_as_current
+    def apply_changes(self) -> bool:
+        """Get CTG Layer's apply changes value."""
+        prev_value = george.tv_ctg_apply_changes(self.id, True)
+        # reset value
+        george.tv_ctg_apply_changes(self.id, prev_value)
+        return prev_value
+
+    @apply_changes.setter
+    @set_as_current
+    def apply_changes(self, value: bool) -> None:
+        """Set CTG Layer's apply changes value."""
+        george.tv_ctg_apply_changes(self.id, value)
+
+    @property
+    def sources(self) -> list[Layer]:
+        """Get this CTG layer's source layers."""
+        sources = []
+
+        for layer_id in george.tv_ctg_get_source(self.id):
+            layer = self.clip.get_layer(by_id=layer_id)
+            if not layer:
+                continue
+            sources.append(layer)
+        return sources
+
+    def add_sources(self, sources: list[Layer]) -> None:
+        """Add a list of Layers as sources for this CTG layer."""
+        george.tv_ctg_source_add(
+            self.id,
+            [layer.id for layer in sources if self not in layer.sourced_ctg_layers],
+        )
+
+    def remove_sources(self, sources: list[Layer]) -> None:
+        """Remove a list of Layers from the sources for this CTG layer."""
+        george.tv_ctg_source_remove(self.id, [layer.id for layer in sources if self in layer.sourced_ctg_layers])
+
+    @set_as_current
+    def load_structure(self) -> None:
+        """Load CTG layer structure."""
+        george.tv_ctg_load_structure(self.id)

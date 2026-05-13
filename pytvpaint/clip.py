@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from fileseq.filesequence import FileSequence
+from fileseq.frameset import FrameSet
 
-from pytvpaint import george, utils
+from pytvpaint import george, log, utils
 from pytvpaint.camera import Camera
-from pytvpaint.layer import Layer, LayerColor
+from pytvpaint.george.client import parse
+from pytvpaint.layer import CameraLayer, CTGLayer, Layer, LayerColor, LayerFolder
 from pytvpaint.sound import ClipSound
 from pytvpaint.utils import (
     Removable,
@@ -97,6 +100,7 @@ class Clip(Removable, Renderable):
 
     def make_current(self) -> None:
         """Make the clip the current one."""
+        self.project.make_current()
         if george.tv_clip_current_id() == self.id:
             return
         george.tv_clip_select(self.id)
@@ -116,7 +120,7 @@ class Clip(Removable, Renderable):
         """The clip's scene.
 
         Raises:
-            ValueError: if clip cannot be found in the project
+            ValueError: if no current scene in the project
         """
         for scene in self.project.scenes:
             for other_clip in scene.clips:
@@ -164,7 +168,9 @@ class Clip(Removable, Renderable):
         """Set the clip name."""
         if self.name == value:
             return
-        value = utils.get_unique_name(self.project.clip_names, value)
+
+        clip_names = [clip.name for clip in self.project.clips if clip != clip]
+        value = utils.get_unique_name(clip_names, value)
         george.tv_clip_name_set(self.id, value)
 
     @refreshed_property
@@ -243,7 +249,7 @@ class Clip(Removable, Renderable):
     @property
     def action_text(self) -> str:
         """Get the action text of the clip."""
-        return george.tv_clip_action_get(self.id)
+        return parse.unescape_everything_safely(george.tv_clip_action_get(self.id))
 
     @action_text.setter
     def action_text(self, value: str) -> None:
@@ -253,7 +259,7 @@ class Clip(Removable, Renderable):
     @property
     def dialog_text(self) -> str:
         """Get the dialog text of the clip."""
-        return george.tv_clip_dialog_get(self.id)
+        return parse.unescape_everything_safely(george.tv_clip_dialog_get(self.id))
 
     @dialog_text.setter
     def dialog_text(self, value: str) -> None:
@@ -263,7 +269,7 @@ class Clip(Removable, Renderable):
     @property
     def note_text(self) -> str:
         """Get the note text of the clip."""
-        return george.tv_clip_note_get(self.id)
+        return parse.unescape_everything_safely(george.tv_clip_note_get(self.id))
 
     @note_text.setter
     def note_text(self, value: str) -> None:
@@ -306,9 +312,14 @@ class Clip(Removable, Renderable):
         Note:
             a new unique name is choosen for the duplicated clip with `get_unique_name`.
         """
+        current_clips = list(self.project.clips)
         george.tv_clip_duplicate(self.id)
-        new_clip = self.project.current_clip
-        new_clip.name = utils.get_unique_name(self.project.clip_names, new_clip.name)
+        new_clip = [clip for clip in self.project.clips if clip not in current_clips][0]  # noqa: RUF015
+
+        clip_names = [clip.name for clip in current_clips]
+        new_name = utils.get_unique_name(clip_names, self.name)
+        new_clip.name = new_name
+
         return new_clip
 
     def remove(self) -> None:
@@ -323,22 +334,109 @@ class Clip(Removable, Renderable):
     @property
     @set_as_current
     def layer_ids(self) -> Iterator[int]:
-        """Iterator over the layer ids."""
+        """Returns an iterator over the layer ids."""
         return utils.position_generator(lambda pos: george.tv_layer_get_id(pos))
 
-    @property
-    def layers(self) -> Iterator[Layer]:
-        """Iterator over the clip's layers."""
-        from pytvpaint.layer import Layer
+    def get_layers(
+        self,
+        filter_types: tuple[type, ...] | None = None,
+        ignore_types: tuple[type, ...] | None = None,
+    ) -> Iterator[Layer]:
+        """Returns an iterator over the clip's layers.
 
+        Args:
+            filter_types: list of layer types to return, default is None, meaning all.
+            ignore_types: list of layer types to ignore, default is None, meaning all.
+
+        Note:
+            Since TVP12 have introduced multiple layer types, this function will replace Clip.layers.
+        """
         for layer_id in self.layer_ids:
-            yield Layer(layer_id, clip=self)
+            layer_data = george.tv_layer_info(layer_id)
+
+            layer_class = Layer
+            if layer_data.type == george.LayerType.FOLDER:
+                layer_class = LayerFolder
+            elif layer_data.type == george.LayerType.CAMERA:
+                layer_class = CameraLayer
+            # handle CTG layers like regular layers in TVP versions < 12
+            elif not george.is_tvp_version_below_12() and layer_data.type is george.LayerType.SCRIBBLES:
+                layer_class = CTGLayer
+
+            if filter_types and layer_class not in filter_types:
+                continue
+            if ignore_types and layer_class in ignore_types:
+                continue
+
+            yield layer_class(layer_id, clip=self, data=layer_data)
+
+    @property
+    @george.deprecated_warning(msg="use `Clip.get_layers()` instead.")
+    def layers(self) -> Iterator[Layer]:
+        """Returns an iterator over the clip's animation layers, excluding all Folder, Camera and CTG layers.
+
+        Warning:
+            DEPRECATED: use `Clip.get_layers()` instead.
+        """
+        yield from self.get_layers(ignore_types=(LayerFolder, CameraLayer, CTGLayer))
+
+    @property
+    def anim_layers(self) -> Iterator[Layer]:
+        """Returns an iterator over the clip's animation layers, excluding all Folder, Camera and CTG layers."""
+        yield from self.get_layers(ignore_types=(LayerFolder, CameraLayer, CTGLayer))
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def ctg_layers(self) -> Iterator[CTGLayer]:
+        """Returns an iterator over the clip's CTG layers.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        for layer in self.get_layers(filter_types=(CTGLayer,)):
+            yield cast(CTGLayer, layer)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def folders(self) -> Iterator[LayerFolder]:
+        """Returns an iterator over the clip's Folder layers.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        for layer in self.get_layers(filter_types=(LayerFolder,)):
+            yield cast(LayerFolder, layer)
+
+    @property
+    @george.min_version_compatible(min_version="12")
+    def camera_layer(self) -> CameraLayer | None:
+        """Returns the clip's Camera layer.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        camera_layer = next(self.get_layers(filter_types=(CameraLayer,)), None)
+        if camera_layer:
+            return cast(CameraLayer, camera_layer)
+
+        # if we're here then the camera layer has probably been deleted, let's recreate it by switching to the camera.
+        george.tv_set_active_shape(george.TVPShape.CAMERA)
+        return cast(CameraLayer, next(self.get_layers(filter_types=(CameraLayer,)), None))
 
     @property
     @set_as_current
     def layer_names(self) -> Iterator[str]:
-        """Iterator over the clip's layer names."""
-        for layer in self.layers:
+        """Returns an iterator over the clip's layer names."""
+        for layer in self.get_layers():
             yield layer.name
 
     @property
@@ -346,35 +444,61 @@ class Clip(Removable, Renderable):
         """Get the current layer in the clip.
 
         Raises:
-            ValueError: if clip cannot be found in the project
+            ValueError: if no current layer in clip
         """
-        for layer in self.layers:
+        for layer in self.get_layers():
             if layer.is_current:
                 return layer
-        raise Exception("Couldn't find a current layer")
+        raise ValueError("Couldn't find a current layer")
 
     def get_layer(
         self,
         by_id: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
     ) -> Layer | None:
-        """Get a specific layer by id or name."""
-        return utils.get_tvp_element(self.layers, by_id, by_name)
+        """Get a specific layer by id or name.
+
+        Args:
+            by_id: search by id. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+
+        Raises:
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            Layer | None: the searched element or None if search was unsuccessful
+        """
+        return utils.get_tvp_element(self.get_layers(), by_id=by_id, by_name=by_name, by_regex=by_regex)
 
     @set_as_current
     def add_layer(self, layer_name: str) -> Layer:
         """Add a new layer in the layer stack."""
         return Layer.new(name=layer_name, clip=self)
 
+    @george.min_version_compatible(min_version="12")
+    @set_as_current
+    def add_layer_folder(self, folder_name: str) -> LayerFolder:
+        """Add a new layer in the layer stack.
+
+        Note:
+            This function is only available in TVPaint version 12 and above.
+
+        Raises:
+            NotImplemented: if used in tvpaint version inferior to 12
+        """
+        return cast(LayerFolder, LayerFolder.new(name=folder_name, clip=self))
+
     @property
     def selected_layers(self) -> Iterator[Layer]:
-        """Iterator over the selected layers."""
-        yield from (layer for layer in self.layers if layer.is_selected)
+        """Returns an iterator over the selected layers."""
+        yield from (layer for layer in self.get_layers() if layer.is_selected)
 
     @property
     def visible_layers(self) -> Iterator[Layer]:
-        """Iterator over the visible layers."""
-        yield from (layer for layer in self.layers if layer.is_visible)
+        """Returns an iterator over the visible layers."""
+        yield from (layer for layer in self.get_layers() if layer.is_visible)
 
     @set_as_current
     @george.undoable
@@ -429,11 +553,9 @@ class Clip(Removable, Renderable):
             (clip_mark_out if clip_mark_out else clip_end),
         )
         if start < clip_full_range[0] or end > clip_full_range[1]:
-            raise ValueError(
-                f"Render ({start}-{end}) not in clip range ({clip_full_range})"
-            )
+            raise ValueError(f"Render ({start}-{end}) not in clip range ({clip_full_range})")
 
-    def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
+    def _get_real_range(self, start: int, end: int, frame_set: FrameSet | None = None) -> tuple[int, int, FrameSet]:
         # get project start to get real values
         project_start_frame = self.project.start_frame
         # get clip real start in project timeline
@@ -441,13 +563,29 @@ class Clip(Removable, Renderable):
         # get real mark_in since we'll also need to subtract it from the range
         real_mark_in = (self.mark_in - project_start_frame) if self.mark_in else 0
 
-        start = (start - project_start_frame - real_mark_in) + clip_real_start
-        end = (end - project_start_frame - real_mark_in) + clip_real_start
+        def convert_range(x: int) -> int:
+            return (x - project_start_frame - real_mark_in) + clip_real_start
+
+        start = convert_range(start)
+        end = convert_range(end)
 
         # clamp values to clip start
         start = max(clip_real_start, start)
         end = max(clip_real_start, end)
-        return start, end
+
+        if frame_set is not None:
+            frames = sorted(frame_set.items)
+            start = max(start, convert_range(int(frames[0]))) if frames else start
+            end = min(end, convert_range(int(frames[-1]))) if frames else end
+            if frame_set.isConsecutive():
+                frame_set = FrameSet(f"{start}-{end}")
+            else:
+                frames = [convert_range(int(f)) for f in frames if start <= convert_range(int(f)) <= end]
+                frame_set = FrameSet(frames)
+        if frame_set is None or not frame_set.items:
+            frame_set = FrameSet(f"{start}-{end}")
+
+        return start, end, frame_set
 
     @set_as_current
     def render(
@@ -455,18 +593,20 @@ class Clip(Removable, Renderable):
         output_path: Path | str | FileSequence,
         start: int | None = None,
         end: int | None = None,
+        frame_set: FrameSet | None = None,
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> None:
+    ) -> Path | FileSequence:
         """Render the clip to a single frame or frame sequence or movie.
 
         Args:
             output_path: a single file or file sequence pattern
             start: the start frame to render or the mark in or the clip's start if None. Defaults to None.
             end: the end frame to render or the mark out or the clip's end if None. Defaults to None.
+            frame_set: a FrameSet with the frames/range to render. Defaults to None.
             use_camera: use the camera for rendering, otherwise render the whole canvas. Defaults to False.
             layer_selection: list of layers to render, if None render all of them. Defaults to None.
             alpha_mode: the alpha mode for rendering. Defaults to george.AlphaSaveMode.PREMULTIPLY.
@@ -479,24 +619,28 @@ class Clip(Removable, Renderable):
             FileNotFoundError: if the render failed and no files were found on disk or missing frames
 
         Note:
-            This functions uses the clip's range as a basis (start-end). This  is different from a project range, which
+            This function uses the clip's range as a basis (start-end). This  is different from the project range, which
             uses the project timeline. For more details on the differences in frame ranges and the timeline in TVPaint,
             please check the `Usage/Rendering` section of the documentation.
 
         Warning:
-            Even tough pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
+            Even though pytvpaint does a pretty good job of correcting the frame ranges for rendering, we're still
             encountering some weird edge cases where TVPaint will consider the range invalid for seemingly no reason.
+
+        Returns:
+            the output file path or sequence
         """
         default_start = self.mark_in or self.start
         default_end = self.mark_out or self.end
 
-        self._render(
-            output_path,
-            default_start,
-            default_end,
-            start,
-            end,
-            use_camera,
+        return self._render(
+            output_path=output_path,
+            default_start=default_start,
+            default_end=default_end,
+            start=start,
+            end=end,
+            frame_set=frame_set,
+            use_camera=use_camera,
             layer_selection=layer_selection,
             alpha_mode=alpha_mode,
             background_mode=background_mode,
@@ -520,9 +664,7 @@ class Clip(Removable, Renderable):
         george.tv_save_clip(export_path)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_json(
@@ -558,13 +700,9 @@ class Clip(Removable, Renderable):
         export_path = Path(export_path)
         export_path.parent.mkdir(exist_ok=True, parents=True)
 
-        fill_background = bool(
-            background_mode not in [None, george.BackgroundMode.NONE]
-        )
+        fill_background = bool(background_mode not in [None, george.BackgroundMode.NONE])
 
-        with utils.render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_json(
                 export_path,
                 save_format,
@@ -577,9 +715,7 @@ class Clip(Removable, Renderable):
             )
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_psd(
@@ -635,9 +771,7 @@ class Clip(Removable, Renderable):
             assert FileSequence.findSequenceOnDisk(check_path)
         else:
             if not export_path.exists():
-                raise FileNotFoundError(
-                    f"Could not find output at : {export_path.as_posix()}"
-                )
+                raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_csv(
@@ -672,15 +806,11 @@ class Clip(Removable, Renderable):
         if export_path.suffix != ".csv":
             raise ValueError("Export path must have .csv extension")
 
-        with utils.render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_csv(export_path, all_images, exposure_label)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_sprites(
@@ -710,15 +840,11 @@ class Clip(Removable, Renderable):
         export_path = Path(export_path)
         save_format = george.SaveFormat.from_extension(export_path.suffix)
 
-        with utils.render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
             george.tv_clip_save_structure_sprite(export_path, layout, space)
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @set_as_current
     def export_flix(
@@ -758,18 +884,13 @@ class Clip(Removable, Renderable):
             raise ValueError("Export path must have .xml extension")
 
         original_file = self.project.path
-        import_parameters = (
-            import_parameters
-            or 'waitForSource="1" multipleSetups="1" replaceSelection="0"'
-        )
+        import_parameters = import_parameters or 'waitForSource="1" multipleSetups="1" replaceSelection="0"'
 
         # The project needs to be saved
         self.project.save()
 
         # save alpha mode and save format values
-        with utils.render_context(
-            alpha_mode, background_mode, None, format_opts, layer_selection
-        ):
+        with utils.render_context(alpha_mode, background_mode, None, format_opts, layer_selection):
             george.tv_clip_save_structure_flix(
                 export_path,
                 start,
@@ -781,9 +902,7 @@ class Clip(Removable, Renderable):
             )
 
         if not export_path.exists():
-            raise FileNotFoundError(
-                f"Could not find output at : {export_path.as_posix()}"
-            )
+            raise FileNotFoundError(f"Could not find output at : {export_path.as_posix()}")
 
     @property
     @set_as_current
@@ -806,9 +925,7 @@ class Clip(Removable, Renderable):
             value = value
 
         frame = value - self.project.start_frame
-        george.tv_mark_in_set(
-            reference=george.MarkReference.CLIP, frame=frame, action=action
-        )
+        george.tv_mark_in_set(reference=george.MarkReference.CLIP, frame=frame, action=action)
 
     @property
     @set_as_current
@@ -839,7 +956,7 @@ class Clip(Removable, Renderable):
 
     @property
     def layer_colors(self) -> Iterator[LayerColor]:
-        """Iterator over the layer colors."""
+        """Returns an iterator over the layer colors."""
         for color_index in range(26):
             yield LayerColor(color_index=color_index, clip=self)
 
@@ -849,39 +966,51 @@ class Clip(Removable, Renderable):
         Args:
             layer_color: the layer color instance.
         """
-        george.tv_layer_color_set_color(
-            self.id, layer_color.index, layer_color.color, layer_color.name
-        )
+        if not george.is_tvp_version_below_12():
+            log.warning("this function currently does not work properly in tvpaint 12")
+        george.tv_layer_color_set_color(self.id, layer_color.index, layer_color.color, layer_color.name)
 
     def get_layer_color(
         self,
         by_index: int | None = None,
         by_name: str | None = None,
+        by_regex: re.Pattern[str] | None = None,
     ) -> LayerColor | None:
         """Get a layer color by index or name.
 
+        Args:
+            by_index: search by color index. Defaults to None.
+            by_name: search by name, search is case-insensitive. Defaults to None.
+            by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
+
         Raises:
-            ValueError: if none of the arguments `by_index` and `by_name` where provided
+            ValueError: if none of the search arguments where provided
         """
-        if not by_index and by_name:
-            raise ValueError(
-                "At least one value (by_index or by_name) must be provided"
-            )
+        values = (by_index, by_name, by_regex)
+        if not any(v is not None for v in values):
+            raise ValueError(f"At least one value ({' or '.join(str(v) for v in values)} must be provided")
 
         if by_index is not None:
             return next(c for i, c in enumerate(self.layer_colors) if i == by_index)
 
-        try:
-            return next(c for c in self.layer_colors if c.name == by_name)
-        except StopIteration:
-            return None
+        if by_name is not None:
+            try:
+                return next(c for c in self.layer_colors if c.name.lower() == by_name.lower())
+            except StopIteration:
+                return None
+
+        if by_regex is not None:
+            try:
+                return next(c for c in self.layer_colors if by_regex.search(c.name))
+            except StopIteration:
+                return None
+
+        return None
 
     @property
     def bookmarks(self) -> Iterator[int]:
-        """Iterator over the clip bookmarks."""
-        bookmarks_iter = utils.position_generator(
-            lambda pos: george.tv_bookmarks_enum(pos)
-        )
+        """Returns an iterator over the clip bookmarks."""
+        bookmarks_iter = utils.position_generator(lambda pos: george.tv_bookmarks_enum(pos))
         project_start_frame = self.project.start_frame
         return (frame + project_start_frame for frame in bookmarks_iter)
 
@@ -912,26 +1041,38 @@ class Clip(Removable, Renderable):
     @property
     def sounds(self) -> Iterator[ClipSound]:
         """Iterates through the clip's soundtracks."""
-        sounds_data = utils.position_generator(
-            lambda pos: george.tv_sound_clip_info(self.id, pos)
-        )
+        sounds_data = utils.position_generator(lambda pos: george.tv_sound_clip_info(self.id, pos))
 
         for track_index, _ in enumerate(sounds_data):
             yield ClipSound(track_index, clip=self)
 
     def get_sound(
         self,
-        by_id: int | None = None,
+        by_track_index: int | None = None,
         by_path: Path | str | None = None,
     ) -> ClipSound | None:
-        """Get a clip sound by id or by path.
+        """Get a clip sound by track index or path.
+
+        Args:
+            by_track_index: search by track index. Defaults to None.
+            by_path: search by path. Defaults to None.
 
         Raises:
-            ValueError: if sound object could not be found in clip
+            ValueError: if none of the search arguments where provided
+
+        Returns:
+            ClipSound | None: the searched element or None if search was unsuccessful
         """
+        values = (by_track_index, by_path)
+        if not any(v is not None for v in values):
+            raise ValueError(f"At least one value ({' or '.join(str(v) for v in values)} must be provided")
+
         for sound in self.sounds:
-            if (by_id and sound.id == by_id) or (by_path and sound.path == by_path):
-                return sound
+            if by_track_index is not None and sound.by_track_index != by_track_index:
+                continue
+            if by_path is not None and sound.path != Path(by_path):
+                continue
+            return sound
 
         return None
 

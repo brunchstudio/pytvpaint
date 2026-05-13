@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import contextlib
+import functools
+import warnings
 from collections.abc import Generator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, TypeVar, cast, overload
 
+from packaging import version
 from typing_extensions import Literal, TypeAlias
 
 from pytvpaint import log
@@ -342,10 +345,23 @@ class SaveFormat(Enum):
         """Returns the correct tvpaint format value from a string extension."""
         extension = extension.replace(".", "").upper()
         if not hasattr(SaveFormat, extension):
-            raise ValueError(
-                f"Could not find format ({extension}) in accepted formats ({SaveFormat})"
-            )
+            raise ValueError(f"Could not find format ({extension}) in accepted formats ({SaveFormat})")
         return cast(SaveFormat, getattr(cls, extension.upper()))
+
+    @classmethod
+    def to_extension(cls, save_format: SaveFormat) -> str:
+        """Returns the typical tvpaint file extension for the provided format."""
+        image_formats = {
+            SaveFormat.JPG: "jpg",
+            SaveFormat.MKV: "mkv",
+            SaveFormat.MOV: "mov",
+            SaveFormat.MP4: "mp4",
+            SaveFormat.SGI: "sgi",
+            SaveFormat.SOFTIMAGE: "pic",
+            SaveFormat.TIFF: "tiff",
+            SaveFormat.WEBM: "webm",
+        }
+        return f".{image_formats.get(save_format, save_format.value)}"
 
     @classmethod
     def is_image(cls, extension: str) -> bool:
@@ -379,6 +395,13 @@ class RGBColor:
     r: int
     g: int
     b: int
+
+
+@dataclass(frozen=True)
+class RGBAColor(RGBColor):
+    """RGBA color with 0-255 range values."""
+
+    a: int
 
 
 @dataclass(frozen=True)
@@ -571,10 +594,10 @@ class TVPPenBrush:
     power: int
     opacity: int
     dry: bool
-    aaliasing: bool
+    anti_aliasing: bool = field(metadata={"alt_name": "aaliasing"})
     gradient: bool
-    csize: str
-    cpower: str
+    c_size: str
+    c_power: str
 
 
 @dataclass(frozen=True)
@@ -623,15 +646,82 @@ def tv_warn(msg: str) -> None:
 
 
 def tv_version() -> tuple[str, str, str]:
-    """Returns the software name, version and language."""
-    cmd_fields = [
+    """Returns TVPaint version and language info.
+
+    Returns:
+        software_name (str): software full name (ex: TVPaint Animation 12.0.0 Pro)
+        tvp_version (str): version number (ex: 12.0.0)
+        language (str): language (ex: fr, en, etc...)
+    """
+    cmd_fields: FieldTypes = [
         ("software_name", str),
         ("version", str),
         ("language", str),
     ]
     res = tv_parse_list(send_cmd("tv_Version"), with_fields=cmd_fields)
-    software_name, version, language = res.values()
-    return software_name, version, language
+    software_name, tvp_version, language = res.values()
+    return software_name, tvp_version, language
+
+
+def is_tvp_version_below_12() -> bool:
+    """Helper function to check if the connected tvpaint instance version is below v12."""
+    _, tvp_version, _ = tv_version()
+    return version.parse(tvp_version).major < 12
+
+
+def min_version_compatible(min_version: str) -> Callable[[T], T]:
+    """Decorator to apply on methods.
+
+    Given a minimum version, checks if the current tvpaint version is above the minimum requirement otherwise it
+    raises a NotImplemented error
+
+    Args:
+        min_version (str): minimum version required to run this version
+
+    Returns:
+        the decorated function
+    """
+
+    def decorate(func: T) -> T:
+        @functools.wraps(func)
+        def applicator(*args: Any, **kwargs: Any) -> Any:
+            _, tvp_version, _ = tv_version()
+            current_version = version.parse(tvp_version)
+            min_version_parse = version.parse(min_version)
+
+            if current_version < min_version_parse:
+                msg = f"This function is only available in TVPaint version ({min_version}) and above."
+                raise NotImplementedError(msg)
+
+            return func(*args, **kwargs)
+
+        return cast(T, applicator)
+
+    return decorate
+
+
+def deprecated_warning(msg: str) -> Callable[[T], T]:
+    """Decorator to apply on methods.
+
+    Prints a deprecation message/warning when decorated function is called
+
+    Args:
+        msg (str): deprecation message
+
+    Returns:
+        the decorated function
+    """
+
+    def decorate(func: T) -> T:
+        @functools.wraps(func)
+        def applicator(*args: Any, **kwargs: Any) -> Any:
+            warnings.warn(msg, DeprecationWarning)
+            log.warning(f"DEPRECTED: {msg}")
+            return func(*args, **kwargs)
+
+        return cast(T, applicator)
+
+    return decorate
 
 
 def tv_quit() -> None:
@@ -654,21 +744,7 @@ def tv_menu_hide() -> None:
     send_cmd("tv_MenuHide")
 
 
-def add_some_magic(
-    i_am_a_badass: bool = False, magic_number: int | None = None
-) -> None:
-    """Don't use ! Will change your life forever..."""
-    if not i_am_a_badass:
-        log.warning("Sorry, you're not enough of a badass for this function...")
-
-    magic_number = magic_number or 14
-    send_cmd("tv_MagicNumber", magic_number)
-    log.info("Totally worth it, right ? ^^")
-
-
-def tv_menu_show(
-    menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False
-) -> None:
+def tv_menu_show(menu_element: MenuElement | None = None, *menu_options: Any, current: bool = False) -> None:
     """For the complete documentation, see: https://www.tvpaint.com/doc/tvpaint-animation-11/george-commands#tv_menushow."""
     cmd_args: list[str] = []
 
@@ -679,6 +755,16 @@ def tv_menu_show(
         cmd_args.append(menu_element.value)
 
     send_cmd("tv_MenuShow", *cmd_args, *menu_options)
+
+
+def add_some_magic(i_am_a_badass: bool = False, magic_number: int | None = None) -> None:
+    """Don't use this function ! It just might change your life forever !"""
+    if not i_am_a_badass:
+        log.warning("Sorry, you're not enough of a badass for this function !")
+
+    magic_number = magic_number if magic_number is not None else 14
+    send_cmd("tv_MagicNumber", magic_number)
+    log.info("Totally worth it, right ?! ^^")
 
 
 def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> bool:
@@ -695,9 +781,7 @@ def tv_request(msg: str, confirm_text: str = "Yes", cancel_text: str = "No") -> 
     return bool(int(send_cmd("tv_Request", msg, confirm_text, cancel_text)))
 
 
-def tv_req_num(
-    value: int, min: int, max: int, title: str = "Enter Value"
-) -> int | None:
+def tv_req_num(value: int, min: int, max: int, title: str = "Enter Value") -> int | None:
     """Open a prompt to request an integer (within a range).
 
     Args:
@@ -713,9 +797,7 @@ def tv_req_num(
     return None if res.lower() == "cancel" else int(res)
 
 
-def tv_req_angle(
-    value: float, min: float, max: float, title: str = "Enter Value"
-) -> float | None:
+def tv_req_angle(value: float, min: float, max: float, title: str = "Enter Value") -> float | None:
     """Open a prompt to request an angle (in degree).
 
     Args:
@@ -731,9 +813,7 @@ def tv_req_angle(
     return None if res.lower() == "cancel" else float(res)
 
 
-def tv_req_float(
-    value: float, min: float, max: float, title: str = "Enter value"
-) -> float | None:
+def tv_req_float(value: float, min: float, max: float, title: str = "Enter value") -> float | None:
     """Open a prompt to request a float.
 
     Args:
@@ -869,9 +949,7 @@ def tv_save_mode_get() -> tuple[SaveFormat, list[str]]:
     return save_format, res_split
 
 
-def tv_save_mode_set(
-    save_format: SaveFormat, *format_options: str | int | float
-) -> None:
+def tv_save_mode_set(save_format: SaveFormat, *format_options: str | int | float) -> None:
     """Set the saving alpha mode."""
     send_cmd("tv_SaveMode", save_format.value, *format_options)
 
@@ -921,9 +999,7 @@ def tv_mark_out_get(
     return _tv_mark(MarkType.MARKOUT, reference)
 
 
-def tv_mark_out_set(
-    reference: MarkReference, frame: int | None, action: MarkAction
-) -> tuple[int, MarkAction]:
+def tv_mark_out_set(reference: MarkReference, frame: int | None, action: MarkAction) -> tuple[int, MarkAction]:
     """Set markout of the project / clip."""
     return _tv_mark(MarkType.MARKOUT, reference, frame, action)
 
@@ -1018,9 +1094,7 @@ def _tv_set_ab_pen(
     res = send_cmd(f"tv_Set{pen.upper()}Pen", *args)
     fmt, r, g, b = res.split(" ")
 
-    color_type: type[RGBColor] | type[HSLColor] = (
-        RGBColor if a is not None or fmt == "rgb" else HSLColor
-    )
+    color_type: type[RGBColor] | type[HSLColor] = RGBColor if a is not None or fmt == "rgb" else HSLColor
     return color_type(int(r), int(g), int(b))
 
 
@@ -1044,9 +1118,17 @@ def tv_set_b_pen_hsl(color: HSLColor) -> HSLColor:
     return _tv_set_ab_pen("b", color.h, color.s, color.l, color_format="hsl")
 
 
+@deprecated_warning(
+    msg="Function `tv_pen` is most likely deprecated, it is undocumented in the George reference but still "
+    "works. We advise using `tv_penbrush` instead."
+)
 def tv_pen(size: float) -> float:
-    """Change current pen tool size. This function is most likely deprecated it is undocumented in the George reference but still works."""
-    res = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
+    """Change current pen tool size.
+
+    Warning:
+        DEPRECATED: Function `tv_pen` is deprecated, We advise using `tv_penbrush` instead.
+    """
+    res: dict[str, Any] = tv_parse_dict(send_cmd("tv_Pen", size), with_fields=[("size", float)])
     return cast(float, res["size"])
 
 
@@ -1056,9 +1138,9 @@ def tv_pen_brush_get(tool_mode: bool = False) -> TVPPenBrush:
     result = send_cmd("tv_PenBrush", *args)
 
     # Remove the first value which is tv_penbrush
-    result = result[len("tv_penbrush") + 1 :]
+    result = result[(len("tv_penbrush") + 1) :]
 
-    res = tv_parse_dict(result, with_fields=TVPPenBrush)
+    res: dict[str, Any] = tv_parse_dict(result, with_fields=TVPPenBrush)
     return TVPPenBrush(**res)
 
 
@@ -1107,8 +1189,8 @@ def tv_line(
     args = [
         *xy1,
         *xy2,
-        bool(right_click),
-        bool(dry),
+        right_click,
+        dry,
     ]
     send_cmd("tv_Line", *args)
 
@@ -1196,3 +1278,16 @@ def tv_fast_line(
 ) -> None:
     """Draw a line (1 pixel size and not antialiased)."""
     send_cmd("tv_fastline", x1, y1, x2, y2, r, g, b, a)
+
+
+def tv_pick_color() -> tuple[int, RGBAColor]:
+    """Pick a color from the UI using the mouse.
+
+    Returns:
+        mouse_click: mouse click (-1: cancel, 0: left button mouse, 1: right button mouse)
+        color: the selected RGBA Color
+    """
+    result = send_cmd("tv_PicColor")
+    mouse_click, r, g, b, a = result.split()
+
+    return int(mouse_click), RGBAColor(*[int(c) for c in (r, g, b, a)])

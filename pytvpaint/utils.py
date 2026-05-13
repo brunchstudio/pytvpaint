@@ -7,19 +7,13 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast, runtime_checkable
 
 from fileseq.filesequence import FileSequence
 from fileseq.frameset import FrameSet
 from typing_extensions import ParamSpec, Protocol
 
-from pytvpaint import george
+from pytvpaint import george, log
 from pytvpaint.george.exceptions import GeorgeError
 
 if TYPE_CHECKING:
@@ -67,6 +61,8 @@ class Removable(Refreshable):
     def __getattribute__(self, name: str) -> Any:
         """For each attribute access, we check if the object was marked removed."""
         if not name.startswith("_") and self._is_removed:
+            if name in ["_is_removed", "is_removed"]:
+                return self._is_removed
             raise ValueError(f"{self.__class__.__name__} has been removed!")
 
         return super().__getattribute__(name)
@@ -87,10 +83,11 @@ class Removable(Refreshable):
         Returns:
             bool: whether if it was removed or not
         """
-        self._is_removed = False
+        is_removed = True
         with contextlib.suppress(Exception):
             self.refresh()
-            self._is_removed = True
+            is_removed = False
+        self._is_removed = is_removed
         return self._is_removed
 
     @abstractmethod
@@ -121,7 +118,7 @@ class Renderable(ABC):
         """Set the current frame."""
         pass
 
-    def _get_real_range(self, start: int, end: int) -> tuple[int, int]:
+    def _get_real_range(self, start: int, end: int, frame_set: FrameSet | None = None) -> tuple[int, int, FrameSet]:
         """Removes the object in TVPaint."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
@@ -129,57 +126,81 @@ class Renderable(ABC):
         """Raises an exception if given range is invalid."""
         raise NotImplementedError("Function refresh() needs to be implemented")
 
-    def _render(
+    def _render(  # noqa: C901
         self,
         output_path: Path | str | FileSequence,
         default_start: int,
         default_end: int,
         start: int | None = None,
         end: int | None = None,
+        frame_set: FrameSet | None = None,
         use_camera: bool = False,
         layer_selection: list[Layer] | None = None,
         alpha_mode: george.AlphaSaveMode = george.AlphaSaveMode.PREMULTIPLY,
         background_mode: george.BackgroundMode | None = None,
         format_opts: list[str] | None = None,
-    ) -> None:
+    ) -> Path | FileSequence:
+        if (start or end) and not frame_set:
+            log.warning("Use of `start` and `end` is deprecated, prefer using `fileseq.FrameSet()` instead.")
+        if start and end and frame_set and any(f not in frame_set for f in (start, end)):
+            log.warning("`start` and/or `end` outside of `frame_set` range, will prioritize FrameSet.")
+
+        if frame_set is not None and not (start and end):
+            frames = sorted(frame_set.items)
+            start = start if start is not None or not frames else int(frames[0])
+            end = end if end is not None or not frames else int(frames[-1])
+
+        # finds range if none provided or in path and clamps it to the correct context
         file_sequence, start, end, is_sequence, is_image = handle_output_range(
             output_path, default_start, default_end, start, end
         )
         self._validate_range(start, end)
 
-        origin_start = int(start)
-        start, end = self._get_real_range(start, end)
-        if not is_image and start == end:
-            raise ValueError(
-                "TVPaint will not render a movie that contains a single frame"
-            )
-
-        # get first frame, tvp doesn't understand vfx padding `#`
-        if is_image or file_sequence.padding():
-            first_frame = Path(file_sequence.frame(file_sequence.start()))
+        # we should have a range by now, let's apply/save it
+        if frame_set is not None:
+            file_sequence.setFrameSet(frame_set)
         else:
-            first_frame = Path(str(output_path))
-        first_frame.parent.mkdir(exist_ok=True, parents=True)
+            frame_set = file_sequence.frameSet()
 
-        save_format = george.SaveFormat.from_extension(
-            file_sequence.extension().lower()
-        )
+        start, end, frame_set = self._get_real_range(start, end, frame_set)
+        if not is_image and start == end:
+            raise ValueError("TVPaint will not render a movie that contains a single frame")
+
+        if is_sequence or (
+            not is_sequence and FileSequence(str(output_path)).padding()
+        ):  # get first frame, tvp doesn't understand vfx padding `#`
+            first_frame = (
+                sorted(file_sequence.frameSet().items)[0]  # type: ignore[union-attr]
+                if file_sequence.frameSet() and len(file_sequence.frameSet()) >= 1  # type: ignore[arg-type]
+                else file_sequence.start()
+            )
+            first_frame_file = Path(file_sequence.frame(first_frame))
+        else:  # if movie or single image
+            first_frame_file = Path(str(output_path))
+        first_frame_file.parent.mkdir(exist_ok=True, parents=True)
+
+        save_format = george.SaveFormat.from_extension(file_sequence.extension().lower())
 
         # render to output
-        with render_context(
-            alpha_mode, background_mode, save_format, format_opts, layer_selection
-        ):
-            if start == end:
-                with restore_current_frame(self, origin_start):
-                    george.tv_save_display(first_frame)
-            else:
-                # not using tv_save_sequence since it doesn't handle camera and would require different range math
+        # not using tv_save_sequence since it doesn't handle camera and would require different range math
+        with render_context(alpha_mode, background_mode, save_format, format_opts, layer_selection):
+            if frame_set.isConsecutive():
                 george.tv_project_save_sequence(
-                    first_frame,
+                    first_frame_file,
                     start=start,
                     end=end,
                     use_camera=use_camera,
                 )
+            else:
+                for i, real_frame_nb in enumerate(frame_set.items):
+                    frame_nb = list(file_sequence.frameSet().items)[i]  # type: ignore[union-attr]
+                    frame_path = Path(file_sequence.frame(frame_nb))
+                    george.tv_project_save_sequence(
+                        frame_path,
+                        start=frame_nb,
+                        end=frame_nb,
+                        use_camera=use_camera,
+                    )
 
         # make sure the output exists otherwise raise an error
         if is_sequence:
@@ -189,20 +210,18 @@ class Renderable(ABC):
             file_sequence_frame_set = file_sequence.frameSet()
 
             if file_sequence_frame_set is None or frame_set is None:
-                raise Exception("Should have frame set")
+                raise Exception("Sequence Should have a frame set !")
 
             if not frame_set.issuperset(file_sequence_frame_set):
                 # not all frames found
                 missing_frames = file_sequence_frame_set.difference(frame_set)
                 raise FileNotFoundError(
-                    f"Not all frames found, missing frames ({missing_frames}) "
-                    f"in sequence : {output_path}"
+                    f"Not all frames found, missing frames ({missing_frames}) in sequence : {output_path}"
                 )
-        else:
-            if not first_frame.exists():
-                raise FileNotFoundError(
-                    f"Could not find output at : {first_frame.as_posix()}"
-                )
+            return file_sequence
+        if not first_frame_file.exists():
+            raise FileNotFoundError(f"Could not find output at : {first_frame_file.as_posix()}")
+        return first_frame_file
 
 
 def get_unique_name(names: Iterable[str], stub: str) -> str:
@@ -260,7 +279,7 @@ def position_generator(
         stop_when (Type[GeorgeError], optional): exception at which we stop. Defaults to GeorgeError.
 
     Yields:
-        Iterator[T]: an generator of the resulting values
+        Iterator[T]: a generator of the resulting values
     """
     pos = 0
 
@@ -332,8 +351,6 @@ def render_context(
         format_opts: the custom format options as strings. Defaults to None.
         layer_selection: the layers to render. Defaults to None.
     """
-    from pytvpaint.clip import Clip
-
     # Save the current state
     pre_alpha_save_mode = george.tv_alpha_save_mode_get()
     pre_save_format, pre_save_args = george.tv_save_mode_get()
@@ -349,14 +366,14 @@ def render_context(
 
     layers_visibility = []
     if layer_selection:
-        clip = Clip.current_clip()
-        layers_visibility = [(layer, layer.is_visible) for layer in clip.layers]
+        clip = layer_selection[0].clip
+        layers_visibility = [(layer, layer.is_visible) for layer in clip.get_layers()]
         # Show and hide the clip layers to render
         for layer, _ in layers_visibility:
             should_be_visible = not layer_selection or layer in layer_selection
             layer.is_visible = should_be_visible
 
-    # Do the render
+    # Do the rendering
     yield
 
     # Restore the previous values
@@ -386,9 +403,7 @@ class HasCurrentFrame(Protocol):
 
 
 @contextlib.contextmanager
-def restore_current_frame(
-    tvp_element: HasCurrentFrame, frame: int
-) -> Generator[None, None, None]:
+def restore_current_frame(tvp_element: HasCurrentFrame, frame: int) -> Generator[None, None, None]:
     """Context that temporarily changes the current frame to the one provided and restores it when done.
 
     Args:
@@ -406,14 +421,15 @@ def restore_current_frame(
         tvp_element.current_frame = previous_frame
 
 
+@runtime_checkable
 class _TVPElement(Protocol):
     @property
     def id(self) -> int | str: ...
-
     @property
     def name(self) -> str: ...
 
 
+# We define a single TypeVar bound to the base protocol
 TVPElementType = TypeVar("TVPElementType", bound=_TVPElement)
 
 
@@ -421,6 +437,7 @@ def get_tvp_element(
     tvp_elements: Iterator[TVPElementType],
     by_id: int | str | None = None,
     by_name: str | None = None,
+    by_regex: re.Pattern[str] | None = None,
     by_path: str | Path | None = None,
 ) -> TVPElementType | None:
     """Search for a TVPaint element by attributes.
@@ -429,23 +446,25 @@ def get_tvp_element(
         tvp_elements: a collection of TVPaint objects
         by_id: search by id. Defaults to None.
         by_name: search by name, search is case-insensitive. Defaults to None.
+        by_regex: search by name using a compiled regex, case-sensitivity is left to the regex. Defaults to None.
         by_path: search by path. Defaults to None.
 
     Raises:
-        ValueError: if bad arguments were given
+        ValueError: if none of the search arguments where provided
 
     Returns:
-        TVPElementType | None: the found element
+        _TVPElementType | None: the searched element or None if search was unsuccessful
     """
-    if by_id is None and by_name is None:
-        raise ValueError(
-            "At least one of the values (id or name) must be provided, none found !"
-        )
+    values = (by_id, by_name, by_regex, by_path)
+    if not any(v is not None for v in values):
+        raise ValueError(f"At least one value ({' or '.join(str(v) for v in values)} must be provided")
 
     for element in tvp_elements:
         if by_id is not None and element.id != by_id:
             continue
         if by_name is not None and element.name.lower() != by_name.lower():
+            continue
+        if by_regex is not None and not by_regex.search(element.name):
             continue
         if by_path is not None and getattr(element, "path") != Path(by_path):
             continue
@@ -463,8 +482,8 @@ def handle_output_range(
 ) -> tuple[FileSequence, int, int, bool, bool]:
     """Handle the different options for output paths and range.
 
-    Whether the user provides a range (start-end) or a filesequence with a range or not, this functions ensures we
-    always end up with a valid range to render
+    Whether the user provides a range (start-end) or a frame set or a filesequence with a range or not, this functions
+    ensures we always end up with a valid range to render
 
     Args:
         output_path: user provided output path
@@ -491,8 +510,9 @@ def handle_output_range(
 
     # if the provided sequence has a range, and we don't, use the sequence range
     if frame_set and len(frame_set) >= 1 and is_image:
-        start = start or file_sequence.start()
-        end = end or file_sequence.end()
+        frames = sorted(frame_set.items)
+        start = start or int(frames[0])
+        end = end or int(frames[-1])
 
     # check characteristics of file sequence
     fseq_has_range = frame_set and len(frame_set) > 1
@@ -501,12 +521,8 @@ def handle_output_range(
     range_is_seq = start is not None and end is not None and start != end
     range_is_single_image = start is not None and end is not None and start == end
 
-    is_single_image = bool(
-        is_image and (fseq_is_single_image or not frame_set) and range_is_single_image
-    )
-    is_sequence = bool(
-        is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq)
-    )
+    is_single_image = bool(is_image and (fseq_is_single_image or not frame_set) and range_is_single_image)
+    is_sequence = bool(is_image and (fseq_has_range or fseq_no_range_padding or range_is_seq))
 
     # if no range provided, use clip mark in/out, if none, use clip start/end
     if start is None:
@@ -521,6 +537,8 @@ def handle_output_range(
 
     if not file_sequence.padding() and is_image and len(frame_set) > 1:
         file_sequence.setPadding("#")
+        if not is_sequence and "#" not in str(file_sequence):
+            is_sequence = True
 
     # we should have a range by now, set it in the sequence
     if (is_image and not is_single_image) or file_sequence.padding():

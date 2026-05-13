@@ -4,59 +4,50 @@ from collections.abc import Iterator
 
 import pytest
 
-from pytvpaint.george.exceptions import GeorgeError
-from pytvpaint.george.grg_project import TVPProject
-from pytvpaint.george.grg_scene import (
-    tv_scene_close,
-    tv_scene_current_id,
-    tv_scene_duplicate,
-    tv_scene_enum_id,
-    tv_scene_move,
-    tv_scene_new,
-)
+from pytvpaint import george
 from tests.conftest import test_project
 
 
-def test_tv_scene_enum_id(test_project: TVPProject) -> None:
-    assert tv_scene_enum_id(0)
+def test_tv_scene_enum_id(test_project: george.TVPProject) -> None:
+    assert george.tv_scene_enum_id(0)
 
 
 @pytest.mark.parametrize("pos", [-1, 10])
 def test_tv_scene_enum_id_wrong_pos(pos: int) -> None:
-    with pytest.raises(GeorgeError):
-        tv_scene_enum_id(-1)
+    with pytest.raises(george.GeorgeError):
+        george.tv_scene_enum_id(-1)
 
 
-def test_tv_scene_current_id(test_project: TVPProject) -> None:
-    assert tv_scene_current_id()
+def test_tv_scene_current_id(test_project: george.TVPProject) -> None:
+    assert george.tv_scene_current_id()
 
 
 def create_new_scene() -> int:
     """Creates a new scene and return its id"""
-    tv_scene_new()
-    return tv_scene_current_id()
+    george.tv_scene_new()
+    return george.tv_scene_current_id()
 
 
 @pytest.mark.parametrize("pos", range(5))
-def test_tv_scene_move(test_project: TVPProject, test_scene: int, pos: int) -> None:
+def test_tv_scene_move(test_project: george.TVPProject, test_scene: int, pos: int) -> None:
     for _ in range(5):
         create_new_scene()
-    tv_scene_move(test_scene, pos)
-    assert tv_scene_enum_id(pos) == test_scene
+    george.tv_scene_move(test_scene, pos)
+    assert george.tv_scene_enum_id(pos) == test_scene
 
 
-def test_tv_scene_new(test_project: TVPProject) -> None:
-    previous = tv_scene_current_id()
-    tv_scene_new()
-    assert tv_scene_current_id() != previous
+def test_tv_scene_new(test_project: george.TVPProject) -> None:
+    previous = george.tv_scene_current_id()
+    george.tv_scene_new()
+    assert george.tv_scene_current_id() != previous
 
 
 def scenes_iterate() -> Iterator[tuple[int, int]]:
     pos = 0
     while True:
         try:
-            yield pos, tv_scene_enum_id(pos)
-        except GeorgeError:
+            yield pos, george.tv_scene_enum_id(pos)
+        except george.GeorgeError:
             break
         pos += 1
 
@@ -77,19 +68,19 @@ other_project = test_project
 
 
 def test_tv_scene_duplicate(
-    test_project: TVPProject,
+    test_project: george.TVPProject,
     test_scene: int,
 ) -> None:
     # Create another scene to test the behavior
-    tv_scene_new()
+    george.tv_scene_new()
 
     scenes_before = list(get_scene_ids())
     test_scene_pos = get_scene_pos(test_scene)
 
     # Duplicate the scene
-    tv_scene_duplicate(test_scene)
+    george.tv_scene_duplicate(test_scene)
     dup_scene_pos = test_scene_pos + 1
-    dup_scene = tv_scene_enum_id(dup_scene_pos)
+    dup_scene = george.tv_scene_enum_id(dup_scene_pos)
 
     # The duplicated scene is inserted after the test scene
     scenes_after = scenes_before
@@ -98,9 +89,9 @@ def test_tv_scene_duplicate(
     assert list(get_scene_ids()) == scenes_after
 
 
-def test_tv_scene_close(test_project: TVPProject, test_scene: int) -> None:
+def test_tv_scene_close(test_project: george.TVPProject, test_scene: int) -> None:
     scenes_before = list(get_scene_ids())
-    tv_scene_close(test_scene)
+    george.tv_scene_close(test_scene)
 
     scenes_before.remove(test_scene)
     assert list(get_scene_ids()) == scenes_before

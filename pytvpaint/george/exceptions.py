@@ -11,9 +11,7 @@ class GeorgeError(Exception):
     Used for return values in the `[ERROR]` section of functions in TVPaint's documentation.
     """
 
-    def __init__(
-        self, message: str | None = None, error_value: Any | None = None
-    ) -> None:
+    def __init__(self, message: str | None = None, error_value: Any | None = None) -> None:
         super().__init__(f"{message}" if message else "")
         self.error_value = error_value
 

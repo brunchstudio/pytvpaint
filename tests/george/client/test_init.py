@@ -38,8 +38,8 @@ def test_run_grg_script(tmp_path: Path) -> None:
     tmp_script = tmp_path / "script.grg"
     tmp_img = tmp_path / "out.png"
 
-    with tmp_script.open("w") as script:
-        script.write(f'tv_SaveImage "{tmp_img}"')
+    tmp_script.write_text(f'tv_SaveImage "{tmp_img}"')
+    assert tmp_script.exists()
 
     send_cmd("tv_savemode", "png")
     run_script(tmp_script)

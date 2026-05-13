@@ -13,12 +13,14 @@ their George counterparts. These can be imported from `pytvpaint.george.*`.
 PyTVPaint can be configured using these variables:
 
 | Name                           | Default value    | Description                                                                                                                    |
-| :----------------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+|:-------------------------------|:-----------------|:-------------------------------------------------------------------------------------------------------------------------------|
 | `PYTVPAINT_LOG_LEVEL`          | `INFO`           | Changes the log level of PyTVPaint. Use the `DEBUG` value to see the RPC requests and responses for debugging George commands. |
+| `PYTVPAINT_LOG_PATH`           | ``               | Log file output path, default is ``                                                                                            |
 | `PYTVPAINT_WS_HOST`            | `ws://localhost` | The hostname of the RPC over WebSocket server ([tvpaint-rpc](https://github.com/brunchstudio/tvpaint-rpc) plugin).             |
 | `PYTVPAINT_WS_PORT`            | `3000`           | The port of the RPC over WebSocket server ([tvpaint-rpc](https://github.com/brunchstudio/tvpaint-rpc) plugin).                 |
 | `PYTVPAINT_WS_STARTUP_CONNECT` | `1`              | Whether or not PyTVPaint should automatically connect to the WebSocket server at startup (module import). Accepts 0 or 1.      |
 | `PYTVPAINT_WS_TIMEOUT`         | `60` seconds     | The timeout after which we stop reconnecting at startup or if the connection was lost.                                         |
+| `TVP_RPC_LOG_PATH`             | ``               | C++ plugin log file output path, default is ``    
 
 ## Automatic client connection
 
