@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/pytvpaint_logo.png">
-      <meta name="generator" content="zensical-0.0.41">
+      <meta name="generator" content="zensical-0.0.42">
     
     
       
@@ -2613,18 +2613,23 @@ their George counterparts. These can be imported from <code>pytvpaint.george.*</
 </tr>
 <tr>
 <td style="text-align: left;"><code>PYTVPAINT_LOG_PATH</code></td>
-<td style="text-align: left;"><code>| Log file output path, default is</code></td>
 <td style="text-align: left;"></td>
+<td style="text-align: left;">Log file output path, if none provided no file log will be written.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>PYTVPAINT_WS_HOST</code></td>
 <td style="text-align: left;"><code>ws://localhost</code></td>
-<td style="text-align: left;">The hostname of the RPC over WebSocket server (<a href="https://github.com/brunchstudio/tvpaint-rpc">tvpaint-rpc</a> plugin).</td>
+<td style="text-align: left;">The hostname of the RPC server (<a href="https://github.com/brunchstudio/tvpaint-rpc">tvpaint-rpc</a> plugin).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>PYTVPAINT_WS_PORT</code></td>
 <td style="text-align: left;"><code>3000</code></td>
-<td style="text-align: left;">The port of the RPC over WebSocket server (<a href="https://github.com/brunchstudio/tvpaint-rpc">tvpaint-rpc</a> plugin).</td>
+<td style="text-align: left;">The port of the RPC server (<a href="https://github.com/brunchstudio/tvpaint-rpc">tvpaint-rpc</a> plugin).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PYTVPAINT_WS_TIMEOUT</code></td>
+<td style="text-align: left;"><code>60</code> seconds</td>
+<td style="text-align: left;">The timeout in seconds before the client considers the connection lost.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>PYTVPAINT_WS_STARTUP_CONNECT</code></td>
@@ -2632,14 +2637,9 @@ their George counterparts. These can be imported from <code>pytvpaint.george.*</
 <td style="text-align: left;">Whether or not PyTVPaint should automatically connect to the WebSocket server at startup (module import). Accepts 0 or 1.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>PYTVPAINT_WS_TIMEOUT</code></td>
-<td style="text-align: left;"><code>60</code> seconds</td>
-<td style="text-align: left;">The timeout after which we stop reconnecting at startup or if the connection was lost.</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code>TVP_RPC_LOG_PATH</code></td>
-<td style="text-align: left;"><code>| C++ plugin log file output path, default is</code></td>
 <td style="text-align: left;"></td>
+<td style="text-align: left;">C++ plugin log file output path, if none provided no file log will be written.</td>
 </tr>
 </tbody>
 </table>
@@ -2893,7 +2893,7 @@ We still recommend using the high level API though, if you found that something 
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["navigation.tabs","content.tabs.link","content.code.copy","content.code.annotate"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.6e5f0216.min.js"></script>
       
     
   </body>
