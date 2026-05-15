@@ -62,7 +62,7 @@ class JSONRPCClient:
     See: https://www.jsonrpc.org/specification#notification
     """
 
-    def __init__(self, url: str, timeout: int = 60, max_retries: int = 5, version: str = "2.0") -> None:
+    def __init__(self, url: str, timeout: int | None = 60, max_retries: int = 5, version: str = "2.0") -> None:
         """Initialize a new JSON-RPC client with a WebSocket url endpoint.
 
         Args:
@@ -74,9 +74,9 @@ class JSONRPCClient:
         self.ws_handle = WebSocket()
         self.url = url
         self.rpc_id = 0
-        self.timeout = timeout
         self.max_retries = max_retries
         self.jsonrpc_version = version
+        self.timeout = timeout
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""
@@ -104,22 +104,27 @@ class JSONRPCClient:
 
         return True
 
-    def connect(self, timeout: int = 0) -> None:
+    def connect(self) -> None:
         """Connects to the WebSocket endpoint and configures TCP keepalive."""
-        self.ws_handle.connect(self.url, timeout=timeout)
+        if self.timeout is not None and self.timeout <= 0:
+            raise ValueError("Timeout cannot be 0 or lower. Use None for infinite blocking or > 0 for a timed block.")
 
+        self.ws_handle.connect(self.url, timeout=self.timeout)
         if self.ws_handle.sock:
             sock = self.ws_handle.sock
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            sock.settimeout(self.timeout)
 
-            # Apply OS-specific keepalive configurations if available
-            if hasattr(socket, "TCP_KEEPIDLE"):
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.timeout)
-            if hasattr(socket, "TCP_KEEPINTVL"):
-                probe_interval = max(1, max(self.timeout, 1) // 6)
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, probe_interval)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            if self.timeout is not None:
+                if hasattr(socket, "TCP_KEEPIDLE"):
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.timeout)
+                # Interval between probes
+                if hasattr(socket, "TCP_KEEPINTVL"):
+                    probe_interval = max(1, self.timeout // 6)
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, probe_interval)
+            # Number of failed probes
             if hasattr(socket, "TCP_KEEPCNT"):
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, self.max_retries)
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, max(1, self.max_retries))
 
     def disconnect(self) -> None:
         """Disconnects from the server."""
