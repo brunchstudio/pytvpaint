@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1] - 2026-05-15
+
+* REVERT rpc setup
+* FIX rpc default timeout value
+* UPDATE `JSONRPCClient.connect` to only use class timeout
+* FIX pyproject.toml python classifiers
+
+---
+
 ## [1.1.0] - 2024-05-13
 ### Features and Updates
 
