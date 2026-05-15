@@ -21,18 +21,16 @@ from pytvpaint.george.exceptions import GeorgeError
 DEFAULT_HOST = "ws://localhost"
 DEFAULT_PORT = 3000
 DEFAULT_TIMEOUT = 60
-DEFAULT_MAX_RETRIES = 5
 
 
 def _connect_client(
     host: str = DEFAULT_HOST,
     port: int = DEFAULT_PORT,
     timeout: int | None = DEFAULT_TIMEOUT,
-    max_retries: int = DEFAULT_MAX_RETRIES,
     startup_connect: bool = True,
 ) -> JSONRPCClient:
 
-    _rpc_client = JSONRPCClient(url=f"{host}:{port}", timeout=timeout, max_retries=max_retries)
+    _rpc_client = JSONRPCClient(url=f"{host}:{port}", timeout=timeout)
     if not startup_connect:
         log.debug("Auto Connect Disabled, RPC client is not connected")
         return _rpc_client
@@ -68,13 +66,11 @@ def _connect_client(
 _rpc_host = os.getenv("PYTVPAINT_WS_HOST", DEFAULT_HOST)
 _rpc_port = int(os.getenv("PYTVPAINT_WS_PORT", DEFAULT_PORT))
 _rpc_timeout = int(os.getenv("PYTVPAINT_WS_TIMEOUT", DEFAULT_TIMEOUT))
-_rpc_max_retries = int(os.getenv("PYTVPAINT_WS_MAX_RETRIES", DEFAULT_MAX_RETRIES))
 _rpc_startup_connect = bool(int(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1)))
 rpc_client = _connect_client(
     host=_rpc_host,
     port=_rpc_port,
     timeout=_rpc_timeout,
-    max_retries=_rpc_max_retries,
     startup_connect=_rpc_startup_connect,
 )
 

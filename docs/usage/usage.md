@@ -19,7 +19,6 @@ PyTVPaint can be configured using these variables:
 | `PYTVPAINT_WS_HOST`               | `ws://localhost` | The hostname of the RPC server ([tvpaint-rpc](https://github.com/brunchstudio/tvpaint-rpc) plugin).                                                            |
 | `PYTVPAINT_WS_PORT`               | `3000`           | The port of the RPC server ([tvpaint-rpc](https://github.com/brunchstudio/tvpaint-rpc) plugin).                                                                |
 | `PYTVPAINT_WS_TIMEOUT`            | `60` seconds     | The timeout in seconds before the client considers the connection lost.                                                                                        |
-| `PYTVPAINT_WS_MAX_RETRIES`        | `5`              | The maximum number of failed probes before the client consideres the connection lost.                                                                          |
 | `PYTVPAINT_WS_STARTUP_CONNECT`    | `1`              | Whether or not PyTVPaint should automatically connect to the WebSocket server at startup (module import). Accepts 0 or 1.                                      |
 | `TVP_RPC_LOG_PATH`                |                  | C++ plugin log file output path, if none provided no file log will be written.                                                                                 
 
