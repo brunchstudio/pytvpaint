@@ -24,10 +24,13 @@ DEFAULT_TIMEOUT = 60
 
 
 def _connect_client(
-    host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, timeout: int = DEFAULT_TIMEOUT, startup_connect: bool = True
+    host: str = DEFAULT_HOST,
+    port: int = DEFAULT_PORT,
+    timeout: int | None = DEFAULT_TIMEOUT,
+    startup_connect: bool = True,
 ) -> JSONRPCClient:
 
-    _rpc_client = JSONRPCClient(f"{host}:{port}", timeout)
+    _rpc_client = JSONRPCClient(url=f"{host}:{port}", timeout=timeout)
     if not startup_connect:
         log.debug("Auto Connect Disabled, RPC client is not connected")
         return _rpc_client
@@ -64,7 +67,12 @@ _rpc_host = os.getenv("PYTVPAINT_WS_HOST", DEFAULT_HOST)
 _rpc_port = int(os.getenv("PYTVPAINT_WS_PORT", DEFAULT_PORT))
 _rpc_timeout = int(os.getenv("PYTVPAINT_WS_TIMEOUT", DEFAULT_TIMEOUT))
 _rpc_startup_connect = bool(int(os.getenv("PYTVPAINT_WS_STARTUP_CONNECT", 1)))
-rpc_client = _connect_client(_rpc_host, _rpc_port, _rpc_timeout, _rpc_startup_connect)
+rpc_client = _connect_client(
+    host=_rpc_host,
+    port=_rpc_port,
+    timeout=_rpc_timeout,
+    startup_connect=_rpc_startup_connect,
+)
 
 T = TypeVar("T", bound=Callable[..., Any])
 

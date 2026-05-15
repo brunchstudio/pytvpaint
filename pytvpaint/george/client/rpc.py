@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import select
 import socket
 import sys
+import threading
+from time import time
 from typing import Any, Union, cast
 
 from typing_extensions import NotRequired, TypedDict
-from websocket import WebSocket
+from websocket import WebSocket, WebSocketException
+
+from pytvpaint import log
 
 JSONValueType = Union[str, int, float, bool, None]
 
@@ -57,26 +62,52 @@ class JSONRPCResponseError(Exception):
 
 
 class JSONRPCClient:
-    """Simple JSON-RPC 2.0 client over websockets.
+    """Simple JSON-RPC 2.0 client over websockets with thread-safe automatic reconnection.
 
     See: https://www.jsonrpc.org/specification#notification
     """
 
-    def __init__(self, url: str, timeout: int = 60, max_retries: int = 5, version: str = "2.0") -> None:
+    def __init__(self, url: str, timeout: int | None = 60, version: str = "2.0") -> None:
         """Initialize a new JSON-RPC client with a WebSocket url endpoint.
 
         Args:
             url: the WebSocket url endpoint
-            timeout: the socket operation timeout
-            max_retries: the maximum socket connection retries
+            timeout: the continuous reconnection timeout threshold
             version: The JSON-RPC version. Defaults to "2.0".
         """
         self.ws_handle = WebSocket()
         self.url = url
         self.rpc_id = 0
         self.timeout = timeout
-        self.max_retries = max_retries
         self.jsonrpc_version = version
+
+        self.stop_ping = threading.Event()
+        self.run_forever = False
+        self.ping_thread: threading.Thread | None = None
+
+    def _auto_reconnect(self) -> None:
+        """Automatic WebSocket reconnection in a background thread."""
+        disconnect_time: float = 0
+
+        while self.run_forever and not self.stop_ping.wait(1):
+            if self.is_connected:
+                disconnect_time = 0
+                with contextlib.suppress(WebSocketException, OSError):
+                    self.ws_handle.ping()
+                    continue
+
+            if disconnect_time == 0:
+                disconnect_time = time()
+
+            if self.timeout and (time() - disconnect_time) > self.timeout:
+                log.error("WebSocket automatic reconnection timeout exceeded.")
+                self.run_forever = False
+                break
+
+            with contextlib.suppress(Exception):
+                self.ws_handle.close()
+                self.ws_handle.connect(self.url, timeout=self.timeout)
+                log.info(f"Reconnected automatically to endpoint: {self.url}")
 
     def __del__(self) -> None:
         """Called when the client goes out of scope."""
@@ -84,45 +115,44 @@ class JSONRPCClient:
 
     @property
     def is_connected(self) -> bool:
-        """Returns True if the client is connected and the socket is active."""
+        """Returns True if the client is connected and the socket is physically active."""
         if not self.ws_handle.connected or self.ws_handle.sock is None:
             return False
 
         try:
-            # check if the socket is readable.
+            # Non-blocking check to determine if the socket has received a FIN packet
             readable_sockets, _, _ = select.select([self.ws_handle.sock], [], [], 0.0)
             if readable_sockets:
-                # MSG_PEEK reads data without consuming it from the buffer.
-                # If recv returns 0 bytes on a readable socket, the peer has disconnected.
                 data = self.ws_handle.sock.recv(1, socket.MSG_PEEK)
                 if not data:
                     return False
         except (BlockingIOError, InterruptedError):
-            pass  # Normal non-blocking behavior
+            pass
         except Exception:
-            return False  # Socket error indicates disconnection
+            return False
 
         return True
 
-    def connect(self, timeout: int = 0) -> None:
-        """Connects to the WebSocket endpoint and configures TCP keepalive."""
-        self.ws_handle.connect(self.url, timeout=timeout)
+    def connect(self) -> None:
+        """Connects to the WebSocket endpoint and initializes the monitoring thread."""
+        if self.timeout == 0:
+            raise ValueError("Timeout cannot be 0. Use None for infinite blocking or > 0 for a timed block.")
+        self.ws_handle.connect(self.url, timeout=self.timeout)
 
-        if self.ws_handle.sock:
-            sock = self.ws_handle.sock
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-
-            # Apply OS-specific keepalive configurations if available
-            if hasattr(socket, "TCP_KEEPIDLE"):
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.timeout)
-            if hasattr(socket, "TCP_KEEPINTVL"):
-                probe_interval = max(1, max(self.timeout, 1) // 6)
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, probe_interval)
-            if hasattr(socket, "TCP_KEEPCNT"):
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, self.max_retries)
+        if not self.ping_thread or not self.ping_thread.is_alive():
+            self.stop_ping.clear()
+            self.run_forever = True
+            self.ping_thread = threading.Thread(target=self._auto_reconnect, daemon=True)
+            self.ping_thread.start()
 
     def disconnect(self) -> None:
-        """Disconnects from the server."""
+        """Disconnects from the server and halts the monitoring thread."""
+        self.run_forever = False
+        self.stop_ping.set()
+
+        if self.ping_thread and self.ping_thread.is_alive():
+            self.ping_thread.join(timeout=2)
+
         self.ws_handle.close()
 
     def increment_rpc_id(self) -> None:
@@ -134,7 +164,7 @@ class JSONRPCClient:
         method: str,
         params: list[JSONValueType] | None = None,
     ) -> JSONRPCResponse:
-        """Executes a remote procedure call.
+        """Executes a remote procedure call synchronously.
 
         Args:
             method: the name of the method to be invoked
