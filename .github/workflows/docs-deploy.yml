@@ -2,7 +2,6 @@ name: Publish documentation
 
 on:
   push:
-    # Trigger on all branches and all tags
     branches:
       - "**"
     tags:
@@ -51,9 +50,13 @@ jobs:
       # Deploy dev documentation
       - name: Deploy Branch Documentation
         if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
-        run: hatch run docs:deploy ${{ github.ref_name }}
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: hatch run docs:deploy "$REF_NAME"
 
       # Deploy release documentation
       - name: Deploy Release Documentation
         if: startsWith(github.ref, 'refs/tags/')
-        run: hatch run docs:deploy ${{ github.ref_name }} latest
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: hatch run docs:deploy "$REF_NAME" latest
