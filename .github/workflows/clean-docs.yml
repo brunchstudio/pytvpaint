@@ -1,0 +1,36 @@
+name: Cleanup Deleted Branch Docs
+
+on:
+  delete:
+
+permissions:
+  contents: write
+
+jobs:
+  remove-docs:
+    if: >
+      github.event.ref_type == 'branch' && 
+      github.event.ref != 'main' && 
+      github.event.ref != 'latest'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.9"
+
+      - name: Install Hatch
+        uses: pypa/hatch@install
+
+      - name: Delete Docs Version
+        env:
+          DELETED_BRANCH: ${{ github.event.ref }}
+        run: hatch run docs:mike delete "$DELETED_BRANCH" --push || true
