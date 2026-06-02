@@ -192,13 +192,14 @@ class Renderable(ABC):
                     use_camera=use_camera,
                 )
             else:
-                for i, real_frame_nb in enumerate(frame_set.items):
-                    frame_nb = list(file_sequence.frameSet().items)[i]  # type: ignore[union-attr]
+                frame_items = sorted(list(file_sequence.frameSet().items))  # type: ignore[union-attr]
+                real_frame_items = sorted(frame_set.items)
+                for frame_nb, real_frame_nb in zip(frame_items, real_frame_items):
                     frame_path = Path(file_sequence.frame(frame_nb))
                     george.tv_project_save_sequence(
-                        frame_path,
-                        start=frame_nb,
-                        end=frame_nb,
+                        export_path=frame_path,
+                        start=int(real_frame_nb),
+                        end=int(real_frame_nb),
                         use_camera=use_camera,
                     )
 
