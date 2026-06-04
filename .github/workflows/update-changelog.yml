@@ -62,8 +62,14 @@ jobs:
 
       # Explicitly trigger a doc rebuild now that the changelog is committed,
       # so the updated changelog page appears in the deployed documentation
-      - name: Trigger Documentation Rebuild
+      - name: Trigger Tagged Release Documentation Rebuild
         run: |
           gh workflow run "Publish Documentation" --ref ${{ github.event.release.tag_name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger Main Branch Documentation Rebuild
+        run: |
+          gh workflow run "Publish Documentation" --ref main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
