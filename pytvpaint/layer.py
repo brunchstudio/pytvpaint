@@ -843,6 +843,7 @@ class Layer(Removable):
         color: LayerColor | None = None,
         image: Path | str | None = None,
         stretch: bool = False,
+        alpha_mode: george.AlphaMode | None = None,
     ) -> Layer:
         """Create a new background layer with hold as pre- and post-behavior.
 
@@ -852,6 +853,7 @@ class Layer(Removable):
             color: the layer color
             image: the background image to load
             stretch: whether to stretch the image to fit the view
+            alpha_mode: alpha mode for the image that will be loaded
 
         Returns:
             Layer: the new animation layer
@@ -859,6 +861,7 @@ class Layer(Removable):
         from pytvpaint.clip import Clip
 
         clip = clip or Clip.current_clip()
+
         layer = cls.new(name, clip, color)
         layer.pre_behavior = george.LayerBehavior.HOLD
         layer.post_behavior = george.LayerBehavior.HOLD
@@ -866,8 +869,15 @@ class Layer(Removable):
 
         image = Path(image or "")
         if image.is_file():
+            cur_alpha_mode = george.tv_alpha_load_mode_get()
+            if alpha_mode:
+                george.tv_alpha_load_mode_set(alpha_mode)
+
             layer.convert_to_anim_layer()
             layer.load_image(image, frame=clip.start, stretch=stretch)
+
+            if alpha_mode:
+                george.tv_alpha_load_mode_set(cur_alpha_mode)
 
         return layer
 
