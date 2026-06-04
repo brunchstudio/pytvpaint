@@ -1,35 +1,32 @@
-name: Publish Documentation
+name: Publish Release Documentation
 
 on:
-  push:
-    branches:
-      - "**"
-    tags:
-      - "**"
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
+  release:
+    types: [published]
 
 concurrency:
   group: gh-pages-deploy
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  deploy:
+  deploy-release-docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.event.release.target_commitish }}
 
       - name: Configure Git Credentials
         run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
       - uses: actions/setup-python@v6
         with:
@@ -38,35 +35,53 @@ jobs:
       - name: Install Hatch
         uses: pypa/hatch@install
 
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v5
-        with:
-          key: zensical-${{ env.cache_id }}
-          path: .cache
-          restore-keys: |
-            zensical-
-
-      # Test build docs on PRs
-      - name: Verify Docs Build (on Pull Requests)
-        if: github.event_name == 'pull_request'
-        run: hatch run docs:build
-
-      # Deploy dev documentation (skip bot commits to avoid possible race conditions with changelog CI)
-      - name: Deploy Branch Documentation
-        if: >
-          github.event_name == 'push' &&
-          !startsWith(github.ref, 'refs/tags/') &&
-          github.actor != 'github-actions[bot]'
+      - name: Process Release Metadata and Update Root Changelog
         env:
-          REF_NAME: ${{ github.ref_name }}
-        run: hatch run docs:deploy "$REF_NAME"
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_DATE: ${{ github.event.release.published_at }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          python3 -c '
+          import os
+          from pathlib import Path
+          from datetime import datetime
 
-      # Deploy release documentation (tag push OR explicitly dispatched by changelog CI)
+          tag = os.environ.get("RELEASE_TAG", "Unversioned")
+          date_str = os.environ.get("RELEASE_DATE", "")
+          body = os.environ.get("RELEASE_BODY", "")
+
+          try:
+              date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+              formatted_date = date_obj.strftime("%Y-%m-%d")
+          except ValueError:
+              formatted_date = datetime.utcnow().strftime("%Y-%m-%d")
+
+          new_entry = f"## [{tag}] - {formatted_date}\n\n{body}\n\n---\n\n"
+
+          file_path = Path("CHANGELOG.md")
+          content = file_path.read_text()
+
+          insert_marker = "# Changelog\n\n"
+          new_content = content.replace(insert_marker, insert_marker + new_entry, 1)
+          file_path.write_text(new_content)
+          '
+
+      - name: Synchronize to Docs Directory
+        run: |
+          mkdir -p docs
+          cp CHANGELOG.md docs/changelog.md
+
+      - name: Commit and Push Changelog
+        run: |
+          git add CHANGELOG.md docs/changelog.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: append release notes for ${{ github.event.release.tag_name }}" && git push)
+
+      # Deploy release docs with updated changelog
       - name: Deploy Release Documentation
-        if: >
-          startsWith(github.ref, 'refs/tags/') ||
-          github.event_name == 'workflow_dispatch'
         env:
-          REF_NAME: ${{ github.ref_name }}
+          REF_NAME: ${{ github.event.release.tag_name }}
         run: hatch run docs:deploy "$REF_NAME" latest
+
+      # Deploy main docs with updated changelog
+      - name: Deploy Main Documentation
+        run: hatch run docs:deploy "main"

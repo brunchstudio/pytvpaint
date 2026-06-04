@@ -1,0 +1,52 @@
+name: Publish Dev Documentation
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.9"
+
+      - name: Install Hatch
+        uses: pypa/hatch@install
+
+      # Test build docs on PRs
+      - name: Verify Docs Build (on Pull Requests)
+        if: github.event_name == 'pull_request'
+        run: hatch run docs:build
+
+      # Deploy branch docs (skip bot commits from the release changelog CI)
+      - name: Deploy Branch Documentation
+        if: >
+          github.event_name == 'push' &&
+          github.actor != 'github-actions[bot]'
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: hatch run docs:deploy "$REF_NAME"
