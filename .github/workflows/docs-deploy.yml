@@ -9,6 +9,11 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -47,16 +52,21 @@ jobs:
         if: github.event_name == 'pull_request'
         run: hatch run docs:build
 
-      # Deploy dev documentation
+      # Deploy dev documentation (skip bot commits to avoid possible race conditions with changelog CI)
       - name: Deploy Branch Documentation
-        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+        if: >
+          github.event_name == 'push' &&
+          !startsWith(github.ref, 'refs/tags/') &&
+          github.actor != 'github-actions[bot]'
         env:
           REF_NAME: ${{ github.ref_name }}
         run: hatch run docs:deploy "$REF_NAME"
 
-      # Deploy release documentation
+      # Deploy release documentation (tag push OR explicitly dispatched by changelog CI)
       - name: Deploy Release Documentation
-        if: startsWith(github.ref, 'refs/tags/')
+        if: >
+          startsWith(github.ref, 'refs/tags/') ||
+          github.event_name == 'workflow_dispatch'
         env:
           REF_NAME: ${{ github.ref_name }}
         run: hatch run docs:deploy "$REF_NAME" latest

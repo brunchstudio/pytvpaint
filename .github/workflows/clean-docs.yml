@@ -3,6 +3,10 @@ name: Cleanup Deleted Branch Docs
 on:
   delete:
 
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
