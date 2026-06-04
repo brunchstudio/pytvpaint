@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2] - 2026-06-04
+
+- FIX `Renderable._render()` using the wrong frame numbers when rendering instances
+- ADD alpha mode in `Layer.new_background_layer` to handle alpha loading mode for backgrounds
+
+---
+
 ## [1.1.1] - 2026-05-15
 
 * REVERT rpc setup
