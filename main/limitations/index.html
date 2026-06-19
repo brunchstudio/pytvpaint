@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/pytvpaint_logo.png">
-      <meta name="generator" content="zensical-0.0.43">
+      <meta name="generator" content="zensical-0.0.45">
     
     
       
@@ -2660,15 +2660,11 @@ issues in the table below:</p>
 </tr>
 <tr>
 <td style="text-align: left;"><a href="../api/george/layer/#pytvpaint.george.grg_layer.tv_instance_name"><code>tv_InstanceName</code></a></td>
-<td style="text-align: left;">Crashes if we provided with an invalid <code>layer_id</code></td>
+<td style="text-align: left;">Crashes if provided with an invalid <code>layer_id</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>tv_CameraEnumPoints</code></td>
 <td style="text-align: left;">Only returns the first point, no matter how many points there are.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>tv_AlphaSaveMode</code></td>
-<td style="text-align: left;">Extremely inconsistant, seems to only work sometimes.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>tv_CameraPath</code></td>
@@ -2689,6 +2685,12 @@ issues in the table below:</p>
 </tbody>
 </table>
 <h2 id="tvpaint-12-bugs-and-breaking-changes">TVPaint 12 Bugs and Breaking Changes:<a class="headerlink" href="#tvpaint-12-bugs-and-breaking-changes" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Comments below only apply to TVPaint v12.0.6 and lower. Even though the RPC plugin is now compatible with 
+tvpaint 12.10, current support for the PyTVPaint API is limited to version 12.0.6. Support for v12.1.0 in the API
+is in the works and will be released as soon as we finish testing/updating the API for the new changes/fixes.</p>
+</div>
 <p>TVPaint 12 introduces a lot of welcome changes (especially for the artists) and some new needed function for developers. 
 However, it also introduces a lot of breaking changes and some new bugs.</p>
 <p>To deal with these changes as well as the new functions exclusive to TVPaint 12, we added a couple decorators and functions :</p>
