@@ -90,9 +90,8 @@ issues in the table below:
 | Method                                                                               | Description                                                                                                                                                                |
 |:-------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`tv_Ratio`](api/george/project.md#pytvpaint.george.grg_project.tv_ratio)            | Always returns an empty string (`""`)                                                                                                                                      |
-| [`tv_InstanceName`](api/george/layer.md#pytvpaint.george.grg_layer.tv_instance_name) | Crashes if we provided with an invalid `layer_id`                                                                                                                          |
-| `tv_CameraEnumPoints`                                                                      | Only returns the first point, no matter how many points there are.                                                                                                         |
-| `tv_AlphaSaveMode`                                                                      | Extremely inconsistant, seems to only work sometimes.                                                                                                                      |
+| [`tv_InstanceName`](api/george/layer.md#pytvpaint.george.grg_layer.tv_instance_name) | Crashes if provided with an invalid `layer_id`                                                                                                                          |
+| `tv_CameraEnumPoints`                                                                      | Only returns the first point, no matter how many points there are.                                                                                                       |
 | `tv_CameraPath`                                                                      | Confusing arguments and seemingly incorrect results (see [this](https://forum.tvpaint.com/viewtopic.php?t=15677))                                                          |
 | `tv_SoundClipReload`                                                                 | Doesn't accept a proper clip id, only `0` seems to work for the current clip                                                                                               |
 | `tv_LayerSelectInfo`                                                                 | Does not select frames as stated in the documentation and will also return non selected frames if attribute `full` is set to True                                          |
@@ -100,6 +99,12 @@ issues in the table below:
 
 
 ## TVPaint 12 Bugs and Breaking Changes:
+
+!!! note
+
+    Comments below only apply to TVPaint v12.0.6 and lower. Even though the RPC plugin is now compatible with 
+    tvpaint 12.10, current support for the PyTVPaint API is limited to version 12.0.6. Support for v12.1.0 in the API
+    is in the works and will be released as soon as we finish testing/updating the API for the new changes/fixes.
 
 TVPaint 12 introduces a lot of welcome changes (especially for the artists) and some new needed function for developers. 
 However, it also introduces a lot of breaking changes and some new bugs.
