@@ -190,7 +190,9 @@ def test_clip_new_other_scene(test_project_obj: Project) -> None:
     assert new_clip.scene == other_scene
 
 
-@pytest.mark.skipif(IS_TVP12, reason="Skip since duplicating a clip and closing the project afterwards crashes TVPaint.")
+@pytest.mark.skipif(
+    IS_TVP12, reason="Skip since duplicating a clip and closing the project afterwards crashes TVPaint."
+)
 def test_clip_duplicate(test_project_obj: Project) -> None:
     clip = Clip.new("test")
     dup = clip.duplicate()

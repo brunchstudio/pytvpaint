@@ -9,7 +9,6 @@ import pytest
 from pytvpaint import george
 from tests.conftest import FixtureYield
 
-
 IS_TVP12 = george.tv_version()[1].startswith("12")
 COLORS = [george.RGBColor(255, 0, 0), george.RGBColor(0, 255, 0), george.RGBColor(0, 0, 255)]
 

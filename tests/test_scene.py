@@ -5,7 +5,6 @@ from pytvpaint.clip import Clip
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 
-
 IS_TVP12 = george.tv_version()[1].startswith("12")
 
 

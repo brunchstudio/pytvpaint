@@ -535,6 +535,7 @@ def test_tv_layer_color_get_color_wrong_id() -> None:
 
 name_args = [None, "test"] if not IS_TVP12 else [None]
 
+
 # We skip index 0 because it's the "Default" color and can't be changed
 @pytest.mark.parametrize("color_index", range(1, 27))
 @pytest.mark.parametrize("name", name_args)
@@ -556,9 +557,7 @@ def test_tv_layer_color_set_color(
         assert color.name == name
 
 
-@pytest.mark.skipif(
-    IS_TVP12, reason="`tv_LayerColor setcolor` does not return -1 when given a bad color index."
-)
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerColor setcolor` does not return -1 when given a bad color index.")
 def test_tv_layer_color_set_color_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_color_set_color(-1, 1, george.RGBColor(0, 0, 0))

@@ -22,7 +22,7 @@ from pytvpaint.george.grg_base import (
     ResizeOption,
     RGBColor,
     TVPSound,
-    is_tvp_version_below_12
+    is_tvp_version_below_12,
 )
 
 
@@ -235,7 +235,7 @@ def tv_resize_project(width: int, height: int) -> None:
         creates a resized copy of the project with a new id
     """
     if not is_tvp_version_below_12() and (width == 0 or height == 0):
-        log.warning('A value of 0 for either width or height will crash TVPaint !')
+        log.warning("A value of 0 for either width or height will crash TVPaint !")
         return
     send_cmd("tv_ResizeProject", width, height)
 
@@ -267,7 +267,9 @@ def tv_ratio() -> float:
 def tv_get_field() -> FieldOrder:
     """Get the current project field mode."""
     if not is_tvp_version_below_12():
-        log.warning("DEPRECATED: Function `tv_GetField` is deprecated in TVPaint 12 and always returns `FieldOrder.NONE`.")
+        log.warning(
+            "DEPRECATED: Function `tv_GetField` is deprecated in TVPaint 12 and always returns `FieldOrder.NONE`."
+        )
         return FieldOrder.NONE
     return tv_cast_to_type(send_cmd("tv_GetField"), cast_type=FieldOrder)
 

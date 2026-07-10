@@ -11,7 +11,6 @@ import pytest
 from pytvpaint import george
 from tests.conftest import FixtureYield, load_sequence_with_name, test_scene
 
-
 IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
@@ -181,7 +180,9 @@ def test_tv_last_image(test_clip: george.TVPClip) -> None:
 
 
 @pytest.mark.parametrize("offset_count", [None, *itertools.product([0, 1], [0, 1])])
-@pytest.mark.parametrize("field_order", [None] + (list(george.FieldOrder) if not IS_TVP12 else [george.FieldOrder.NONE]))
+@pytest.mark.parametrize(
+    "field_order", [None] + (list(george.FieldOrder) if not IS_TVP12 else [george.FieldOrder.NONE])
+)
 @pytest.mark.parametrize("stretch", [False, True])
 @pytest.mark.parametrize("time_stretch", [False, True])
 @pytest.mark.parametrize("preload", [False, True])

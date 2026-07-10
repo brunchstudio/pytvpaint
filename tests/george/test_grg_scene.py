@@ -7,7 +7,6 @@ import pytest
 from pytvpaint import george
 from tests.conftest import test_project
 
-
 IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
