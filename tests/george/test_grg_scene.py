@@ -7,6 +7,8 @@ import pytest
 from pytvpaint import george
 from tests.conftest import test_project
 
+IS_TVP12 = george.tv_version()[1].startswith("12")
+
 
 def test_tv_scene_enum_id(test_project: george.TVPProject) -> None:
     assert george.tv_scene_enum_id(0)
@@ -28,6 +30,7 @@ def create_new_scene() -> int:
     return george.tv_scene_current_id()
 
 
+# @pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 @pytest.mark.parametrize("pos", range(5))
 def test_tv_scene_move(test_project: george.TVPProject, test_scene: int, pos: int) -> None:
     for _ in range(5):
@@ -36,6 +39,7 @@ def test_tv_scene_move(test_project: george.TVPProject, test_scene: int, pos: in
     assert george.tv_scene_enum_id(pos) == test_scene
 
 
+# @pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_tv_scene_new(test_project: george.TVPProject) -> None:
     previous = george.tv_scene_current_id()
     george.tv_scene_new()
@@ -67,6 +71,7 @@ def get_scene_pos(scene_id: int) -> int:
 other_project = test_project
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_tv_scene_duplicate(
     test_project: george.TVPProject,
     test_scene: int,

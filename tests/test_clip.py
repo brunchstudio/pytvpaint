@@ -14,7 +14,7 @@ from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 from tests.conftest import FixtureYield
 
-IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
+IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
 def test_clip_init(test_project_obj: Project, test_clip_obj: Clip) -> None:
@@ -179,6 +179,7 @@ def test_clip_new_unique_name(test_project_obj: Project) -> None:
     assert Clip.new("test").name == "test2"
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_clip_new_other_scene(test_project_obj: Project) -> None:
     first_scene = test_project_obj.current_scene
     other_scene = test_project_obj.add_scene()
@@ -189,6 +190,9 @@ def test_clip_new_other_scene(test_project_obj: Project) -> None:
     assert new_clip.scene == other_scene
 
 
+@pytest.mark.skipif(
+    IS_TVP12, reason="Skip since duplicating a clip and closing the project afterwards crashes TVPaint."
+)
 def test_clip_duplicate(test_project_obj: Project) -> None:
     clip = Clip.new("test")
     dup = clip.duplicate()
@@ -211,7 +215,7 @@ def test_clip_layers(test_clip_obj: Clip, create_some_layers: list[Layer]) -> No
     assert list(test_clip_obj.get_layers()) == create_some_layers
 
 
-@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+@pytest.mark.skipif(not IS_TVP12, reason="Requires TVP12 or higher")
 def test_clip_layer_folders(test_clip_obj: Clip, create_some_layer_folders: list[LayerFolder]) -> None:
     assert list(test_clip_obj.folders) == create_some_layer_folders
 
@@ -225,7 +229,7 @@ def test_clip_add_layer(test_clip_obj: Clip) -> None:
     assert test_clip_obj.current_layer == layer and isinstance(layer, Layer)
 
 
-@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+@pytest.mark.skipif(not IS_TVP12, reason="Requires TVP12 or higher")
 def test_clip_add_layer_folder(test_clip_obj: Clip) -> None:
     layer = test_clip_obj.add_layer_folder("test")
     assert test_clip_obj.current_layer == layer and isinstance(layer, LayerFolder)
@@ -243,7 +247,6 @@ def test_clip_visible_layers(test_clip_obj: Clip, create_some_layers: list[Layer
     assert list(test_clip_obj.visible_layers) == create_some_layers[1:]
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerRename` does not currently work in TVP12.")
 def test_clip_load_media(test_clip_obj: Clip, png_sequence: list[Path]) -> None:
     layer = test_clip_obj.load_media(png_sequence[0], with_name="images")
     assert layer.name == "images"
@@ -327,6 +330,7 @@ def test_clip_render_sequence(
         assert expected_seq.frameSet() == found_seq.frameSet()
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since mp4 files are rendered as .dip files in TVPaint 12.")
 @pytest.mark.parametrize("use_camera", [True, False])
 @pytest.mark.parametrize(
     "out, start, end, expected, error",
@@ -353,11 +357,13 @@ def test_clip_render_mp4(
     expected: str,
     error: type[Exception] | None,
 ) -> None:
+    out_path = tmp_path / out
+
     if error:
         with pytest.raises(error):
-            test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
+            test_clip_obj.render(out_path, start, end, use_camera=use_camera)
     else:
-        test_clip_obj.render(tmp_path / out, start, end, use_camera=use_camera)
+        test_clip_obj.render(out_path, start, end, use_camera=use_camera)
 
     if expected:
         assert tmp_path.joinpath(expected).exists()
@@ -378,7 +384,6 @@ def test_export_tvp(
     loaded.close()
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="Skip since layer naming doesn't work in TVP12.")
 def test_clip_export_json(test_clip_obj: Clip, tmp_path: Path, with_loaded_sequence: Layer) -> None:
     out_json = tmp_path / "out.json"
 
@@ -458,7 +463,7 @@ def random_color() -> george.RGBColor:
     )
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerColor setcolor` does not work when a name is provided.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerColor setcolor` does not work when a name is provided.")
 @pytest.mark.parametrize("index", range(1, 26))
 def test_clip_set_layer_color(test_clip_obj: Clip, index: int, random_color: george.RGBColor) -> None:
     expected = LayerColor(index, test_clip_obj)

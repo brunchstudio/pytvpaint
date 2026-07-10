@@ -10,6 +10,8 @@ from pytvpaint.scene import Scene
 from pytvpaint.sound import ProjectSound
 from tests.conftest import FixtureYield
 
+IS_TVP12 = george.tv_version()[1].startswith("12")
+
 
 def test_project_init(test_project: TVPProject) -> None:
     project = Project(test_project.id)
@@ -113,6 +115,7 @@ def test_project_fps_preview(test_project_obj: Project) -> None:
     assert test_project_obj.playback_fps == 54
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Field Order options are deprecated in tvpaint 12.")
 @pytest.mark.parametrize("field_order", george.FieldOrder)
 def test_project_field_order(
     tmp_path: Path,

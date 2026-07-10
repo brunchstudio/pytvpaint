@@ -22,8 +22,8 @@ class TVPCamera:
     width: int
     height: int
     field_order: FieldOrder
-    frame_rate: float
     pixel_aspect_ratio: float
+    frame_rate: float = 0.0
     anti_aliasing: int = 1
 
 
@@ -40,15 +40,6 @@ class TVPCameraPoint:
 def tv_camera_info_get() -> TVPCamera:
     """Get the information of the camera."""
     fields = get_dataclass_fields(cast(DataclassInstance, TVPCamera))
-    if not is_tvp_version_below_12():
-        # values of pixel aspect ratio and fps have been swapped in versions > 12
-        fields_keys = list(dict(fields).keys())
-        pixel_aspect_index, fps_index = fields_keys.index("pixel_aspect_ratio"), fields_keys.index("frame_rate")
-        fields[pixel_aspect_index], fields[fps_index] = (
-            fields[fps_index],
-            fields[pixel_aspect_index],
-        )
-
     return TVPCamera(**tv_parse_list(send_cmd("tv_CameraInfo"), with_fields=fields))
 
 

@@ -5,6 +5,8 @@ from pytvpaint.clip import Clip
 from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 
+IS_TVP12 = george.tv_version()[1].startswith("12")
+
 
 def test_scene_init(test_project_obj: Project, test_scene: int) -> None:
     scene = Scene(test_scene, test_project_obj)
@@ -13,12 +15,14 @@ def test_scene_init(test_project_obj: Project, test_scene: int) -> None:
     assert scene.position == 1  # It's the second scene
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_scene_new_current_project(test_project_obj: Project) -> None:
     scene = Scene.new()
     # The scene's project is the current project
     assert scene.project == test_project_obj
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_scene_new_other_project(test_project_obj: Project) -> None:
     scene = Scene.new(project=test_project_obj)
     # The scene's project is the given project
@@ -76,6 +80,7 @@ def test_scene_clips(
     assert list(Scene.current_scene().clips) == create_some_clips
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_scene_duplicate(test_scene_obj: Scene) -> None:
     dup = test_scene_obj.duplicate()
     assert test_scene_obj != dup

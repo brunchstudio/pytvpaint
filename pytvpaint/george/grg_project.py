@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, cast
 
+from pytvpaint import log
 from pytvpaint.george.client import send_cmd, try_cmd
 from pytvpaint.george.client.parse import (
     DataclassInstance,
@@ -75,7 +76,7 @@ def tv_project_info(project_id: str) -> TVPProject:
             fields[start_frame_index],
             fields[field_order_index],
         )
-        result = f"{result} {tv_get_field().value}"
+        result = f"{result} {FieldOrder.NONE.value}"
 
     project = tv_parse_list(result, with_fields=fields)
     project["id"] = project_id
@@ -148,7 +149,7 @@ def tv_project_new(
         height,
         pixel_aspect_ratio,
         frame_rate,
-        field_order.value,
+        field_order.value if field_order is not None else FieldOrder.NONE,
         start_frame,
         error_values=[GrgErrorValue.EMPTY],
     )
@@ -233,6 +234,9 @@ def tv_resize_project(width: int, height: int) -> None:
     Note:
         creates a resized copy of the project with a new id
     """
+    if not is_tvp_version_below_12() and (width == 0 or height == 0):
+        log.warning("A value of 0 for either width or height will crash TVPaint !")
+        return
     send_cmd("tv_ResizeProject", width, height)
 
 
@@ -262,6 +266,11 @@ def tv_ratio() -> float:
 
 def tv_get_field() -> FieldOrder:
     """Get the current project field mode."""
+    if not is_tvp_version_below_12():
+        log.warning(
+            "DEPRECATED: Function `tv_GetField` is deprecated in TVPaint 12 and always returns `FieldOrder.NONE`."
+        )
+        return FieldOrder.NONE
     return tv_cast_to_type(send_cmd("tv_GetField"), cast_type=FieldOrder)
 
 

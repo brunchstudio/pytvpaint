@@ -11,6 +11,8 @@ import pytest
 from pytvpaint import george
 from tests.conftest import FixtureYield, load_sequence_with_name, test_scene
 
+IS_TVP12 = george.tv_version()[1].startswith("12")
+
 
 def test_tv_clip_info(test_clip: george.TVPClip) -> None:
     assert george.tv_clip_info(test_clip.id)
@@ -136,6 +138,7 @@ def test_tv_clip_select(test_scene: int, test_clip: george.TVPClip) -> None:
     assert george.tv_clip_info(test_clip.id).is_current
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since new scene ops crash tvpaint if a project is closed afterwards.")
 def test_tv_clip_select_also_selects_scene(
     test_project: george.TVPProject,
     test_scene: int,
@@ -177,7 +180,9 @@ def test_tv_last_image(test_clip: george.TVPClip) -> None:
 
 
 @pytest.mark.parametrize("offset_count", [None, *itertools.product([0, 1], [0, 1])])
-@pytest.mark.parametrize("field_order", [None, *george.FieldOrder])
+@pytest.mark.parametrize(
+    "field_order", [None] + (list(george.FieldOrder) if not IS_TVP12 else [george.FieldOrder.NONE])
+)
 @pytest.mark.parametrize("stretch", [False, True])
 @pytest.mark.parametrize("time_stretch", [False, True])
 @pytest.mark.parametrize("preload", [False, True])
@@ -364,6 +369,7 @@ def test_tv_save_clip_folder_does_not_exist(tmp_path: Path) -> None:
         george.tv_save_clip(tmp_path / "folder" / "out.tvpx")
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_save_display(tmp_path: Path) -> None:
     save_ext, _ = george.tv_save_mode_get()
     ext = "jpg" if save_ext == george.SaveFormat.JPG else save_ext.value
@@ -448,6 +454,7 @@ def apply_file_pattern(
     return initial_pattern
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize("mark_in, mark_out", [(None, None), (0, 5), (0, 0), (0, 1), (2, 5)])
 def test_tv_save_sequence(
     test_project: george.TVPProject,
@@ -474,11 +481,13 @@ def test_tv_save_sequence(
         assert image_path.exists()
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_save_sequence_wrong_path(tmp_path: Path) -> None:
     with pytest.raises(NotADirectoryError):
         george.tv_save_sequence(tmp_path / "folder" / "out")
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize(
     "file_format",
     [
@@ -558,11 +567,13 @@ def test_tv_clip_save_structure_json(
             assert image_path.exists()
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_clip_save_structure_json_file_doesnt_exist(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="destination folder doesn't exist"):
         george.tv_clip_save_structure_json(tmp_path / "folder" / "out.json", george.SaveFormat.PNG)
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize(
     "test_case",
     [
@@ -595,11 +606,13 @@ def test_tv_clip_save_structure_psd(
         assert out_psd.exists()
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_tv_clip_save_structure_psd_file_does_not_exist(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="destination folder doesn't exist"):
         george.tv_clip_save_structure_psd(tmp_path / "folder" / "out.psd", george.PSDSaveMode.ALL)
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize("all_images", [None, False, True])
 @pytest.mark.parametrize("exposure_label", [None, "", "expo", "ex po"])
 def test_tv_clip_save_structure_csv(
@@ -609,12 +622,7 @@ def test_tv_clip_save_structure_csv(
     all_images: bool | None,
     exposure_label: str | None,
 ) -> None:
-    from packaging import version
-
-    _, tvp_version, _ = george.tv_version()
-    current_version = version.parse(tvp_version)
     out_csv = tmp_path / "out.csv"
-
     load_sequence_with_name(png_sequence[0], name="sequence_1", count=5)
     load_sequence_with_name(png_sequence[0], name="sequence_2", count=2)
 
@@ -631,23 +639,18 @@ def test_tv_clip_save_structure_csv(
 
     for i, layer in enumerate(current_clip_layers()):
         layer_index = f"{(i + 1):03d}"
-        if current_version.major >= 12:  # noqa: SIM108
-            layer_folder_name = f"[{layer_index}] Layer"
-        else:
-            layer_folder_name = f"[{layer_index}] {layer.name}"
+        layer_folder_name = f"[{layer_index}] {layer.name}"
         layer_folder = out_layers_folder / layer_folder_name
         assert layer_folder.exists()
 
         george.tv_layer_set(layer.id)
 
         for j, _ in enumerate(get_instance_frames()):
-            if current_version.major >= 12:
-                image_name = f"[{layer_index}][{(j + 1):05d}] .png"
-            else:
-                image_name = f"[{layer_index}][{(j + 1):05d}] {layer.name}.png"
+            image_name = f"[{layer_index}][{(j + 1):05d}] {layer.name}.png"
             assert (layer_folder / image_name).exists()
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize("layout", [None, *george.SpriteLayout])
 @pytest.mark.parametrize("space", [None, 0, 5, 50])
 def test_tv_clip_save_structure_sprite(
@@ -665,6 +668,7 @@ def test_tv_clip_save_structure_sprite(
     assert out_sprite.exists()
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize("mark_in_out", [None, (0, 0), (0, 5), (2, 5)])
 def test_tv_clip_save_structure_flix(
     test_project: george.TVPProject,
@@ -710,6 +714,7 @@ def test_tv_sound_clip_info_wrong_sound_track_pos(test_clip: george.TVPClip) -> 
         george.tv_sound_clip_info(test_clip.id, 1)
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_sound_clip_new(
     test_project: george.TVPProject,
     test_clip: george.TVPClip,
@@ -720,6 +725,7 @@ def test_tv_sound_clip_new(
         assert george.tv_sound_clip_info(test_clip.id, i)
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_sound_clip_new_wrong_path(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         george.tv_sound_clip_new(tmp_path / "unknown.wav")
@@ -793,10 +799,12 @@ def test_tv_sound_clip_adjust(test_clip: george.TVPClip, wav_file: Path, args: l
         assert real == expected
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 def test_tv_layer_image_get(test_project: george.TVPLayer) -> None:
     assert george.tv_layer_image_get() == 0
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip when running all tests, successive render ops tend to crash TVPaint.")
 @pytest.mark.parametrize("frame", range(10))
 def test_tv_layer_image(frame: int) -> None:
     george.tv_layer_image(frame)

@@ -6,13 +6,15 @@ import pytest
 
 from pytvpaint import george
 
+IS_TVP12 = george.tv_version()[1].startswith("12")
+
 
 def test_tv_camera_info_get(test_project: george.TVPProject) -> None:
     camera = george.tv_camera_info_get()
     assert camera.width == test_project.width
     assert camera.height == test_project.height
     assert camera.pixel_aspect_ratio == test_project.pixel_aspect_ratio
-    if george.is_tvp_version_below_12():
+    if not IS_TVP12:
         assert camera.frame_rate == test_project.frame_rate
 
 
@@ -49,7 +51,7 @@ def test_tv_camera_info_set(
         current = getattr(camera, attr)
         err_msg = f"Error checking {attr} (expected: {arg}, current: {current})"
 
-        if not george.is_tvp_version_below_12() and attr == "frame_rate":
+        if IS_TVP12 and attr in ("frame_rate", "field_order"):
             continue
         assert current == arg, err_msg
 
@@ -59,6 +61,7 @@ def test_tv_camera_enum_points(test_project: george.TVPProject) -> None:
     assert george.tv_camera_enum_points(0)
 
 
+@pytest.mark.skipif(IS_TVP12, reason="`tv_camera_enum_points` no longer returns -1 when given a bad point index.")
 def test_tv_camera_enum_points_wrong_index(test_project: george.TVPProject) -> None:
     with pytest.raises(george.GeorgeError):
         george.tv_camera_enum_points(0)
@@ -68,7 +71,7 @@ def map_value(start: int, end: int, ratio: float) -> float:
     return start + (end - start) * ratio
 
 
-@pytest.mark.skipif(not george.is_tvp_version_below_12(), reason="Function no longer works properly in TVP 12")
+@pytest.mark.skipif(IS_TVP12, reason="Function no longer works properly in TVP 12")
 def test_tv_camera_interpolation(test_project: george.TVPProject) -> None:
     start_x = 0
     start_y = 0
@@ -87,7 +90,7 @@ def test_tv_camera_interpolation(test_project: george.TVPProject) -> None:
 
 
 @pytest.mark.skipif(
-    not george.is_tvp_version_below_12(),
+    IS_TVP12,
     reason="Skipping since tv_camera_interpolation no longer works properly in TVP 12",
 )
 def test_tv_camera_insert_point(test_project: george.TVPProject) -> None:
@@ -106,7 +109,7 @@ def test_tv_camera_remove_point(test_project: george.TVPProject) -> None:
 
 
 @pytest.mark.skipif(
-    not george.is_tvp_version_below_12(),
+    IS_TVP12,
     reason="Skipping since tv_camera_enum_points no longer works properly in TVP 12",
 )
 def test_tv_camera_set_point() -> None:

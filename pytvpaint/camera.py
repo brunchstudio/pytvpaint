@@ -143,12 +143,18 @@ class Camera(Refreshable):
 
     @refreshed_property
     @set_as_current
+    @george.deprecated_warning(
+        msg="Property `Project.field_order` is deprecated in TVPaint 12 and always returns `FieldOrder.NONE`."
+    )
     def field_order(self) -> george.FieldOrder:
         """The field order of the camera."""
         return self._data.field_order
 
     @field_order.setter
     @set_as_current
+    @george.deprecated_warning(
+        msg="Property `Project.field_order` is deprecated in TVPaint 12 and always returns `FieldOrder.NONE`."
+    )
     def field_order(self, value: george.FieldOrder) -> None:
         """The field order of the camera."""
         george.tv_camera_info_set(self.width, self.height, field_order=value)
