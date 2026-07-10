@@ -8,7 +8,7 @@ from pytvpaint import george
 from pytvpaint.layer import Layer
 from tests.conftest import FixtureYield
 
-IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
+IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
 def _first_layer_id() -> int:
@@ -73,7 +73,7 @@ def test_tv_layer_move(test_project: george.TVPProject) -> None:
         assert (layer_info.position + 1) == new_pos
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_layer_move` no longer returns -1 when given a bad position.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_layer_move` no longer returns -1 when given a bad position.")
 @pytest.mark.parametrize("pos", [-1, 3, 100, 1000])
 def test_tv_layer_move_wrong_pos(test_project: george.TVPProject, pos: int) -> None:
     with pytest.raises(
@@ -91,7 +91,7 @@ def test_tv_layer_set(test_project: george.TVPProject) -> None:
         assert george.tv_layer_current_id() == layer
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_layer_set` no longer returns -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_layer_set` no longer returns -1 when given a bad layer id.")
 def test_tv_layer_set_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_set(-16)
@@ -101,7 +101,7 @@ def test_tv_layer_selection_get(test_layer: george.TVPLayer) -> None:
     assert not george.tv_layer_selection_get(test_layer.id)
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerSelection` no longer returns -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerSelection` no longer returns -1 when given a bad layer id.")
 def test_tv_layer_selection_get_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_selection_get(-1)
@@ -116,14 +116,14 @@ def test_tv_layer_selection_set(test_project: george.TVPProject, selected: bool)
         assert george.tv_layer_info(layer).selected == selected
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerSelection` no longer returns -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerSelection` no longer returns -1 when given a bad layer id.")
 @pytest.mark.parametrize("selected", [True, False])
 def test_tv_layer_selection_set_wrong_id(selected: bool) -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_selection_set(-1, selected)
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerSelection` no longer returns -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerSelection` no longer returns -1 when given a bad layer id.")
 def test_tv_layer_selection_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_selection_set(-16, True)
@@ -143,7 +143,7 @@ def test_tv_layer_select_n(test_project: george.TVPProject, test_anim_layer: geo
 
 
 LAYER_NAMES_TO_TEST = ["new_layer", "0", "new layer", ""]
-if not IS_NOT_TVP12:
+if IS_TVP12:
     LAYER_NAMES_TO_TEST = LAYER_NAMES_TO_TEST[:-1]
 
 
@@ -153,7 +153,7 @@ def test_tv_layer_create(test_project: george.TVPProject, name: str) -> None:
     assert george.tv_layer_info(new_layer).name == name
 
 
-@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+@pytest.mark.skipif(not IS_TVP12, reason="Requires TVP12 or higher")
 @pytest.mark.parametrize("name", LAYER_NAMES_TO_TEST)
 def test_tv_layer_folder_create(test_project: george.TVPProject, name: str) -> None:
     new_layer = george.tv_layer_create(name, layer_type=0)
@@ -168,7 +168,6 @@ def test_tv_layer_duplicate(test_project: george.TVPProject, new_name: str) -> N
     assert george.tv_layer_info(george.tv_layer_current_id()).name == new_name
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="This function no longer works in TVP12")
 @pytest.mark.parametrize("new_name", LAYER_NAMES_TO_TEST)
 def test_tv_layer_rename(test_layer: george.TVPLayer, new_name: str) -> None:
     cur_layer_id = george.tv_layer_current_id()
@@ -190,21 +189,21 @@ def test_tv_layer_kill(test_project: george.TVPProject) -> None:
         george.tv_layer_get_pos(new_layer)
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_layer_kill` no longer returns -1 when given a bad folder id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_layer_kill` no longer returns -1 when given a bad folder id.")
 def test_tv_layer_kill_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_kill(-5)
 
 
-@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+@pytest.mark.skipif(not IS_TVP12, reason="Requires TVP12 or higher")
 @pytest.mark.parametrize("remove_children", (True, False))
 def test_tv_layer_folder_delete(test_project: george.TVPProject, remove_children: bool) -> None:
     new_layer = george.tv_layer_create("destroy", layer_type=0)
     george.tv_layer_folder_delete(new_layer, remove_children=remove_children)
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_layer_folder_delete` does not return -1 when given a bad folder id.")
-@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_layer_folder_delete` does not return -1 when given a bad folder id.")
+@pytest.mark.skipif(not IS_TVP12, reason="Requires TVP12 or higher")
 def test_tv_layer_folder_delete_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_folder_delete(-5, True)
@@ -285,7 +284,7 @@ def test_tv_layer_blending_mode_get() -> None:
     assert george.tv_layer_blending_mode_get(george.tv_layer_current_id()) in list(george.BlendingMode)
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerBlendingMode` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerBlendingMode` does not return -1 when given a bad layer id.")
 def test_tv_layer_blending_mode_get_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_blending_mode_get(-1)
@@ -298,7 +297,7 @@ def test_tv_layer_blending_mode_set(test_layer: george.TVPLayer, mode: george.Bl
     assert george.tv_layer_blending_mode_get(current_layer) == mode
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerBlendingMode` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerBlendingMode` does not return -1 when given a bad layer id.")
 def test_tv_layer_blending_mode_set_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_blending_mode_set(-1, george.BlendingMode.ADD)
@@ -308,7 +307,7 @@ def test_tv_layer_stencil_get() -> None:
     george.tv_layer_stencil_get(george.tv_layer_current_id())
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerStencil` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerStencil` does not return -1 when given a bad layer id.")
 def test_tv_layer_stencil_get_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_stencil_get(-1)
@@ -327,7 +326,7 @@ def test_tv_layer_stencil_set(test_layer: george.TVPLayer, mode: george.StencilM
         assert current_mode == mode
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerStencil` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerStencil` does not return -1 when given a bad layer id.")
 @pytest.mark.parametrize("mode", george.StencilMode)
 def test_tv_layer_stencil_set_wrong_id(mode: george.StencilMode) -> None:
     with pytest.raises(george.NoObjectWithIdError):
@@ -416,7 +415,7 @@ def test_tv_layer_pre_behavior_set(test_layer: george.TVPLayer, behavior: george
     assert george.tv_layer_pre_behavior_get(current_layer) == behavior
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerPreBehavior` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerPreBehavior` does not return -1 when given a bad layer id.")
 @pytest.mark.parametrize("behavior", george.LayerBehavior)
 def test_tv_layer_pre_behavior_set_wrong_id(behavior: george.LayerBehavior) -> None:
     with pytest.raises(george.NoObjectWithIdError):
@@ -439,7 +438,7 @@ def test_tv_layer_post_behavior_set(test_layer: george.TVPLayer, behavior: georg
     assert george.tv_layer_post_behavior_get(current_layer) == behavior
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerPostBehavior` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerPostBehavior` does not return -1 when given a bad layer id.")
 @pytest.mark.parametrize("behavior", george.LayerBehavior)
 def test_tv_layer_post_behavior_set_wrong_id(behavior: george.LayerBehavior) -> None:
     with pytest.raises(george.NoObjectWithIdError):
@@ -450,7 +449,7 @@ def test_tv_layer_lock_position_get() -> None:
     george.tv_layer_lock_position_get(george.tv_layer_current_id())
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerLockPosition` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerLockPosition` does not return -1 when given a bad layer id.")
 def test_tv_layer_lock_position_get_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_lock_position_get(-1)
@@ -463,7 +462,7 @@ def test_tv_layer_lock_position_set(test_layer: george.TVPLayer, state: bool) ->
     assert george.tv_layer_lock_position_get(current_layer) == state
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerLockPosition` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerLockPosition` does not return -1 when given a bad layer id.")
 @pytest.mark.parametrize("state", [True, False])
 def test_tv_layer_lock_position_set_wrong_id(state: bool) -> None:
     with pytest.raises(george.NoObjectWithIdError):
@@ -474,7 +473,7 @@ def test_tv_preserve_get() -> None:
     george.tv_preserve_get()
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_preserve_set` does not work in tvpaint 12.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_preserve_set` does not work in tvpaint 12.")
 @pytest.mark.parametrize("state", george.LayerTransparency)
 def test_tv_preserve_set(test_layer: george.TVPLayer, state: george.LayerTransparency) -> None:
     george.tv_preserve_set(state)
@@ -503,7 +502,7 @@ def test_tv_layer_mark_set(test_anim_layer: george.TVPLayer, mark: int) -> None:
     assert george.tv_layer_mark_get(test_anim_layer.id, 0) == mark
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_LayerMarkSet` does not return -1 when given a bad layer id.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerMarkSet` does not return -1 when given a bad layer id.")
 def test_tv_layer_mark_set_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):
         george.tv_layer_mark_set(-1, 0, 0)
@@ -534,8 +533,7 @@ def test_tv_layer_color_get_color_wrong_id() -> None:
         george.tv_layer_color_get_color(-1, 0)
 
 
-name_args = [None, "test"] if IS_NOT_TVP12 else [None]
-
+name_args = [None, "test"] if not IS_TVP12 else [None]
 
 # We skip index 0 because it's the "Default" color and can't be changed
 @pytest.mark.parametrize("color_index", range(1, 27))
@@ -559,7 +557,7 @@ def test_tv_layer_color_set_color(
 
 
 @pytest.mark.skipif(
-    not IS_NOT_TVP12, reason="`tv_LayerColor setcolor` does not return -1 when given a bad color index."
+    IS_TVP12, reason="`tv_LayerColor setcolor` does not return -1 when given a bad color index."
 )
 def test_tv_layer_color_set_color_wrong_id() -> None:
     with pytest.raises(george.NoObjectWithIdError):

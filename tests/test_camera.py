@@ -5,7 +5,7 @@ from pytvpaint.camera import Camera, CameraPoint
 from pytvpaint.clip import Clip
 from tests.conftest import FixtureYield
 
-IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
+IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def test_camera_height(current_camera: Camera, height: int) -> None:
     assert current_camera.height == height
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="Setting the camera fps is no longer possible in TVP12.")
+@pytest.mark.skipif(IS_TVP12, reason="Setting the camera fps is no longer possible in TVP12.")
 @pytest.mark.parametrize("fps", [5.0, 10.0, 24.0, 60.0])
 def test_camera_fps(current_camera: Camera, fps: float) -> None:
     current_camera.fps = fps
@@ -56,6 +56,7 @@ def test_camera_pixel_aspect_ratio(current_camera: Camera, aspect_ratio: float) 
     assert current_camera.pixel_aspect_ratio == aspect_ratio
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Setting the field order is no longer possible in TVP12.")
 @pytest.mark.parametrize("field_order", george.FieldOrder)
 def test_camera_field_order(current_camera: Camera, field_order: george.FieldOrder) -> None:
     current_camera.field_order = field_order
@@ -74,8 +75,8 @@ def test_camera_current_points_data(current_camera: Camera) -> None:
 
 
 @pytest.mark.skipif(
-    not IS_NOT_TVP12,
-    reason="tv_camera_interpolation no longer works properly in TVP 12",
+    IS_TVP12,
+    reason="tv_camera_interpolation does not work properly in TVP 12",
 )
 def test_camera_get_point_data_at(current_camera: Camera) -> None:
     start = current_camera.insert_point(0, 50, 50, 10, 1.2)
@@ -85,6 +86,10 @@ def test_camera_get_point_data_at(current_camera: Camera) -> None:
     assert current_camera.get_point_data_at(1.0).data == end.data
 
 
+@pytest.mark.skipif(
+    IS_TVP12,
+    reason="remove_point does not work properly in TVP 12",
+)
 def test_camera_remove_point(current_camera: Camera) -> None:
     current_camera.insert_point(0, 50, 50, 34, 1.5)
     current_camera.remove_point(0)

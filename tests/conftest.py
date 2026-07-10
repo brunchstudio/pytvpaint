@@ -22,11 +22,11 @@ T = TypeVar("T")
 FixtureYield = Generator[T, None, None]
 
 
-IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
+IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
 def _fix_tvp_12_selection() -> None:
-    if IS_NOT_TVP12:
+    if not IS_TVP12:
         return
 
     # if tvp_version >= 12 and current_layer is Camera, then select first real layer instead:
@@ -65,7 +65,7 @@ def test_project(tmp_path: Path) -> FixtureYield[george.TVPProject]:
             continue
         george.tv_project_close(p_id)
 
-    _fix_tvp_12_selection()
+    # _fix_tvp_12_selection()
 
     yield george.tv_project_info(project_id)
     george.tv_project_close(project_id)
@@ -266,7 +266,7 @@ def wav_file(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
     wav_path = sounds_dir / f"{uuid.uuid4()}.wav"
 
-    framerate = 44100  # Hertz
+    framerate = 48000  # Hertz
     duration = 5  # seconds
     amp_width = 2
     n_frames = framerate * duration
@@ -412,9 +412,9 @@ def with_loaded_sequence(test_clip_obj: Clip, png_sequence: list[Path]) -> Fixtu
     )
 
 
-@pytest.fixture(scope="function", autouse=True)
-def fix_tvp_12_selection() -> None:
-    _fix_tvp_12_selection()
+# @pytest.fixture(scope="function", autouse=True)
+# def fix_tvp_12_selection() -> None:
+#     _fix_tvp_12_selection()
 
 
 def load_sequence_with_name(first_frame: Path, name: str, count: int) -> int:

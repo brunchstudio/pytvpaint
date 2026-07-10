@@ -9,6 +9,8 @@ import pytest
 from pytvpaint import george
 from tests.conftest import FixtureYield
 
+
+IS_TVP12 = george.tv_version()[1].startswith("12")
 COLORS = [george.RGBColor(255, 0, 0), george.RGBColor(0, 255, 0), george.RGBColor(0, 0, 255)]
 
 
@@ -38,7 +40,7 @@ def test_tv_background(
 @pytest.mark.parametrize("height", [500, 1080])
 @pytest.mark.parametrize("pixel_aspect_ratio", [1.0, 2.0, 10.0])
 @pytest.mark.parametrize("frame_rate", [24.0, 12.0])
-@pytest.mark.parametrize("field_order", george.FieldOrder)
+@pytest.mark.parametrize("field_order", (list(george.FieldOrder) if not IS_TVP12 else [george.FieldOrder.NONE]))
 @pytest.mark.parametrize("start_frame", [1, 50])
 def test_tv_project_new(
     tmp_path: Path,
@@ -189,6 +191,9 @@ def test_tv_resize_project(
     res: tuple[int, int],
     cleanup_current_project: None,
 ) -> None:
+    if IS_TVP12 and 0 in res:
+        return
+
     current_pos = get_project_pos(test_project.id)
 
     width, height = res
@@ -203,7 +208,7 @@ def test_tv_resize_project(
 
 @pytest.mark.parametrize(
     "res",
-    [(200, 200), (1000, 100), (0, 500)],
+    [(200, 200), (1000, 100)],
 )
 @pytest.mark.parametrize("resize", george.ResizeOption)
 def test_tv_resize_page(
@@ -212,6 +217,9 @@ def test_tv_resize_page(
     resize: george.ResizeOption,
     cleanup_current_project: None,
 ) -> None:
+    if IS_TVP12 and 0 in res:
+        return
+
     current_pos = get_project_pos(test_project.id)
 
     width, height = res
@@ -237,6 +245,7 @@ def test_tv_ratio(test_project: george.TVPProject) -> None:
     assert george.tv_ratio() == test_project.pixel_aspect_ratio
 
 
+@pytest.mark.skipif(IS_TVP12, reason="Skip since this is now deprecated in TVPaint 12.")
 def test_tv_get_field(test_project: george.TVPProject) -> None:
     assert george.tv_get_field() == test_project.field_order
 

@@ -392,8 +392,6 @@ def tv_layer_rename(layer_id: int, name: str) -> str:
     Returns:
         str: new name
     """
-    if not is_tvp_version_below_12():
-        log.warning("function `tv_LayerRename` does not seem to work properly in TVPaint 12")
     return send_cmd("tv_LayerRename", layer_id, name, error_values=[-1])
 
 
@@ -427,7 +425,7 @@ def tv_layer_folder_delete(layer_id: int, remove_children: bool) -> None:
 
 def tv_layer_density_get() -> int:
     """Get the current layer density (opacity)."""
-    return int(send_cmd("tv_LayerDensity"))
+    return int(float(send_cmd("tv_LayerDensity")))
 
 
 def tv_layer_density_set(new_density: int) -> None:

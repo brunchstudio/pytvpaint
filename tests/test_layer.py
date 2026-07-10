@@ -13,7 +13,7 @@ from pytvpaint.project import Project
 from pytvpaint.scene import Scene
 from tests.conftest import FixtureYield
 
-IS_NOT_TVP12 = not george.tv_version()[1].startswith("12")
+IS_TVP12 = george.tv_version()[1].startswith("12")
 
 
 def test_layer_init(test_layer_obj: Layer) -> None:
@@ -49,13 +49,14 @@ def test_layer_position(
     assert test_layer_obj.position == position
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="Skip since layer naming doesn't work in TVP12.")
+# @pytest.mark.skipif(IS_TVP12, reason="Skip since layer naming doesn't work in TVP12.")
 @pytest.mark.parametrize("name", ["l", "a n", "a0", "8 _d"])
 def test_layer_name(test_layer_obj: Layer, name: str) -> None:
     test_layer_obj.name = name
     assert test_layer_obj.name == name
 
 
+@pytest.mark.skipif(IS_TVP12, reason="`tv_LayerDensity` does not work in tvpaint 12.")
 @pytest.mark.parametrize("opacity", [1, 50, 24, 100])
 def test_layer_opacity(test_layer_obj: Layer, opacity: int) -> None:
     test_layer_obj.opacity = opacity
@@ -160,7 +161,7 @@ def test_layer_auto_break_instance(test_anim_layer_obj: Layer, value: bool) -> N
     assert test_anim_layer_obj.auto_break_instance == value
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="TVP12 create anim layers by default now.")
+@pytest.mark.skipif(IS_TVP12, reason="TVP12 creates anim layers by default now.")
 def test_layer_auto_break_instance_not_anim_layer(test_layer_obj: Layer) -> None:
     with pytest.raises(Exception, match="it's not an animation layer"):
         test_layer_obj.auto_break_instance = True
@@ -190,7 +191,7 @@ def test_layer_is_position_locked(test_layer_obj: Layer, value: bool) -> None:
     assert test_layer_obj.is_position_locked == value
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="`tv_preserve_set` does not work in tvpaint 12.")
+@pytest.mark.skipif(IS_TVP12, reason="`tv_Preserve` does not work in tvpaint 12.")
 @pytest.mark.parametrize("transparency", george.LayerTransparency)
 def test_layer_preserve_transparency(test_layer_obj: Layer, transparency: george.LayerTransparency) -> None:
     test_layer_obj.preserve_transparency = transparency
@@ -249,7 +250,7 @@ def test_layer_new_anim_layer(test_clip_obj: Clip) -> None:
 
 def test_layer_new_background_layer(test_clip_obj: Clip) -> None:
     layer = Layer.new_background_layer("background_layer")
-    assert layer.layer_type == (george.LayerType.IMAGE if IS_NOT_TVP12 else george.LayerType.SEQUENCE)
+    assert layer.layer_type == (george.LayerType.IMAGE if not IS_TVP12 else george.LayerType.SEQUENCE)
     assert layer.thumbnails_visible
     assert layer.pre_behavior == george.LayerBehavior.HOLD
     assert layer.post_behavior == george.LayerBehavior.HOLD
@@ -269,7 +270,7 @@ def test_layer_remove(test_clip_obj: Clip) -> None:
         layer.name = "other"
 
 
-@pytest.mark.skipif(IS_NOT_TVP12, reason="Requires TVP12 or higher")
+@pytest.mark.skipif(not IS_TVP12, reason="Requires TVP12 or higher")
 def test_layer_folder_remove(test_clip_obj: Clip) -> None:
     layer = LayerFolder.new("remove")
     layer.remove()
@@ -302,7 +303,7 @@ def test_layer_render_instances(with_loaded_sequence: Layer, tmp_path: Path, fra
     assert found_sequence.frameSet().items == check_frame_set.items  # type: ignore[union-attr]
 
 
-@pytest.mark.skipif(not IS_NOT_TVP12, reason="TVP12 create anim layers by default now.")
+@pytest.mark.skipif(IS_TVP12, reason="TVP12 creates anim layers by default now.")
 def test_layer_add_mark_not_anim_layer(test_layer_obj: Layer) -> None:
     with pytest.raises(Exception, match="not an animation layer"):
         test_layer_obj.add_mark(0, LayerColor(1))

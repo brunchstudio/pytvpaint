@@ -1031,11 +1031,23 @@ class Layer(Removable):
         Returns:
             FileSequence: instances output sequence
         """
-        frames = sorted([layer_instance.start for layer_instance in self.instances])
+        from pytvpaint.clip import Clip
+
+        frames = []
+        for layer_instance in self.instances:
+            instance_frame = int(layer_instance.start)
+            if not (self.clip.mark_in or self.clip.start) <= instance_frame <= (self.clip.mark_out or self.clip.end):
+                continue
+            frames.append(instance_frame)
+        frames = sorted(frames)
+
         if frame_set is not None:
             frame_set = FrameSet([f for f in frame_set.items if f in frames])
-        else:
-            frame_set = FrameSet(frames) or frame_set
+        if not frame_set or not frame_set.items:
+            frame_set = FrameSet(frames)
+
+        if not frame_set.items:
+            raise ValueError("No valid instance frames found in range !")
 
         return self.clip.render(
             output_path=export_path,
